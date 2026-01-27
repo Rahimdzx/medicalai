@@ -1,0 +1,23 @@
+workflows:
+  android-build:
+    name: Android APK Build
+    max_build_duration: 120
+    instance_type: mac_mini_m1
+    environment:
+      flutter: 3.24.5
+      java: 17
+    scripts:
+      - name: Setup and Clean
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+          rm -rf android/.gradle
+          rm -rf ~/.gradle/caches
+          flutter clean
+      
+      - name: Build APK
+        script: |
+          flutter pub get
+          flutter build apk --release
+    
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
