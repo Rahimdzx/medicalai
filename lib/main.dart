@@ -9,11 +9,22 @@ import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/patient_dashboard.dart';
 import 'screens/doctor_dashboard.dart';
+import 'firebase_options.dart'; // اذا استخدمت flutterfire configure
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+
+  try {
+    // Initialize Firebase safely
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    print("Firebase initialization error: $e");
+  }
+
   final prefs = await SharedPreferences.getInstance();
+
   runApp(MyApp(prefs: prefs));
 }
 
@@ -42,6 +53,9 @@ class MyApp extends StatelessWidget {
             ],
             localizationsDelegates: const [
               AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
             ],
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -50,16 +64,22 @@ class MyApp extends StatelessWidget {
             home: Consumer<AuthProvider>(
               builder: (context, authProvider, child) {
                 if (authProvider.isLoading) {
+                  // CircularProgress أثناء التحميل
                   return const Scaffold(
                     body: Center(child: CircularProgressIndicator()),
                   );
                 }
+
                 if (authProvider.user == null) {
+                  // المستخدم غير مسجل الدخول
                   return const LoginScreen();
                 }
+
+                // المستخدم مسجل الدخول
                 if (authProvider.userRole == 'doctor') {
                   return const DoctorDashboard();
                 }
+
                 return const PatientDashboard();
               },
             ),
