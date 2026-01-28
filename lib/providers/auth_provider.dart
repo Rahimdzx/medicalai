@@ -7,7 +7,7 @@ class AuthProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   User? _user;
-  String _userRole = 'patient'; // default patient
+  String _userRole = 'patient';
   bool _isLoading = true;
 
   AuthProvider() {
@@ -18,54 +18,41 @@ class AuthProvider extends ChangeNotifier {
   String get userRole => _userRole;
   bool get isLoading => _isLoading;
 
-  // INIT with protection
   void _init() {
-    try {
-      _auth.authStateChanges().listen(
-        (user) async {
-          print("Auth state changed: $user");
-          _user = user;
-
-          if (user != null) {
-            await _loadUserRoleSafe();
-          } else {
-            _userRole = 'patient';
-          }
-
-          _isLoading = false;
-          notifyListeners();
-        },
-        onError: (err) {
-          print("Auth stream error: $err");
-          _isLoading = false;
-          _user = null;
+    _auth.authStateChanges().listen(
+      (user) async {
+        _user = user;
+        if (user != null) {
+          await _loadUserRoleSafe();
+        } else {
           _userRole = 'patient';
-          notifyListeners();
-        },
-      );
-    } catch (e) {
-      print("AuthProvider init error: $e");
-      _isLoading = false;
-      notifyListeners();
-    }
+        }
+        _isLoading = false;
+        notifyListeners();
+      },
+      onError: (err) {
+        _isLoading = false;
+        notifyListeners();
+      },
+    );
   }
 
-  // Firestore call with timeout + fallback
   Future<void> _loadUserRoleSafe() async {
     try {
-      final doc =
-          await _firestore.collection('users').doc(_user!.uid).get().timeout(
+      // تم تعديل الـ timeout ليرمي خطأ بدلاً من إرجاع null لتجنب تعارض الأنواع
+      final doc = await _firestore
+          .collection('users')
+          .doc(_user!.uid)
+          .get()
+          .timeout(
         const Duration(seconds: 5),
         onTimeout: () {
-          print("Firestore timeout, using default role patient");
-          return null;
+          throw Exception("Timeout");
         },
       );
 
-      if (doc != null && doc.exists) {
+      if (doc.exists) {
         _userRole = doc.data()?['role'] ?? 'patient';
-      } else {
-        _userRole = 'patient';
       }
     } catch (e) {
       print("Error loading user role: $e");
@@ -73,18 +60,15 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // SIGN IN
   Future<String?> signIn(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       return null;
     } on FirebaseAuthException catch (e) {
-      print("SignIn error: ${e.code}");
       return e.code;
     }
   }
 
-  // SIGN UP
   Future<String?> signUp({
     required String email,
     required String password,
@@ -110,20 +94,14 @@ class AuthProvider extends ChangeNotifier {
 
       return null;
     } on FirebaseAuthException catch (e) {
-      print("SignUp error: ${e.code}");
       return e.code;
     }
   }
 
-  // SIGN OUT
   Future<void> signOut() async {
-    try {
-      await _auth.signOut();
-      _user = null;
-      _userRole = 'patient';
-      notifyListeners();
-    } catch (e) {
-      print("SignOut error: $e");
-    }
+    await _auth.signOut();
+    _user = null;
+    _userRole = 'patient';
+    notifyListeners();
   }
 }
