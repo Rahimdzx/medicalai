@@ -7,11 +7,17 @@ workflows:
       flutter: 3.24.5
       java: 17
     scripts:
-      - name: Setup and Clean
+      - name: Clean All Caches
         script: |
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+          # حذف كل الـ cache
           rm -rf android/.gradle
+          rm -rf android/build
+          rm -rf build
+          rm -rf .dart_tool
           rm -rf ~/.gradle/caches
+          rm -rf ~/.gradle/wrapper
+          
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
           flutter clean
       
       - name: Build APK
