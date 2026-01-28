@@ -8,7 +8,7 @@
     <application
         android:label="Medical App"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@android:drawable/ic_menu_info_details"
 
         <activity
             android:name=".MainActivity"
