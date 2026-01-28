@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// يجب إضافة هذا السطر لكي تعمل الـ Localizations
 import 'package:flutter_localizations/flutter_localizations.dart'; 
 
 import 'l10n/app_localizations.dart';
@@ -11,28 +10,31 @@ import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/patient_dashboard.dart';
 import 'screens/doctor_dashboard.dart';
-import 'firebase_options.dart'; // تأكد أن هذا الملف موجود في مجلد lib
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    // الطريقة الصحيحة باستخدام الملف المولد من FlutterFire CLI
+    // إعداد Firebase يدوياً بدون الحاجة لملف firebase_options.dart
     await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+      options: const FirebaseOptions(
+        apiKey: "AIzaSyBgyD_eY_ESnhPV8YC91a3O88exvnHJgbA",
+        appId: "1:831395986138:android:efaa3b497df3f0594f03e3",
+        messagingSenderId: "831395986138",
+        projectId: "medical-app-eb53e",
+        storageBucket: "medical-app-eb53e.firebasestorage.app",
+      ),
     );
   } catch (e) {
     print("Firebase initialization error: $e");
   }
 
   final prefs = await SharedPreferences.getInstance();
-
   runApp(MyApp(prefs: prefs));
 }
 
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
-
   const MyApp({super.key, required this.prefs});
 
   @override
@@ -47,8 +49,7 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'Medical App',
             debugShowCheckedModeBanner: false,
-            // تحديث اللغة ديناميكياً بناءً على البروفايدر
-            locale: languageProvider.locale, 
+            locale: languageProvider.locale,
             supportedLocales: const [
               Locale('en'),
               Locale('ar'),
@@ -64,27 +65,22 @@ class MyApp extends StatelessWidget {
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
               useMaterial3: true,
             ),
-            // منطق التوجيه (Routing Logic)
             home: Consumer<AuthProvider>(
               builder: (context, authProvider, child) {
-                // 1. حالة التحميل (مثلاً عند فتح التطبيق والتحقق من التوكن)
                 if (authProvider.isLoading) {
                   return const Scaffold(
                     body: Center(child: CircularProgressIndicator()),
                   );
                 }
 
-                // 2. المستخدم غير مسجل دخول
                 if (authProvider.user == null) {
                   return const LoginScreen();
                 }
 
-                // 3. المستخدم مسجل دخول - توجيه حسب الصلاحية
                 if (authProvider.userRole == 'doctor') {
                   return const DoctorDashboard();
                 }
 
-                // الافتراضي للمريض
                 return const PatientDashboard();
               },
             ),
