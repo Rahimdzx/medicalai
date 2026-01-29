@@ -1,5 +1,5 @@
 name: medical_app
-description: تطبيق طبي مع QR Code و Firebase
+description: تطبيق طبي متكامل مع مكالمات فيديو، QR Code و Firebase
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -12,29 +12,37 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  # Firebase
+  # Firebase Core & Auth
   firebase_core: ^3.6.0
   firebase_auth: ^5.3.1
   cloud_firestore: ^5.4.4
+  
+  # Notifications & Messaging
   firebase_messaging: ^15.1.6
+  flutter_local_notifications: ^18.0.1
+  
+  # Storage & Media
   firebase_storage: ^12.3.7
+  image_picker: ^1.1.2
+  file_picker: ^8.1.6
+
+  # Video Call (Agora) - الإضافة الجديدة للمكالمات
+  agora_rtc_engine: ^6.3.2
+  permission_handler: ^11.3.1 # ضروري لإدارة أذونات الكاميرا والميكروفون
 
   # QR & Scanning
   mobile_scanner: ^5.1.1
   qr_flutter: ^4.1.0
 
-  # PDF & Printing & Files (لحل أخطاء ملف pdf_export_service)
+  # PDF & Printing & Files
   pdf: ^3.11.1
   printing: ^5.13.4
-  path_provider: ^2.1.2  # مهم جداً لحفظ ملفات الـ PDF مؤقتاً
+  path_provider: ^2.1.2
   share_plus: ^10.1.3
-  file_picker: ^8.1.6
-  image_picker: ^1.1.2
 
-  # Notifications & Utilities
-  flutter_local_notifications: ^18.0.1
-  uuid: ^4.5.1
+  # Utilities & State Management
   provider: ^6.1.2
+  uuid: ^4.5.1
   intl: ^0.19.0
   shared_preferences: ^2.3.2
   cupertino_icons: ^1.0.8
@@ -46,4 +54,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  generate: true # ضروري جداً لتوليد ملفات الترجمة (l10n)
+  generate: true # ضروري لتوليد ملفات الترجمة l10n
