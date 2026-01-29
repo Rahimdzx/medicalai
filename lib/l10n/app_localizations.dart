@@ -71,8 +71,7 @@ class AppLocalizations {
       'qrForRecord': 'QR Code for Medical Record',
       'shareQR': 'Share QR Code',
       'shareFeatureComingSoon': 'Save and share feature coming soon',
-      'patientCanScan':
-          'Patient can scan this code to get medical record information',
+      'patientCanScan': 'Patient can scan this code to get medical record information',
       'settings': 'Settings',
       'language': 'Language',
       'selectLanguage': 'Select Language',
@@ -80,6 +79,33 @@ class AppLocalizations {
       'russian': 'Russian',
       'english': 'English',
       'languageChanged': 'Language changed successfully',
+      // الحقول المضافة لحل الأخطاء
+      'search': 'Search',
+      'searchHint': 'Search by patient, diagnosis...',
+      'medicalHistory': 'Medical History',
+      'noMedicalHistory': 'No medical history yet',
+      'medicationReminders': 'Reminders',
+      'noReminders': 'No reminders set',
+      'addReminder': 'Add Reminder',
+      'medicationName': 'Medication Name',
+      'dosage': 'Dosage',
+      'reminderTime': 'Reminder Time',
+      'repeatDays': 'Repeat on days',
+      'reminderAdded': 'Reminder added',
+      'deleteReminder': 'Delete Reminder',
+      'deleteReminderConfirm': 'Are you sure you want to delete this?',
+      'delete': 'Delete',
+      'exportPdf': 'Export as PDF',
+      'exportAll': 'Export All',
+      'patientHistory': 'Patient History',
+      'print': 'Print',
+      'noMedicalRecords': 'No medical records found',
+      'createPatientQuestion': 'Patient not found. Create new profile?',
+      'create': 'Create',
+      'pleaseEnterDiagnosis': 'Please enter diagnosis',
+      'pleaseEnterPrescription': 'Please enter prescription',
+      'dateRange': 'Date Range',
+      'results': 'results',
     },
     'ar': {
       'appTitle': 'التطبيق الطبي',
@@ -138,8 +164,7 @@ class AppLocalizations {
       'qrForRecord': 'QR Code للسجل الطبي',
       'shareQR': 'مشاركة QR Code',
       'shareFeatureComingSoon': 'ميزة الحفظ والمشاركة قيد التطوير',
-      'patientCanScan':
-          'يمكن للمريض مسح هذا الكود للحصول على معلومات السجل الطبي',
+      'patientCanScan': 'يمكن للمريض مسح هذا الكود للحصول على معلومات السجل الطبي',
       'settings': 'الإعدادات',
       'language': 'اللغة',
       'selectLanguage': 'اختر اللغة',
@@ -147,6 +172,33 @@ class AppLocalizations {
       'russian': 'الروسية',
       'english': 'الإنجليزية',
       'languageChanged': 'تم تغيير اللغة بنجاح',
+      // الحقول المضافة لحل الأخطاء
+      'search': 'بحث',
+      'searchHint': 'ابحث بالمريض، التشخيص...',
+      'medicalHistory': 'السجل الطبي',
+      'noMedicalHistory': 'لا يوجد سجل طبي حتى الآن',
+      'medicationReminders': 'التنبيهات',
+      'noReminders': 'لا توجد تنبيهات معدة',
+      'addReminder': 'إضافة تنبيه',
+      'medicationName': 'اسم الدواء',
+      'dosage': 'الجرعة',
+      'reminderTime': 'وقت التنبيه',
+      'repeatDays': 'تكرار في أيام',
+      'reminderAdded': 'تم إضافة التنبيه',
+      'deleteReminder': 'حذف التنبيه',
+      'deleteReminderConfirm': 'هل أنت متأكد من حذف هذا التنبيه؟',
+      'delete': 'حذف',
+      'exportPdf': 'تصدير PDF',
+      'exportAll': 'تصدير الكل',
+      'patientHistory': 'تاريخ المريض',
+      'print': 'طباعة',
+      'noMedicalRecords': 'لم يتم العثور على سجلات طبية',
+      'createPatientQuestion': 'المريض غير موجود، هل تريد إنشاء ملف جديد؟',
+      'create': 'إنشاء',
+      'pleaseEnterDiagnosis': 'الرجاء إدخال التشخيص',
+      'pleaseEnterPrescription': 'الرجاء إدخال الوصفة',
+      'dateRange': 'الفترة الزمنية',
+      'results': 'نتائج',
     },
     'ru': {
       'appTitle': 'Медицинское приложение',
@@ -213,6 +265,33 @@ class AppLocalizations {
       'russian': 'Русский',
       'english': 'Английский',
       'languageChanged': 'Язык изменён',
+      // الحقول المضافة لحل الأخطاء
+      'search': 'Поиск',
+      'searchHint': 'Поиск пациента...',
+      'medicalHistory': 'История болезни',
+      'noMedicalHistory': 'Истории болезни пока нет',
+      'medicationReminders': 'Напоминания',
+      'noReminders': 'Напоминаний нет',
+      'addReminder': 'Добавить',
+      'medicationName': 'Название лекарства',
+      'dosage': 'Дозировка',
+      'reminderTime': 'Время',
+      'repeatDays': 'Повтор по дням',
+      'reminderAdded': 'Напоминание добавлено',
+      'deleteReminder': 'Удалить',
+      'deleteReminderConfirm': 'Вы уверены?',
+      'delete': 'Удалить',
+      'exportPdf': 'Экспорт PDF',
+      'exportAll': 'Экспорт всего',
+      'patientHistory': 'История пациента',
+      'print': 'Печать',
+      'noMedicalRecords': 'Записей не найдено',
+      'createPatientQuestion': 'Создать профиль?',
+      'create': 'Создать',
+      'pleaseEnterDiagnosis': 'Введите диагноз',
+      'pleaseEnterPrescription': 'Введите рецепт',
+      'dateRange': 'Период',
+      'results': 'результаты',
     },
   };
 
@@ -221,6 +300,7 @@ class AppLocalizations {
         _localizedValues['en']![key]!;
   }
 
+  // Getters
   String get appTitle => _get('appTitle');
   String get email => _get('email');
   String get password => _get('password');
@@ -285,6 +365,34 @@ class AppLocalizations {
   String get russian => _get('russian');
   String get english => _get('english');
   String get languageChanged => _get('languageChanged');
+  
+  // Getters الجديدة المضافة لحل الأخطاء
+  String get search => _get('search');
+  String get searchHint => _get('searchHint');
+  String get medicalHistory => _get('medicalHistory');
+  String get noMedicalHistory => _get('noMedicalHistory');
+  String get medicationReminders => _get('medicationReminders');
+  String get noReminders => _get('noReminders');
+  String get addReminder => _get('addReminder');
+  String get medicationName => _get('medicationName');
+  String get dosage => _get('dosage');
+  String get reminderTime => _get('reminderTime');
+  String get repeatDays => _get('repeatDays');
+  String get reminderAdded => _get('reminderAdded');
+  String get deleteReminder => _get('deleteReminder');
+  String get deleteReminderConfirm => _get('deleteReminderConfirm');
+  String get delete => _get('delete');
+  String get exportPdf => _get('exportPdf');
+  String get exportAll => _get('exportAll');
+  String get patientHistory => _get('patientHistory');
+  String get print => _get('print');
+  String get noMedicalRecords => _get('noMedicalRecords');
+  String get createPatientQuestion => _get('createPatientQuestion');
+  String get create => _get('create');
+  String get pleaseEnterDiagnosis => _get('pleaseEnterDiagnosis');
+  String get pleaseEnterPrescription => _get('pleaseEnterPrescription');
+  String get dateRange => _get('dateRange');
+  String get results => _get('results');
 }
 
 class _AppLocalizationsDelegate
