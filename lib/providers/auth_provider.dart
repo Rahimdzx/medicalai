@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart'; // تأكد من إضافة هذه المكتبة في pubspec.yaml
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -23,13 +23,11 @@ class AuthProvider extends ChangeNotifier {
   void _init() {
     _auth.authStateChanges().listen(
       (user) async {
-        // نضع isLoading = true لمنع رسم الواجهة أثناء جلب البيانات
         _isLoading = true;
         notifyListeners();
 
         _user = user;
         if (user != null) {
-          // ننتظر جلب الدور وحفظ التوكن قبل تغيير حالة التحميل
           await _loadUserRoleSafe();
           await _updateFcmToken(); 
         } else {
@@ -46,7 +44,32 @@ class AuthProvider extends ChangeNotifier {
     );
   }
 
-  // تحديث الـ Token الخاص بالإشعارات لربطه بالمستخدم في Firestore
+  /// هذه هي الدالة التي كانت تنقصك وتسببت في فشل Build GitHub Action
+  Future<void> notifyPatientOfCall({
+    required String patientUid,
+    required String channelName,
+    required String token,
+  }) async {
+    try {
+      if (patientUid.isEmpty) return;
+
+      // تحديث بيانات المكالمة في مستند المريض ليتمكن من استقبالها
+      await _firestore.collection('users').doc(patientUid).update({
+        'currentCall': {
+          'channelName': channelName,
+          'token': token,
+          'callerName': _user?.email ?? "Doctor",
+          'callerId': _user?.uid,
+          'status': 'calling',
+          'timestamp': FieldValue.serverTimestamp(),
+        }
+      });
+      debugPrint("Patient notified of call successfully.");
+    } catch (e) {
+      debugPrint("Error notifying patient of call: $e");
+    }
+  }
+
   Future<void> _updateFcmToken() async {
     try {
       if (_user == null) return;
@@ -58,7 +81,7 @@ class AuthProvider extends ChangeNotifier {
         });
       }
     } catch (e) {
-      print("Error updating FCM token: $e");
+      debugPrint("Error updating FCM token: $e");
     }
   }
 
@@ -74,11 +97,10 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (doc.exists) {
-        // نحدث الدور بناءً على ما هو موجود في Firestore
         _userRole = doc.data()?['role'] ?? 'patient';
       }
     } catch (e) {
-      print("Error loading user role: $e");
+      debugPrint("Error loading user role: $e");
       _userRole = 'patient';
     }
   }
@@ -88,7 +110,6 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-      // لا نحتاج لتغيير isLoading هنا لأن authStateChanges ستتكفل بذلك
       return null;
     } on FirebaseAuthException catch (e) {
       _isLoading = false;
@@ -114,7 +135,6 @@ class AuthProvider extends ChangeNotifier {
         password: password,
       );
 
-      // جلب توكن الإشعارات فور التسجيل
       String? fcmToken = await _fcm.getToken();
 
       await _firestore.collection('users').doc(credential.user!.uid).set({
@@ -123,7 +143,7 @@ class AuthProvider extends ChangeNotifier {
         'role': role,
         'phone': phone ?? '',
         'specialization': specialization ?? '',
-        'fcmToken': fcmToken ?? '', // حفظ التوكن هنا لتفعيل الإشعارات لهذا المستخدم
+        'fcmToken': fcmToken ?? '',
         'createdAt': FieldValue.serverTimestamp(),
       });
 
