@@ -21,9 +21,15 @@ jobs:
         with:
           flutter-version: '3.24.5'
       
-      - run: flutter pub get
+      # تنظيف المشروع لضمان عدم وجود كاش قديم يسبب خطأ "Method not defined"
+      - name: Clean build
+        run: flutter clean
+
+      - name: Install dependencies
+        run: flutter pub get
       
-      - run: flutter build apk --release
+      - name: Build APK
+        run: flutter build apk --release
       
       - uses: actions/upload-artifact@v4
         with:
