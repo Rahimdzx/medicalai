@@ -19,7 +19,6 @@ class DoctorProfileView extends StatelessWidget {
         centerTitle: true,
       ),
       body: FutureBuilder<DocumentSnapshot>(
-        // جلب بيانات الطبيب من مجموعة users باستخدام الـ ID الممسوح من الـ QR
         future: FirebaseFirestore.instance.collection('users').doc(doctorId).get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -30,7 +29,6 @@ class DoctorProfileView extends StatelessWidget {
             return Center(child: Text(l10n.userNotFound));
           }
 
-          // تحويل البيانات إلى Map لسهولة الوصول إليها
           var doctorData = snapshot.data!.data() as Map<String, dynamic>;
 
           return SingleChildScrollView(
@@ -38,7 +36,7 @@ class DoctorProfileView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // عرض الصورة الشخصية (photoUrl)
+                // الصورة الشخصية مع معالجة الرابط الفارغ
                 CircleAvatar(
                   radius: 70,
                   backgroundColor: Colors.blue.shade50,
@@ -51,21 +49,18 @@ class DoctorProfileView extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // اسم الطبيب
                 Text(
                   "Dr. ${doctorData['name'] ?? ''}",
                   style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
 
-                // التخصص
                 Text(
                   doctorData['specialization'] ?? l10n.doctor,
                   style: TextStyle(fontSize: 18, color: Colors.blue.shade700, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 30),
 
-                // بطاقة معلومات السعر والمواعيد
                 Card(
                   elevation: 0,
                   color: Colors.grey.shade50,
@@ -74,9 +69,9 @@ class DoctorProfileView extends StatelessWidget {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
-                        _infoTile(Icons.payments_outlined, "Consultation Fee / Цена", "${doctorData['price'] ?? '50'} USD"),
+                        _infoTile(Icons.payments_outlined, "Consultation Fee / Цена / السعر", "${doctorData['price'] ?? '50'} USD"),
                         const Divider(height: 30),
-                        _infoTile(Icons.event_available_outlined, "Schedule / График", doctorData['schedule'] ?? "Mon-Fri / Пн-Пт"),
+                        _infoTile(Icons.event_available_outlined, "Schedule / График / المواعيد", doctorData['schedule'] ?? "Mon-Fri / Пн-Пт"),
                       ],
                     ),
                   ),
@@ -84,7 +79,6 @@ class DoctorProfileView extends StatelessWidget {
                 
                 const SizedBox(height: 40),
 
-                // زر الحجز المباشر
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -94,9 +88,9 @@ class DoctorProfileView extends StatelessWidget {
                       backgroundColor: Colors.blue.shade700,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text(
-                      "Book Appointment / Записаться",
-                      style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                    child: const Text(
+                      "Book Now / Записаться / احجز الآن",
+                      style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -108,7 +102,6 @@ class DoctorProfileView extends StatelessWidget {
     );
   }
 
-  // ويدجت مساعدة لعرض صفوف المعلومات
   Widget _infoTile(IconData icon, String label, String value) {
     return Row(
       children: [
@@ -127,17 +120,17 @@ class DoctorProfileView extends StatelessWidget {
     );
   }
 
-  // منطق معالجة عملية الحجز
   Future<void> _handleBooking(BuildContext context, Map<String, dynamic> doctorData) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     
-    // 1. التحقق من تسجيل دخول المريض
     if (authProvider.user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please Login / Войдите / يرجى تسجيل الدخول")),
+      );
       Navigator.pushNamed(context, '/login');
       return;
     }
 
-    // 2. إظهار مؤشر تحميل
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -145,7 +138,7 @@ class DoctorProfileView extends StatelessWidget {
     );
 
     try {
-      // 3. إضافة الحجز في مجموعة appointments
+      // إرسال البيانات لمجموعتك الجديدة 'appointments'
       await FirebaseFirestore.instance.collection('appointments').add({
         'doctorId': doctorId,
         'doctorName': doctorData['name'],
@@ -157,9 +150,12 @@ class DoctorProfileView extends StatelessWidget {
       });
 
       if (context.mounted) {
-        Navigator.pop(context); // إغلاق مؤشر التحميل
+        Navigator.pop(context); // إغلاق التحميل
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Successful Booking! / Запись прошла успешно!"), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text("Booking Sent! / Запись отправлена! / تم إرسال الطلب!"), 
+            backgroundColor: Colors.green
+          ),
         );
       }
     } catch (e) {
