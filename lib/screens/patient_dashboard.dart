@@ -15,7 +15,12 @@ class PatientDashboard extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("My Medical Records"),
-        actions: [IconButton(icon: const Icon(Icons.logout), onPressed: () => auth.signOut())],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => auth.signOut(),
+          )
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -24,8 +29,12 @@ class PatientDashboard extends StatelessWidget {
             .orderBy('createdAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return const Center(child: Text("No records found"));
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text("No records found"));
+          }
 
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -55,14 +64,19 @@ class _PatientRecordCard extends StatelessWidget {
         children: [
           ListTile(
             leading: CircleAvatar(
-              backgroundImage: record.doctorPhotoUrl.isNotEmpty ? NetworkImage(record.doctorPhotoUrl) : null,
+              backgroundImage: record.doctorPhotoUrl.isNotEmpty 
+                  ? NetworkImage(record.doctorPhotoUrl) 
+                  : null,
               child: record.doctorPhotoUrl.isEmpty ? const Icon(Icons.person) : null,
             ),
             title: Text(record.doctorName, style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text(record.date),
             trailing: IconButton(
               icon: const Icon(Icons.videocam, color: Colors.green),
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VideoCallScreen(channelName: record.doctorId, token: ""))),
+              onPressed: () => Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (_) => VideoCallScreen(channelName: record.doctorId, token: ""))
+              ),
             ),
           ),
           Padding(
