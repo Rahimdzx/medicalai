@@ -4,13 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart'; 
 
-// تأكد أن المسار هنا يشير إلى الملف الذي وضعت فيه كلاس الترجمة
 import 'l10n/app_localizations.dart'; 
 import 'providers/language_provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/patient_dashboard.dart';
 import 'screens/doctor_dashboard.dart';
+import 'screens/home_screen.dart'; // تأكد من استيراد الشاشة الرئيسية
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,9 +51,14 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             locale: languageProvider.locale,
             
-            // إعدادات الترجمة باستخدام الكلاس المخصص الذي أرسلته
+            // تعريف المسارات لضمان عمل Navigator.pushNamed
+            routes: {
+              '/login': (context) => const LoginScreen(),
+              '/home': (context) => const HomeScreen(),
+            },
+
             localizationsDelegates: const [
-              AppLocalizations.delegate, // هذا هو المفتاح لربط كودك بـ Flutter
+              AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
@@ -69,45 +74,20 @@ class MyApp extends StatelessWidget {
               useMaterial3: true,
             ),
 
-            // إضافة معالج أخطاء لمنع الشاشة الرمادية وعرض نص الخطأ بدلاً منها
-            builder: (context, widget) {
-              ErrorWidget.builder = (FlutterErrorDetails details) {
-                return Scaffold(
-                  body: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Text(
-                        "Error: ${details.exception}",
-                        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                );
-              };
-              return widget!;
-            },
-
             home: Consumer<AuthProvider>(
               builder: (context, authProvider, child) {
                 if (authProvider.isLoading) {
-                  return const Scaffold(
-                    body: Center(child: CircularProgressIndicator()),
-                  );
+                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
                 }
 
+                // إذا لم يسجل دخول، نرسله للشاشة الرئيسية (HomeScreen)
                 if (authProvider.user == null) {
-                  return const LoginScreen();
+                  return const HomeScreen(); 
                 }
 
-                // الحماية من الـ null في حالة الـ Role
+                // توجيه المستخدم حسب دوره بعد تسجيل الدخول
                 final String role = authProvider.userRole ?? 'patient';
-                
-                if (role == 'doctor') {
-                  return const DoctorDashboard();
-                } else {
-                  return const PatientDashboard();
-                }
+                return role == 'doctor' ? const DoctorDashboard() : const PatientDashboard();
               },
             ),
           );
@@ -115,4 +95,5 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
+}
 }
