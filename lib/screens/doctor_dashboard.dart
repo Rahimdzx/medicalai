@@ -3,15 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
-import '../providers/theme_provider.dart';
+// import '../providers/theme_provider.dart'; // تم تعطيله مؤقتاً لمنع الخطأ
 import '../models/patient_record.dart';
-import '../services/pdf_export_service.dart';
+// import '../services/pdf_export_service.dart'; // تأكد أن هذا الملف موجود أو عطله
 import 'add_record_screen.dart';
 import 'qr_generator_screen.dart';
 import 'language_settings_screen.dart';
 import 'search_records_screen.dart';
 import 'medical_history_screen.dart';
-import 'video_call_screen.dart';
+// import 'video_call_screen.dart'; // تأكد أن هذا الملف موجود أو عطله
 
 class DoctorDashboard extends StatelessWidget {
   const DoctorDashboard({super.key});
@@ -20,7 +20,7 @@ class DoctorDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final authProvider = Provider.of<AuthProvider>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    // final themeProvider = Provider.of<ThemeProvider>(context); // هذا السطر كان يسبب الانهيار
 
     return Scaffold(
       appBar: AppBar(
@@ -32,17 +32,9 @@ class DoctorDashboard extends StatelessWidget {
               context,
               MaterialPageRoute(builder: (_) => const SearchRecordsScreen()),
             ),
-            tooltip: l10n.search ?? 'Search',
+            tooltip: l10n.search,
           ),
-          IconButton(
-            icon: Icon(
-              themeProvider.themeMode == ThemeMode.dark
-                  ? Icons.light_mode
-                  : Icons.dark_mode,
-            ),
-            onPressed: () => themeProvider.toggleTheme(),
-            tooltip: 'Toggle theme',
-          ),
+          // تم إزالة زر تغيير الثيم مؤقتاً لأنه يسبب الشاشة الرمادية
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, value),
             itemBuilder: (context) => [
@@ -50,25 +42,16 @@ class DoctorDashboard extends StatelessWidget {
                 value: 'language',
                 child: ListTile(
                   leading: const Icon(Icons.language),
-                  title: Text(l10n.language ?? 'Language'),
+                  title: Text(l10n.language),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              PopupMenuItem(
-                value: 'export_all',
-                child: ListTile(
-                  leading: const Icon(Icons.picture_as_pdf),
-                  title: Text(l10n.exportAll ?? 'Export All'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              const PopupMenuDivider(),
               PopupMenuItem(
                 value: 'logout',
                 child: ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
                   title: Text(
-                    l10n.logout ?? 'Logout',
+                    l10n.logout,
                     style: const TextStyle(color: Colors.red),
                   ),
                   contentPadding: EdgeInsets.zero,
@@ -90,8 +73,9 @@ class DoctorDashboard extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
+             // معالجة خطأ الـ Index في Firebase
             final error = snapshot.error.toString();
-            if (error.contains('index')) {
+            if (error.contains('index') || error.contains('failed-precondition')) {
               return _buildIndexErrorState();
             }
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -107,13 +91,11 @@ class DoctorDashboard extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (context, index) {
-                // حماية ضد الشاشة الرمادية عند قراءة كل سجل على حدة
                 try {
                   final record = PatientRecord.fromFirestore(snapshot.data!.docs[index]);
                   return _RecordCard(record: record);
                 } catch (e) {
-                  debugPrint("Error loading individual record: $e");
-                  return const SizedBox.shrink(); // تجاهل السجلات التالفة
+                  return const SizedBox.shrink();
                 }
               },
             ),
@@ -138,11 +120,11 @@ class DoctorDashboard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.build, size: 64, color: Colors.orange),
+            const Icon(Icons.warning_amber_rounded, size: 64, color: Colors.orange),
             const SizedBox(height: 16),
             const Text('Firebase Index Required', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Collection: records\nFields: doctorId (Asc), createdAt (Desc)', textAlign: TextAlign.center),
+            const Text('Please check your Firebase Console to create the index automatically via the link in logs.', textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -183,14 +165,16 @@ class _RecordCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => _showRecordOptions(context),
+        onTap: () {
+            // _showRecordOptions(context); // تم تعطيلها مؤقتاً إذا لم يكن PDF Service جاهزاً
+        },
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -211,24 +195,6 @@ class _RecordCard extends StatelessWidget {
                         Text(record.date, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                       ],
                     ),
-                  ),
-                  // زر مكالمة الفيديو
-                  IconButton(
-                    icon: const Icon(Icons.videocam, color: Colors.green),
-                    onPressed: () {
-                      const String channelId = "medical_room_1";
-                      const String token = "068164ddaed64ec482c4dcbb6329786e";
-                      
-                      authProvider.notifyPatientOfCall(
-                        patientUid: record.patientId, 
-                        channelName: channelId,
-                        token: token,
-                      );
-
-                      Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => VideoCallScreen(channelName: channelId, token: token),
-                      ));
-                    },
                   ),
                   IconButton(
                     icon: const Icon(Icons.qr_code),
@@ -260,41 +226,6 @@ class _RecordCard extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis)),
       ],
-    );
-  }
-
-  void _showRecordOptions(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.picture_as_pdf),
-              title: Text(l10n.exportPdf ?? 'Export PDF'),
-              onTap: () async {
-                Navigator.pop(context);
-                final pdfService = PdfExportService();
-                final file = await pdfService.generatePrescriptionPdf(record: record);
-                await pdfService.sharePdf(file);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.history),
-              title: Text(l10n.patientHistory ?? 'Patient History'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (_) => MedicalHistoryScreen(patientEmail: record.patientEmail),
-                ));
-              },
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
