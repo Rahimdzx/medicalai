@@ -10,7 +10,7 @@ import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/patient_dashboard.dart';
 import 'screens/doctor_dashboard.dart';
-import 'screens/home_screen.dart'; // تأكد من استيراد الشاشة الرئيسية
+import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,7 +51,6 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             locale: languageProvider.locale,
             
-            // تعريف المسارات لضمان عمل Navigator.pushNamed
             routes: {
               '/login': (context) => const LoginScreen(),
               '/home': (context) => const HomeScreen(),
@@ -80,12 +79,10 @@ class MyApp extends StatelessWidget {
                   return const Scaffold(body: Center(child: CircularProgressIndicator()));
                 }
 
-                // إذا لم يسجل دخول، نرسله للشاشة الرئيسية (HomeScreen)
                 if (authProvider.user == null) {
                   return const HomeScreen(); 
                 }
 
-                // توجيه المستخدم حسب دوره بعد تسجيل الدخول
                 final String role = authProvider.userRole ?? 'patient';
                 return role == 'doctor' ? const DoctorDashboard() : const PatientDashboard();
               },
@@ -95,5 +92,4 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
-}
-}
+} // تم حذف القوس الزائد الذي كان هنا
