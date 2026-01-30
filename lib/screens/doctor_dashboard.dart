@@ -3,15 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
-// import '../providers/theme_provider.dart'; // تم تعطيله مؤقتاً لمنع الخطأ
 import '../models/patient_record.dart';
-// import '../services/pdf_export_service.dart'; // تأكد أن هذا الملف موجود أو عطله
 import 'add_record_screen.dart';
 import 'qr_generator_screen.dart';
 import 'language_settings_screen.dart';
 import 'search_records_screen.dart';
-import 'medical_history_screen.dart';
-// import 'video_call_screen.dart'; // تأكد أن هذا الملف موجود أو عطله
+import 'video_call_screen.dart'; // تأكد من وجود الملف
 
 class DoctorDashboard extends StatelessWidget {
   const DoctorDashboard({super.key});
@@ -20,7 +17,6 @@ class DoctorDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final authProvider = Provider.of<AuthProvider>(context);
-    // final themeProvider = Provider.of<ThemeProvider>(context); // هذا السطر كان يسبب الانهيار
 
     return Scaffold(
       appBar: AppBar(
@@ -32,9 +28,7 @@ class DoctorDashboard extends StatelessWidget {
               context,
               MaterialPageRoute(builder: (_) => const SearchRecordsScreen()),
             ),
-            tooltip: l10n.search,
           ),
-          // تم إزالة زر تغيير الثيم مؤقتاً لأنه يسبب الشاشة الرمادية
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, value),
             itemBuilder: (context) => [
@@ -50,10 +44,7 @@ class DoctorDashboard extends StatelessWidget {
                 value: 'logout',
                 child: ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
-                  title: Text(
-                    l10n.logout,
-                    style: const TextStyle(color: Colors.red),
-                  ),
+                  title: Text(l10n.logout, style: const TextStyle(color: Colors.red)),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -71,34 +62,20 @@ class DoctorDashboard extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
           if (snapshot.hasError) {
-             // معالجة خطأ الـ Index في Firebase
-            final error = snapshot.error.toString();
-            if (error.contains('index') || error.contains('failed-precondition')) {
-              return _buildIndexErrorState();
-            }
             return Center(child: Text('Error: ${snapshot.error}'));
           }
-
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return _buildEmptyState(l10n);
           }
 
-          return RefreshIndicator(
-            onRefresh: () async {},
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: snapshot.data!.docs.length,
-              itemBuilder: (context, index) {
-                try {
-                  final record = PatientRecord.fromFirestore(snapshot.data!.docs[index]);
-                  return _RecordCard(record: record);
-                } catch (e) {
-                  return const SizedBox.shrink();
-                }
-              },
-            ),
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              final record = PatientRecord.fromFirestore(snapshot.data!.docs[index]);
+              return _RecordCard(record: record);
+            },
           );
         },
       ),
@@ -109,24 +86,6 @@ class DoctorDashboard extends StatelessWidget {
         ),
         icon: const Icon(Icons.add),
         label: Text(l10n.newRecord),
-      ),
-    );
-  }
-
-  Widget _buildIndexErrorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.warning_amber_rounded, size: 64, color: Colors.orange),
-            const SizedBox(height: 16),
-            const Text('Firebase Index Required', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            const Text('Please check your Firebase Console to create the index automatically via the link in logs.', textAlign: TextAlign.center),
-          ],
-        ),
       ),
     );
   }
@@ -146,86 +105,79 @@ class DoctorDashboard extends StatelessWidget {
 
   void _handleMenuAction(BuildContext context, String action) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    switch (action) {
-      case 'language':
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageSettingsScreen()));
-        break;
-      case 'logout':
-        authProvider.signOut();
-        break;
+    if (action == 'language') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageSettingsScreen()));
+    } else if (action == 'logout') {
+      authProvider.signOut();
     }
   }
 }
 
 class _RecordCard extends StatelessWidget {
   final PatientRecord record;
-
   const _RecordCard({required this.record});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-            // _showRecordOptions(context); // تم تعطيلها مؤقتاً إذا لم يكن PDF Service جاهزاً
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: theme.primaryColor.withOpacity(0.1),
-                    child: Icon(Icons.person, color: theme.primaryColor),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                CircleAvatar(child: const Icon(Icons.person)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(record.patientEmail, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(record.date, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(record.patientEmail, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), overflow: TextOverflow.ellipsis),
-                        Text(record.date, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                      ],
+                ),
+                // زر الاتصال بالفيديو للطبيب
+                IconButton(
+                  icon: const Icon(Icons.videocam, color: Colors.blue),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => VideoCallScreen(channelName: record.doctorId, token: ""),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.qr_code),
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => QRGeneratorScreen(record: record)),
-                    ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.qr_code),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => QRGeneratorScreen(record: record)),
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              const Divider(height: 1),
-              const SizedBox(height: 12),
-              _buildInfoRow(Icons.medical_services, record.diagnosis, Colors.red[400]!),
-              const SizedBox(height: 8),
-              _buildInfoRow(Icons.medication, record.prescription, Colors.green[400]!),
-            ],
-          ),
+                ),
+              ],
+            ),
+            const Divider(),
+            _buildInfoRow(Icons.medical_services, record.diagnosis, Colors.red),
+            _buildInfoRow(Icons.medication, record.prescription, Colors.green),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildInfoRow(IconData icon, String text, Color color) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: color),
-        const SizedBox(width: 8),
-        Expanded(child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis)),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis)),
+        ],
+      ),
     );
   }
 }
