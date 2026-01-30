@@ -21,6 +21,7 @@ class AppLocalizations {
       'login': 'Login',
       'signUp': 'Sign Up',
       'fullName': 'Full Name',
+      'patientName': 'Patient Name', // مضاف
       'phone': 'Phone Number',
       'phoneOptional': 'Phone Number (optional)',
       'specialization': 'Specialization',
@@ -79,7 +80,6 @@ class AppLocalizations {
       'russian': 'Russian',
       'english': 'English',
       'languageChanged': 'Language changed successfully',
-      // الحقول المضافة لحل الأخطاء
       'search': 'Search',
       'searchHint': 'Search by patient, diagnosis...',
       'medicalHistory': 'Medical History',
@@ -114,6 +114,7 @@ class AppLocalizations {
       'login': 'تسجيل الدخول',
       'signUp': 'إنشاء حساب',
       'fullName': 'الاسم الكامل',
+      'patientName': 'اسم المريض', // مضاف
       'phone': 'رقم الهاتف',
       'phoneOptional': 'رقم الهاتف (اختياري)',
       'specialization': 'التخصص',
@@ -163,7 +164,7 @@ class AppLocalizations {
       'pointCameraToQR': 'وجّه الكاميرا نحو QR Code',
       'qrForRecord': 'QR Code للسجل الطبي',
       'shareQR': 'مشاركة QR Code',
-      'shareFeatureComingSoon': 'ميزة الحفظ والمشاركة قيد التطوير',
+      'shareFeatureComing Soon': 'ميزة الحفظ والمشاركة قيد التطوير',
       'patientCanScan': 'يمكن للمريض مسح هذا الكود للحصول على معلومات السجل الطبي',
       'settings': 'الإعدادات',
       'language': 'اللغة',
@@ -172,7 +173,6 @@ class AppLocalizations {
       'russian': 'الروسية',
       'english': 'الإنجليزية',
       'languageChanged': 'تم تغيير اللغة بنجاح',
-      // الحقول المضافة لحل الأخطاء
       'search': 'بحث',
       'searchHint': 'ابحث بالمريض، التشخيص...',
       'medicalHistory': 'السجل الطبي',
@@ -207,6 +207,7 @@ class AppLocalizations {
       'login': 'Войти',
       'signUp': 'Регистрация',
       'fullName': 'Полное имя',
+      'patientName': 'Имя пациента', // مضاف
       'phone': 'Номер телефона',
       'phoneOptional': 'Номер телефона (необязательно)',
       'specialization': 'Специализация',
@@ -265,7 +266,6 @@ class AppLocalizations {
       'russian': 'Русский',
       'english': 'Английский',
       'languageChanged': 'Язык изменён',
-      // الحقول المضافة لحل الأخطاء
       'search': 'Поиск',
       'searchHint': 'Поиск пациента...',
       'medicalHistory': 'История болезни',
@@ -307,6 +307,7 @@ class AppLocalizations {
   String get login => _get('login');
   String get signUp => _get('signUp');
   String get fullName => _get('fullName');
+  String get patientName => _get('patientName'); // مضاف
   String get phone => _get('phone');
   String get phoneOptional => _get('phoneOptional');
   String get specialization => _get('specialization');
@@ -365,8 +366,6 @@ class AppLocalizations {
   String get russian => _get('russian');
   String get english => _get('english');
   String get languageChanged => _get('languageChanged');
-  
-  // Getters الجديدة المضافة لحل الأخطاء
   String get search => _get('search');
   String get searchHint => _get('searchHint');
   String get medicalHistory => _get('medicalHistory');
