@@ -2,13 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import 'video_call_screen.dart'; // تأكد من استيراد شاشة الاتصال
+import 'video_call_screen.dart'; 
+import 'chat_screen.dart'; // تأكد من إنشاء هذا الملف كما في الرد السابق
 
 class DoctorAppointmentsScreen extends StatelessWidget {
   const DoctorAppointmentsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // جلب معرف الطبيب الحالي
     final doctorId = Provider.of<AuthProvider>(context).user?.uid;
 
     return Scaffold(
@@ -22,6 +24,7 @@ class DoctorAppointmentsScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
+        // مراقبة المواعيد الخاصة بالطبيب الحالي وترتيبها حسب الأحدث
         stream: FirebaseFirestore.instance
             .collection('appointments')
             .where('doctorId', isEqualTo: doctorId)
@@ -46,8 +49,9 @@ class DoctorAppointmentsScreen extends StatelessWidget {
             itemCount: snapshot.data!.docs.length,
             padding: const EdgeInsets.all(10),
             itemBuilder: (context, index) {
-              var appointment = snapshot.data!.docs[index].data() as Map<String, dynamic>;
-              var docId = snapshot.data!.docs[index].id; // هذا هو الـ Channel Name
+              var appointmentDoc = snapshot.data!.docs[index];
+              var appointment = appointmentDoc.data() as Map<String, dynamic>;
+              var docId = appointmentDoc.id; // معرف المستند الفريد (Channel Name)
 
               return Card(
                 elevation: 3,
@@ -71,11 +75,27 @@ class DoctorAppointmentsScreen extends StatelessWidget {
                       Text("Price: ${appointment['price'] ?? '50'} USD"),
                     ],
                   ),
-                  // التعديل هنا: إضافة زر الاتصال بجانب زر التأكيد
+                  // قسم الأزرار الجانبية
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // يظهر زر الاتصال فقط إذا كان الموعد مؤكداً
+                      // 1. زر الدردشة (متاح دائماً للتواصل مع المريض)
+                      IconButton(
+                        icon: const Icon(Icons.chat_outlined, color: Colors.orange, size: 28),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatScreen(
+                                appointmentId: docId,
+                                receiverName: appointment['patientName'] ?? 'Patient',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                      // 2. زر الفيديو (يظهر فقط بعد تأكيد الموعد)
                       if (appointment['status'] == 'confirmed')
                         IconButton(
                           icon: const Icon(Icons.videocam, color: Colors.blue, size: 30),
@@ -84,18 +104,18 @@ class DoctorAppointmentsScreen extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => VideoCallScreen(
-                                  channelName: docId, // نرسل الـ ID كإسم للغرفة
-                                  token: "", // فارغ لوضع الاختبار
+                                  channelName: docId,
+                                  token: "", // وضع الاختبار
                                 ),
                               ),
                             );
                           },
                         ),
-                      
-                      // زر التأكيد (يختفي إذا تم التأكيد مسبقاً)
+
+                      // 3. زر التأكيد (يظهر فقط إذا كان الموعد معلقاً)
                       if (appointment['status'] == 'pending')
                         IconButton(
-                          icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+                          icon: const Icon(Icons.check_circle_outline, color: Colors.green, size: 28),
                           onPressed: () => _confirmAppointment(context, docId),
                         ),
                     ],
@@ -109,20 +129,26 @@ class DoctorAppointmentsScreen extends StatelessWidget {
     );
   }
 
+  // دالة لتحديد لون الحالة
   Color _getStatusColor(String? status) {
     if (status == 'pending') return Colors.orange;
     if (status == 'confirmed') return Colors.green;
     return Colors.grey;
   }
 
+  // دالة تحديث حالة الموعد في Firestore
   Future<void> _confirmAppointment(BuildContext context, String id) async {
-    await FirebaseFirestore.instance.collection('appointments').doc(id).update({
-      'status': 'confirmed'
-    });
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Confirmed / Подтверждено / تم التأكيد")),
-      );
+    try {
+      await FirebaseFirestore.instance.collection('appointments').doc(id).update({
+        'status': 'confirmed'
+      });
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Confirmed / Подтверждено / تم التأكيد")),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error updating appointment: $e");
     }
   }
 }
