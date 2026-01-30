@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../providers/auth_provider.dart';
 import '../models/patient_record.dart';
+import 'doctor_qr_screen.dart'; // ستحتاج لإنشاء هذا الملف
 
 class DoctorDashboard extends StatelessWidget {
   const DoctorDashboard({super.key});
@@ -15,7 +16,18 @@ class DoctorDashboard extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Doctor Dashboard"),
         actions: [
-          IconButton(onPressed: () => auth.signOut(), icon: const Icon(Icons.logout))
+          // زر عرض الـ QR الخاص بالطبيب
+          IconButton(
+            icon: const Icon(Icons.qr_code),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const DoctorQRScreen()),
+            ),
+          ),
+          IconButton(
+            onPressed: () => auth.signOut(),
+            icon: const Icon(Icons.logout),
+          )
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -37,7 +49,6 @@ class DoctorDashboard extends StatelessWidget {
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
               final record = PatientRecord.fromFirestore(snapshot.data!.docs[index]);
-              // هنا تم تعريف _RecordCard بالأسفل لحل الخطأ
               return _RecordCard(record: record);
             },
           );
@@ -45,7 +56,7 @@ class DoctorDashboard extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // كود إضافة سجل جديد هنا
+          // كود إضافة سجل جديد لمريض
         },
         child: const Icon(Icons.add),
       ),
@@ -53,7 +64,6 @@ class DoctorDashboard extends StatelessWidget {
   }
 }
 
-// الكود المفقود الذي كان يسبب الخطأ في الـ Build
 class _RecordCard extends StatelessWidget {
   final PatientRecord record;
   const _RecordCard({required this.record});
@@ -66,9 +76,6 @@ class _RecordCard extends StatelessWidget {
         title: Text("Patient: ${record.patientEmail}"),
         subtitle: Text("Date: ${record.date}"),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () {
-          // كود عرض التفاصيل
-        },
       ),
     );
   }
