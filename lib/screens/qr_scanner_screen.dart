@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../l10n/app_localizations.dart';
-import 'doctor_booking_screen.dart'; // تأكد من استيراد صفحة الحجز
+import 'doctor_booking_screen.dart';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -11,9 +11,8 @@ class QRScannerScreen extends StatefulWidget {
 }
 
 class _QRScannerScreenState extends State<QRScannerScreen> {
-  // التحكم في الكاميرا (الفلاش، التبديل بين الكاميرات)
+  // استخدام المتحكم الافتراضي
   final MobileScannerController controller = MobileScannerController();
-  
   bool isScanned = false;
   String? scannedData;
 
@@ -23,24 +22,23 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.scanQR),
+        title: Text(l10n.pointCameraToQR), // تأكد من وجود هذا المفتاح في l10n
         actions: [
-          // زر التحكم في فلاش الكاميرا
-          IconButton(
-            icon: ValueListenableBuilder(
-              valueListenable: controller.torchState,
-              builder: (context, state, child) {
-                switch (state) {
-                  case TorchState.off:
-                    return const Icon(Icons.flash_off, color: Colors.grey);
-                  case TorchState.on:
-                    return const Icon(Icons.flash_on, color: Colors.yellow);
-                }
-              },
-            ),
-            onPressed: () => controller.toggleTorch(),
+          // التحكم في الفلاش
+          ValueListenableBuilder<MobileScannerState>(
+            valueListenable: controller,
+            builder: (context, state, child) {
+              final torchState = state.torchState;
+              return IconButton(
+                icon: Icon(
+                  torchState == TorchState.on ? Icons.flash_on : Icons.flash_off,
+                  color: torchState == TorchState.on ? Colors.yellow : Colors.grey,
+                ),
+                onPressed: () => controller.toggleTorch(),
+              );
+            },
           ),
-          // زر التبديل بين الكاميرا الأمامية والخلفية
+          // تبديل الكاميرا
           IconButton(
             icon: const Icon(Icons.cameraswitch),
             onPressed: () => controller.switchCamera(),
@@ -49,7 +47,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       ),
       body: Column(
         children: [
-          // الجزء العلوي: منطقة المسح (الكاميرا)
           Expanded(
             flex: 3,
             child: Stack(
@@ -67,14 +64,12 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                           isScanned = true;
                           scannedData = doctorId;
                         });
-
-                        // الانتقال التلقائي لصفحة الطبيب بعد نجاح المسح
                         _navigateToDoctor(doctorId);
                       }
                     }
                   },
                 ),
-                // إضافة إطار بصري (Overlay) ليعرف المستخدم أين يضع الكود
+                // إطار التركيز
                 Center(
                   child: Container(
                     width: 200,
@@ -88,8 +83,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               ],
             ),
           ),
-          
-          // الجزء السفلي: عرض الحالة والنتائج
           Expanded(
             flex: 1,
             child: Container(
@@ -108,21 +101,9 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     const SizedBox(height: 8),
                     Text(
                       l10n.scannedSuccessfully,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                        fontSize: 18,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "ID: ${scannedData ?? ''}",
-                      style: const TextStyle(color: Colors.grey),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 18),
                     ),
                     const SizedBox(height: 16),
-                    // زر للمسح مرة أخرى في حال حدوث خطأ
                     TextButton.icon(
                       onPressed: () {
                         setState(() {
@@ -143,7 +124,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     );
   }
 
-  // دالة الانتقال لصفحة الحجز
   void _navigateToDoctor(String doctorId) {
     Future.delayed(const Duration(milliseconds: 500), () {
       if (!mounted) return;
@@ -158,7 +138,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
   @override
   void dispose() {
-    controller.dispose(); // إغلاق الكاميرا عند الخروج من الصفحة لتوفير البطارية
+    controller.dispose();
     super.dispose();
   }
 }
