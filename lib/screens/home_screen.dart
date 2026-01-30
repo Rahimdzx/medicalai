@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import 'qr_scanner_screen.dart';
@@ -9,6 +8,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // التأكد من وجود الترجمة، وتوفير نص افتراضي في حال عدم التوفر
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
@@ -36,7 +36,6 @@ class HomeScreen extends StatelessWidget {
                 mainAxisSpacing: 20,
                 crossAxisSpacing: 20,
                 children: [
-                  // 1. Scan QR
                   _buildMenuCard(
                     context,
                     title: l10n.scanQR,
@@ -44,23 +43,22 @@ class HomeScreen extends StatelessWidget {
                     color: Colors.blueAccent,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QRScannerScreen())),
                   ),
-                  // 2. Specialists
                   _buildMenuCard(
                     context,
                     title: l10n.specialistConsultations,
                     icon: Icons.medical_information,
                     color: Colors.teal,
-                    onTap: () {},
+                    onTap: () {
+                       // يمكنك هنا التوجيه لصفحة قائمة الأطباء
+                    },
                   ),
-                  // 3. Russia Programs
                   _buildMenuCard(
                     context,
-                    title: "Medical Tourism", // or use l10n.medicalTourism
+                    title: "Medical Tourism", 
                     icon: Icons.travel_explore,
                     color: Colors.redAccent,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RussiaProgramsScreen())),
                   ),
-                  // 4. Results
                   _buildMenuCard(
                     context,
                     title: l10n.myRecords,
@@ -80,7 +78,7 @@ class HomeScreen extends StatelessWidget {
   Widget _buildHeader(AppLocalizations l10n) {
     return Container(
       width: double.infinity,
-      height: 150,
+      padding: const EdgeInsets.symmetric(vertical: 40),
       decoration: const BoxDecoration(
         color: Colors.blue,
         borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
@@ -98,6 +96,7 @@ class HomeScreen extends StatelessWidget {
   Widget _buildMenuCard(BuildContext context, {required String title, required IconData icon, required Color color, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -113,7 +112,10 @@ class HomeScreen extends StatelessWidget {
               child: Icon(icon, size: 35, color: color),
             ),
             const SizedBox(height: 10),
-            Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              child: Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            ),
           ],
         ),
       ),
@@ -125,10 +127,16 @@ class HomeScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.error),
-        content: Text(l10n.pleaseEnterEmail), // Replace with "Login Required" if added to l10n
+        content: const Text("Login Required to view records\nيجب تسجيل الدخول لعرض السجلات"),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
-          ElevatedButton(onPressed: () => Navigator.pushNamed(context, '/login'), child: Text(l10n.login)),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/login');
+            }, 
+            child: Text(l10n.login),
+          ),
         ],
       ),
     );
