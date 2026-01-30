@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class VideoCallScreen extends StatefulWidget {
-  final String channelName; // مرر هنا الـ Document ID الخاص بالموعد من Firestore
-  final String token;       // مرر نصاً فارغاً "" إذا كان مشروعك في وضع Testing Mode
+  final String channelName;
+  final String token;
 
   const VideoCallScreen({
     super.key,
@@ -21,7 +21,6 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   late RtcEngine _engine;
   bool _localUserJoined = false;
   bool _muted = false;
-  bool _isCameraOff = false;
 
   @override
   void initState() {
@@ -30,54 +29,43 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   }
 
   Future<void> initAgora() async {
-    // 1. طلب أذونات الميكروفون والكاميرا
+    // طلب الأذونات
     await [Permission.microphone, Permission.camera].request();
 
-    // 2. إنشاء محرك Agora وتجهيزه
+    // إنشاء المحرك
     _engine = createAgoraRtcEngine();
     await _engine.initialize(const RtcEngineContext(
       appId: "068164ddaed64ec482c4dcbb6329786e",
-      channelProfile: ChannelProfileType.channelProfileLiveStreaming, // ضروري لعمل الـ Broadcaster
+      // التعديل هنا: استخدام Communication للمكالمات المباشرة
+      channelProfile: ChannelProfileType.channelProfileCommunication,
     ));
 
-    // 3. إعداد مستمعي الأحداث لربط الطرفين
     _engine.registerEventHandler(
       RtcEngineEventHandler(
         onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
-          debugPrint("تم الانضمام بنجاح للقناة: ${widget.channelName}");
           setState(() => _localUserJoined = true);
         },
         onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
-          debugPrint("الطرف الآخر انضم للمكالمة UID: $remoteUid");
           setState(() => _remoteUid = remoteUid);
         },
         onUserOffline: (RtcConnection connection, int remoteUid, UserOfflineReasonType reason) {
-          debugPrint("الطرف الآخر غادر المكالمة");
           setState(() => _remoteUid = null);
           if (mounted) Navigator.pop(context);
-        },
-        onError: (err, msg) {
-          debugPrint("خطأ في Agora: $err - $msg");
         },
       ),
     );
 
-    // 4. تفعيل الفيديو وتحديد الدور كـ Broadcaster (الحل لمشكلة الـ Audience)
     await _engine.enableVideo();
-    await _engine.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
     await _engine.startPreview();
 
-    // 5. الانضمام الفعلي للقناة
     await _engine.joinChannel(
       token: widget.token,
       channelId: widget.channelName,
-      uid: 0, // 0 تجعل Agora يولد معرفاً تلقائياً
+      uid: 0,
       options: const ChannelMediaOptions(
         clientRoleType: ClientRoleType.clientRoleBroadcaster,
         publishCameraTrack: true,
         publishMicrophoneTrack: true,
-        autoSubscribeAudio: true,
-        autoSubscribeVideo: true,
       ),
     );
   }
@@ -95,10 +83,8 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // عرض فيديو الطرف الآخر (يملأ الشاشة)
           Center(child: _remoteVideo()),
-
-          // عرض فيديو المستخدم الحالي (صغير في الزاوية)
+          // فيديو المستخدم المحلي
           Align(
             alignment: Alignment.topLeft,
             child: Container(
@@ -118,12 +104,10 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                           canvas: const VideoCanvas(uid: 0),
                         ),
                       )
-                    : const Center(child: CircularProgressIndicator(color: Colors.blue)),
+                    : const Center(child: CircularProgressIndicator()),
               ),
             ),
           ),
-
-          // أزرار التحكم في أسفل الشاشة
           _toolbar(),
         ],
       ),
@@ -140,19 +124,10 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
         ),
       );
     } else {
-      return const Padding(
-        padding: EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(color: Colors.white),
-            SizedBox(height: 25),
-            Text(
-              "Waiting for the other party...\nبانتظار انضمام الطرف الآخر\nОжидание подключения...",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ],
+      return const Center(
+        child: Text(
+          "Waiting for connection...",
+          style: TextStyle(color: Colors.white),
         ),
       );
     }
@@ -165,45 +140,32 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // زر كتم الميكروفون
-          _buildActionButton(
+          IconButton(
             onPressed: () {
               setState(() => _muted = !_muted);
               _engine.muteLocalAudioStream(_muted);
             },
-            icon: _muted ? Icons.mic_off : Icons.mic,
-            color: _muted ? Colors.blueAccent : Colors.white24,
+            icon: Icon(_muted ? Icons.mic_off : Icons.mic),
+            color: Colors.white,
+            style: IconButton.styleFrom(backgroundColor: _muted ? Colors.blue : Colors.white24),
           ),
           const SizedBox(width: 20),
-          // زر إنهاء المكالمة
-          RawMaterialButton(
+          IconButton(
             onPressed: () => Navigator.pop(context),
-            shape: const CircleBorder(),
-            elevation: 2.0,
-            fillColor: Colors.redAccent,
-            padding: const EdgeInsets.all(15.0),
-            child: const Icon(Icons.call_end, color: Colors.white, size: 35.0),
+            icon: const Icon(Icons.call_end),
+            color: Colors.white,
+            iconSize: 35,
+            style: IconButton.styleFrom(backgroundColor: Colors.redAccent),
           ),
           const SizedBox(width: 20),
-          // زر تبديل الكاميرا (أمامية/خلفية)
-          _buildActionButton(
+          IconButton(
             onPressed: () => _engine.switchCamera(),
-            icon: Icons.switch_camera,
-            color: Colors.white24,
+            icon: const Icon(Icons.switch_camera),
+            color: Colors.white,
+            style: IconButton.styleFrom(backgroundColor: Colors.white24),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildActionButton({required VoidCallback onPressed, required IconData icon, required Color color}) {
-    return RawMaterialButton(
-      onPressed: onPressed,
-      shape: const CircleBorder(),
-      elevation: 2.0,
-      fillColor: color,
-      padding: const EdgeInsets.all(12.0),
-      child: Icon(icon, color: Colors.white, size: 20.0),
     );
   }
 }
