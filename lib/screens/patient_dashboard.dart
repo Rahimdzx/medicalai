@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../providers/auth_provider.dart';
 import '../models/patient_record.dart';
 import 'video_call_screen.dart';
+import 'scan_qr_screen.dart'; // ستحتاج لإنشاء هذا الملف
 
 class PatientDashboard extends StatelessWidget {
   const PatientDashboard({super.key});
@@ -45,6 +46,22 @@ class PatientDashboard extends StatelessWidget {
             },
           );
         },
+      ),
+      // زر المسح الضوئي للمريض ليقوم بمسح كود الطبيب
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final scannedId = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ScanQRScreen()),
+          );
+          if (scannedId != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Connected to Doctor ID: $scannedId")),
+            );
+          }
+        },
+        label: const Text("Scan Doctor QR"),
+        icon: const Icon(Icons.qr_code_scanner),
       ),
     );
   }
