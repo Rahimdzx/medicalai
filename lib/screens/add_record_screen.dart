@@ -14,8 +14,7 @@ class AddRecordScreen extends StatefulWidget {
 class _AddRecordScreenState extends State<AddRecordScreen> {
   final _formKey = GlobalKey<FormState>();
   
-  // المتحكمات (Controllers)
-  final _patientNameController = TextEditingController(); // تم إضافة الاسم
+  final _patientNameController = TextEditingController();
   final _patientEmailController = TextEditingController();
   final _diagnosisController = TextEditingController();
   final _prescriptionController = TextEditingController();
@@ -37,12 +36,10 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-
     final l10n = AppLocalizations.of(context);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     try {
-      // 1. البحث عن المريض بالبريد الإلكتروني
       final patientQuery = await FirebaseFirestore.instance
           .collection('users')
           .where('email', isEqualTo: _patientEmailController.text.trim().toLowerCase())
@@ -52,14 +49,12 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
       String patientId;
 
       if (patientQuery.docs.isEmpty) {
-        // إذا لم يوجد المريض، نسأل الطبيب هل يريد إنشاء سجل مؤقت؟
         final shouldCreate = await _showPatientNotFoundDialog();
         if (!shouldCreate) {
           setState(() => _isLoading = false);
           return;
         }
         
-        // إنشاء مستخدم مريض جديد (Placeholder)
         final newPatientDoc = await FirebaseFirestore.instance.collection('users').add({
           'name': _patientNameController.text.trim(),
           'email': _patientEmailController.text.trim().toLowerCase(),
@@ -73,8 +68,6 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
         patientId = patientQuery.docs.first.id;
       }
 
-      // 2. حفظ السجل الطبي (Record)
-      // التاريخ بتنسيق نصي للعرض السريع في البطاقة
       String formattedDate = "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
 
       await FirebaseFirestore.instance.collection('records').add({
@@ -114,10 +107,10 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.patientNotFound),
-        content: Text(l10n.createPatientQuestion ?? 'Patient not found. Create a new patient record?'),
+        content: const Text('Patient not found. Create a new patient record?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.create ?? 'Create')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Create')),
         ],
       ),
     ) ?? false;
@@ -136,19 +129,18 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // حقل اسم المريض
+              // تم تعديل labelText هنا ليتجنب الخطأ
               TextFormField(
                 controller: _patientNameController,
-                decoration: InputDecoration(
-                  labelText: l10n.patientName ?? 'Patient Name',
-                  prefixIcon: const Icon(Icons.person_outline),
-                  border: const OutlineInputBorder(),
+                decoration: const InputDecoration(
+                  labelText: 'Patient Name', 
+                  prefixIcon: Icon(Icons.person_outline),
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) => (value == null || value.isEmpty) ? 'Required' : null,
               ),
               const SizedBox(height: 16),
               
-              // حقل البريد الإلكتروني
               TextFormField(
                 controller: _patientEmailController,
                 keyboardType: TextInputType.emailAddress,
@@ -160,13 +152,11 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) return l10n.pleaseEnterEmail;
-                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) return l10n.invalidEmail;
                   return null;
                 },
               ),
               const SizedBox(height: 16),
               
-              // حقل التشخيص
               TextFormField(
                 controller: _diagnosisController,
                 maxLines: 3,
@@ -176,11 +166,10 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                   border: const OutlineInputBorder(),
                   alignLabelWithHint: true,
                 ),
-                validator: (value) => (value == null || value.isEmpty) ? l10n.pleaseEnterDiagnosis : null,
+                validator: (value) => (value == null || value.isEmpty) ? 'Please enter diagnosis' : null,
               ),
               const SizedBox(height: 16),
               
-              // حقل الوصفة الطبية
               TextFormField(
                 controller: _prescriptionController,
                 maxLines: 3,
@@ -190,11 +179,10 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                   border: const OutlineInputBorder(),
                   alignLabelWithHint: true,
                 ),
-                validator: (value) => (value == null || value.isEmpty) ? l10n.pleaseEnterPrescription : null,
+                validator: (value) => (value == null || value.isEmpty) ? 'Please enter prescription' : null,
               ),
               const SizedBox(height: 16),
               
-              // حقل الملاحظات
               TextFormField(
                 controller: _notesController,
                 maxLines: 2,
@@ -206,7 +194,6 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
               ),
               const SizedBox(height: 24),
 
-              // أزرار التحكم
               Row(
                 children: [
                   Expanded(
