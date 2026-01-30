@@ -21,14 +21,14 @@ dependencies:
   firebase_messaging: ^15.1.6
   flutter_local_notifications: ^18.0.1
   
-  # Storage & Media
+  # Storage & Media (ضروري جداً لرفع صور الأطباء وتقارير المرضى)
   firebase_storage: ^12.3.7
   image_picker: ^1.1.2
   file_picker: ^8.1.6
 
-  # Video Call (Agora) - الإضافة الجديدة للمكالمات
+  # Video Call (Agora)
   agora_rtc_engine: ^6.3.2
-  permission_handler: ^11.3.1 # ضروري لإدارة أذونات الكاميرا والميكروفون
+  permission_handler: ^11.3.1 # لإدارة أذونات الكاميرا والميكروفون والغاليري
 
   # QR & Scanning
   mobile_scanner: ^5.1.1
@@ -54,4 +54,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  generate: true # ضروري لتوليد ملفات الترجمة l10n
+  generate: true # ضروري لنظام الترجمة l10n
+
+  # تأكد من إضافة قسم الأصول (Assets) إذا كنت ستستخدم صوراً محلية أو أيقونات
+  assets:
+    - assets/images/
