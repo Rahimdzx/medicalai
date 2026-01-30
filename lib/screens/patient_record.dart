@@ -4,8 +4,8 @@ class PatientRecord {
   final String id;
   final String patientEmail;
   final String doctorId;
-  final String doctorName;     // جديد
-  final String doctorPhotoUrl; // جديد
+  final String doctorName;
+  final String doctorPhotoUrl;
   final String diagnosis;
   final String prescription;
   final String date;
