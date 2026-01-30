@@ -3,12 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
-import '../providers/theme_provider.dart';
+// import '../providers/theme_provider.dart'; // معطل مؤقتاً
 import '../models/patient_record.dart';
-import 'qr_scanner_screen.dart';
+// import 'qr_scanner_screen.dart'; // تأكد من وجوده
 import 'language_settings_screen.dart';
 import 'medical_history_screen.dart';
-import 'medication_reminders_screen.dart';
+// import 'medication_reminders_screen.dart'; // تأكد من وجوده
 import 'search_records_screen.dart';
 
 class PatientDashboard extends StatelessWidget {
@@ -18,25 +18,13 @@ class PatientDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final authProvider = Provider.of<AuthProvider>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    // final themeProvider = Provider.of<ThemeProvider>(context); // سبب الشاشة الرمادية
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.patientDashboard),
         actions: [
-          // زر الوضع الليلي
-          IconButton(
-            icon: Icon(
-              themeProvider.themeMode == ThemeMode.dark
-                  ? Icons.light_mode
-                  : themeProvider.themeMode == ThemeMode.light
-                      ? Icons.dark_mode
-                      : Icons.brightness_auto,
-            ),
-            onPressed: () => themeProvider.toggleTheme(),
-            tooltip: 'Toggle theme',
-          ),
-          // قائمة الإعدادات
+          // تم إزالة زر الثيم مؤقتاً
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, value, authProvider),
             itemBuilder: (context) => [
@@ -44,15 +32,7 @@ class PatientDashboard extends StatelessWidget {
                 value: 'history',
                 child: ListTile(
                   leading: const Icon(Icons.history),
-                  title: Text(l10n.medicalHistory ?? 'Medical History'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuItem(
-                value: 'reminders',
-                child: ListTile(
-                  leading: const Icon(Icons.alarm),
-                  title: Text(l10n.medicationReminders ?? 'Reminders'),
+                  title: Text(l10n.medicalHistory),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -60,7 +40,7 @@ class PatientDashboard extends StatelessWidget {
                 value: 'search',
                 child: ListTile(
                   leading: const Icon(Icons.search),
-                  title: Text(l10n.search ?? 'Search'),
+                  title: Text(l10n.search),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -68,17 +48,16 @@ class PatientDashboard extends StatelessWidget {
                 value: 'language',
                 child: ListTile(
                   leading: const Icon(Icons.language),
-                  title: Text(l10n.language ?? 'Language'),
+                  title: Text(l10n.language),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuDivider(),
               PopupMenuItem(
                 value: 'logout',
                 child: ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
                   title: Text(
-                    l10n.logout ?? 'Logout',
+                    l10n.logout,
                     style: const TextStyle(color: Colors.red),
                   ),
                   contentPadding: EdgeInsets.zero,
@@ -99,10 +78,10 @@ class PatientDashboard extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // معالجة خطأ الفهرس
           if (snapshot.hasError) {
-            final error = snapshot.error.toString();
-            if (error.contains('index')) {
+             final error = snapshot.error.toString();
+             // معالجة خطأ الـ Index
+            if (error.contains('index') || error.contains('failed-precondition')) {
               return _buildIndexErrorWidget(context);
             }
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -120,11 +99,9 @@ class PatientDashboard extends StatelessWidget {
             onRefresh: () async {},
             child: CustomScrollView(
               slivers: [
-                // إحصائيات سريعة
                 SliverToBoxAdapter(
                   child: _buildQuickStats(context, records),
                 ),
-                // قائمة السجلات
                 SliverPadding(
                   padding: const EdgeInsets.all(16),
                   sliver: SliverList(
@@ -139,16 +116,13 @@ class PatientDashboard extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const QRScannerScreen()),
-          );
-        },
-        icon: const Icon(Icons.qr_code_scanner),
-        label: Text(l10n.scanQR),
-      ),
+      // floatingActionButton: FloatingActionButton.extended(
+      //   onPressed: () {
+      //      // الانتقال للماسح الضوئي (مؤجل حتى التأكد من الملفات)
+      //   },
+      //   icon: const Icon(Icons.qr_code_scanner),
+      //   label: Text(l10n.scanQR),
+      // ),
     );
   }
 
@@ -163,20 +137,8 @@ class PatientDashboard extends StatelessWidget {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            theme.primaryColor,
-            theme.primaryColor.withOpacity(0.7),
-          ],
-        ),
+        color: theme.primaryColor,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: theme.primaryColor.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Row(
         children: [
@@ -187,11 +149,7 @@ class PatientDashboard extends StatelessWidget {
               label: 'Total Records',
             ),
           ),
-          Container(
-            width: 1,
-            height: 50,
-            color: Colors.white30,
-          ),
+          Container(width: 1, height: 50, color: Colors.white30),
           Expanded(
             child: _StatItem(
               icon: Icons.calendar_today,
@@ -214,34 +172,11 @@ class PatientDashboard extends StatelessWidget {
             Icon(Icons.folder_open, size: 80, color: Colors.grey[400]),
             const SizedBox(height: 24),
             Text(
-              l10n.noMedicalRecords ?? 'No medical records yet',
+              l10n.noMedicalRecords,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.grey[700],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Scan a QR code from your doctor to add your first record',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const QRScannerScreen()),
-                );
-              },
-              icon: const Icon(Icons.qr_code_scanner),
-              label: Text(l10n.scanQR),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
           ],
@@ -251,57 +186,21 @@ class PatientDashboard extends StatelessWidget {
   }
 
   Widget _buildIndexErrorWidget(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.build, size: 64, color: Colors.orange),
-            const SizedBox(height: 16),
-            const Text(
-              'Firebase Index Required',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Please create the required index in Firebase Console:\n\n'
-              'Collection: records\n'
-              'Fields: patientEmail (Ascending), createdAt (Descending)',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      ),
+    return const Center(
+      child: Text('Firebase Index Required - Check Logs'),
     );
   }
 
   void _handleMenuAction(BuildContext context, String action, AuthProvider authProvider) {
     switch (action) {
       case 'history':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const MedicalHistoryScreen()),
-        );
-        break;
-      case 'reminders':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const MedicationRemindersScreen()),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicalHistoryScreen()));
         break;
       case 'search':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const SearchRecordsScreen()),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchRecordsScreen()));
         break;
       case 'language':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const LanguageSettingsScreen()),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageSettingsScreen()));
         break;
       case 'logout':
         authProvider.signOut();
@@ -329,18 +228,11 @@ class _StatItem extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
         ),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
         ),
       ],
     );
@@ -364,7 +256,6 @@ class _PatientRecordCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // الهيدر
             Row(
               children: [
                 Container(
@@ -382,41 +273,15 @@ class _PatientRecordCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const Spacer(),
-                Icon(Icons.local_hospital, size: 20, color: Colors.grey[400]),
               ],
             ),
             const SizedBox(height: 16),
-
-            // التشخيص
-            _buildSection(
-              context,
-              icon: Icons.medical_services,
-              title: 'Diagnosis',
-              content: record.diagnosis,
-              color: Colors.red,
-            ),
+            _buildSection(context, icon: Icons.medical_services, title: 'Diagnosis', content: record.diagnosis, color: Colors.red),
             const SizedBox(height: 12),
-
-            // الوصفة
-            _buildSection(
-              context,
-              icon: Icons.medication,
-              title: 'Prescription',
-              content: record.prescription,
-              color: Colors.green,
-            ),
-
-            // الملاحظات
+            _buildSection(context, icon: Icons.medication, title: 'Prescription', content: record.prescription, color: Colors.green),
             if (record.notes.isNotEmpty) ...[
               const SizedBox(height: 12),
-              _buildSection(
-                context,
-                icon: Icons.notes,
-                title: 'Notes',
-                content: record.notes,
-                color: Colors.orange,
-              ),
+              _buildSection(context, icon: Icons.notes, title: 'Notes', content: record.notes, color: Colors.orange),
             ],
           ],
         ),
@@ -424,42 +289,18 @@ class _PatientRecordCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String content,
-    required Color color,
-  }) {
+  Widget _buildSection(BuildContext context, {required IconData icon, required String title, required String content, required Color color}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 18, color: color),
-        ),
+        Icon(icon, size: 18, color: color),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                content,
-                style: const TextStyle(fontSize: 14),
-              ),
+              Text(title, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+              Text(content, style: const TextStyle(fontSize: 14)),
             ],
           ),
         ),
