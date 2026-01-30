@@ -62,45 +62,72 @@ class _PatientRecordCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 4,
+      margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: theme.primaryColor.withOpacity(0.1),
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
+            ),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(record.date, style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold)),
-                // زر انضمام المريض للمكالمة
-                ElevatedButton.icon(
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today, size: 16, color: Colors.blue),
+                    const SizedBox(width: 8),
+                    Text(record.date, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                // زر الانضمام للمكالمة
+                TextButton.icon(
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => VideoCallScreen(channelName: record.doctorId, token: "")),
                   ),
-                  icon: const Icon(Icons.video_call, size: 18),
-                  label: const Text("Join"),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                  icon: const Icon(Icons.video_call),
+                  label: const Text("Join Call"),
+                  style: TextButton.styleFrom(foregroundColor: Colors.green),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            _buildSection("Diagnosis", record.diagnosis, Colors.red),
-            _buildSection("Prescription", record.prescription, Colors.green),
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSection("Diagnosis", record.diagnosis, Icons.healing, Colors.red),
+                const Divider(),
+                _buildSection("Prescription", record.prescription, Icons.medication, Colors.green),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildSection(String title, String content, Color color) {
-    return Column(
+  Widget _buildSection(String title, String content, IconData icon, Color color) {
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
-        Text(content, style: const TextStyle(fontSize: 14)),
-        const SizedBox(height: 8),
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 4),
+              Text(content, style: const TextStyle(fontSize: 15, height: 1.4)),
+            ],
+          ),
+        ),
       ],
     );
   }
