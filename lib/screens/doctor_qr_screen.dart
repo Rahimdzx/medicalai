@@ -8,32 +8,23 @@ class DoctorQRScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // الحصول على بيانات الطبيب المسجل حالياً
     final auth = Provider.of<AuthProvider>(context);
-    final String doctorId = auth.user?.uid ?? "unknown";
+    final String doctorId = auth.user?.uid ?? "";
 
     return Scaffold(
-      appBar: AppBar(title: const Text("رمز الـ QR الخاص بي")),
+      appBar: AppBar(title: const Text("Doctor QR Code")),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              "اطلب من المريض مسح هذا الرمز",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 30),
-            // الكود الذي يولد الصورة بناءً على ID الطبيب
+            const Text("Share this with your patient", style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 20),
             QrImageView(
               data: doctorId,
               version: QrVersions.auto,
               size: 250.0,
-              gapless: false,
               backgroundColor: Colors.white,
             ),
-            const SizedBox(height: 20),
-            Text("معرف الطبيب: $doctorId", 
-                 style: const TextStyle(color: Colors.grey, fontSize: 12)),
           ],
         ),
       ),
