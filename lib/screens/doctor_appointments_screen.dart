@@ -2,13 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import 'video_call_screen.dart'; // تأكد من استيراد شاشة الاتصال
 
 class DoctorAppointmentsScreen extends StatelessWidget {
   const DoctorAppointmentsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // جلب معرف الطبيب الحالي المسجل دخوله
     final doctorId = Provider.of<AuthProvider>(context).user?.uid;
 
     return Scaffold(
@@ -22,7 +22,6 @@ class DoctorAppointmentsScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // مراقبة مجموعة المواعيد الخاصة بهذا الطبيب فقط
         stream: FirebaseFirestore.instance
             .collection('appointments')
             .where('doctorId', isEqualTo: doctorId)
@@ -48,7 +47,7 @@ class DoctorAppointmentsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             itemBuilder: (context, index) {
               var appointment = snapshot.data!.docs[index].data() as Map<String, dynamic>;
-              var docId = snapshot.data!.docs[index].id;
+              var docId = snapshot.data!.docs[index].id; // هذا هو الـ Channel Name
 
               return Card(
                 elevation: 3,
@@ -72,9 +71,34 @@ class DoctorAppointmentsScreen extends StatelessWidget {
                       Text("Price: ${appointment['price'] ?? '50'} USD"),
                     ],
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.check_circle_outline, color: Colors.green),
-                    onPressed: () => _confirmAppointment(context, docId),
+                  // التعديل هنا: إضافة زر الاتصال بجانب زر التأكيد
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // يظهر زر الاتصال فقط إذا كان الموعد مؤكداً
+                      if (appointment['status'] == 'confirmed')
+                        IconButton(
+                          icon: const Icon(Icons.videocam, color: Colors.blue, size: 30),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => VideoCallScreen(
+                                  channelName: docId, // نرسل الـ ID كإسم للغرفة
+                                  token: "", // فارغ لوضع الاختبار
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      
+                      // زر التأكيد (يختفي إذا تم التأكيد مسبقاً)
+                      if (appointment['status'] == 'pending')
+                        IconButton(
+                          icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+                          onPressed: () => _confirmAppointment(context, docId),
+                        ),
+                    ],
                   ),
                 ),
               );
@@ -85,20 +109,20 @@ class DoctorAppointmentsScreen extends StatelessWidget {
     );
   }
 
-  // دالة لتغيير لون الأيقونة حسب الحالة
   Color _getStatusColor(String? status) {
     if (status == 'pending') return Colors.orange;
     if (status == 'confirmed') return Colors.green;
     return Colors.grey;
   }
 
-  // دالة لتأكيد الموعد من قبل الطبيب
   Future<void> _confirmAppointment(BuildContext context, String id) async {
     await FirebaseFirestore.instance.collection('appointments').doc(id).update({
       'status': 'confirmed'
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Confirmed / Подтверждено / تم التأكيد")),
-    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Confirmed / Подтверждено / تم التأكيد")),
+      );
+    }
   }
 }
