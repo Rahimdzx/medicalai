@@ -18,7 +18,6 @@ class AuthProvider extends ChangeNotifier {
     _init();
   }
 
-  // Getters
   User? get user => _user;
   String get userRole => _userRole;
   bool get isLoading => _isLoading;
@@ -37,7 +36,39 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
-  /// --- دالة التسجيل (SignUp) التي كانت مفقودة ---
+  // دالة تسجيل الدخول المصححة
+  Future<String?> signIn(String email, String password) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      // 1. تسجيل الدخول في Auth
+      UserCredential result = await _auth.signInWithEmailAndPassword(
+        email: email, 
+        password: password
+      );
+
+      if (result.user != null) {
+        _user = result.user;
+        // 2. الانتظار الإجباري لجلب الدور قبل إخطار الواجهة
+        await _loadUserRoleSafe();
+        await _updateFcmToken();
+      }
+
+      _isLoading = false;
+      notifyListeners(); // إرسال الإشارة للواجهة بعد اكتمال كل البيانات
+      return null;
+    } on FirebaseAuthException catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      return e.code;
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      return "error";
+    }
+  }
+
   Future<String?> signUp({
     required String email,
     required String password,
@@ -50,13 +81,11 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      // 1. إنشاء الحساب في Firebase Auth
       UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // 2. حفظ بيانات المستخدم الإضافية في Firestore
       await _firestore.collection('users').doc(result.user!.uid).set({
         'uid': result.user!.uid,
         'name': name,
@@ -65,18 +94,19 @@ class AuthProvider extends ChangeNotifier {
         'phone': phone,
         'specialization': specialization,
         'createdAt': FieldValue.serverTimestamp(),
-        'photoUrl': '', // رابط الصورة الافتراضي فارغ
+        'photoUrl': '',
         'experience': "0",
         'rating': 5.0,
       });
 
+      _userRole = role; // تعيين الدور محلياً فوراً
       _isLoading = false;
       notifyListeners();
-      return null; // نجاح
+      return null;
     } on FirebaseAuthException catch (e) {
       _isLoading = false;
       notifyListeners();
-      return e.code; // إرجاع كود الخطأ (مثل email-already-in-use)
+      return e.code;
     } catch (e) {
       _isLoading = false;
       notifyListeners();
@@ -84,63 +114,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// --- دالة تسجيل الدخول ---
-  Future<String?> signIn(String email, String password) async {
-    try {
-      _isLoading = true;
-      notifyListeners();
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
-      return null;
-    } on FirebaseAuthException catch (e) {
-      _isLoading = false;
-      notifyListeners();
-      return e.code;
-    }
-  }
-
-  /// --- تحديث بيانات الطبيب مع رفع الصورة ---
-  Future<void> updateDoctorProfile({
-    required String name,
-    required String specialization,
-    required double fees,
-    File? imageFile,
-  }) async {
-    try {
-      _isLoading = true;
-      notifyListeners();
-      String? photoUrl;
-
-      // رفع الصورة إلى Firebase Storage إذا وجدت
-      if (imageFile != null) {
-        final ref = FirebaseStorage.instance
-            .ref()
-            .child('doctors/${_user!.uid}.jpg');
-        await ref.putFile(imageFile);
-        photoUrl = await ref.getDownloadURL();
-      }
-
-      // تحديث البيانات في Firestore
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'name': name,
-        'specialization': specialization,
-        'fees': fees,
-        if (photoUrl != null) 'photoUrl': photoUrl,
-      });
-
-      // تحديث البيانات في Firebase Auth Profile
-      await _user!.updateDisplayName(name);
-      if (photoUrl != null) await _user!.updatePhotoURL(photoUrl);
-
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _isLoading = false;
-      notifyListeners();
-      rethrow;
-    }
-  }
-
-  /// --- جلب دور المستخدم (طبيب أم مريض) ---
   Future<void> _loadUserRoleSafe() async {
     try {
       final doc = await _firestore.collection('users').doc(_user!.uid).get();
@@ -152,22 +125,17 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// --- تحديث توكن الإشعارات ---
   Future<void> _updateFcmToken() async {
     try {
       String? token = await _fcm.getToken();
-      if (token != null) {
-        await _firestore
-            .collection('users')
-            .doc(_user!.uid)
-            .update({'fcmToken': token});
+      if (token != null && _user != null) {
+        await _firestore.collection('users').doc(_user!.uid).update({'fcmToken': token});
       }
     } catch (e) {
-      debugPrint("FCM Token Error: $e");
+      debugPrint("FCM Error: $e");
     }
   }
 
-  /// --- تسجيل الخروج ---
   Future<void> signOut() async {
     await _auth.signOut();
     _user = null;
