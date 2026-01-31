@@ -24,9 +24,9 @@ class _ChatScreenState extends State<ChatScreen> {
   void _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
-    
-    _messageController.clear(); // مسح الحقل فوراً لتجربة مستخدم أفضل
+
     final user = Provider.of<AuthProvider>(context, listen: false).user;
+    _messageController.clear(); // مسح الحقل فوراً لتحسين الاستجابة
 
     await FirebaseFirestore.instance
         .collection('appointments')
@@ -49,6 +49,7 @@ class _ChatScreenState extends State<ChatScreen> {
       try {
         File file = File(image.path);
         String fileName = 'chats/${widget.appointmentId}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+        
         TaskSnapshot snapshot = await FirebaseStorage.instance.ref().child(fileName).putFile(file);
         String url = await snapshot.ref.getDownloadURL();
 
@@ -58,7 +59,7 @@ class _ChatScreenState extends State<ChatScreen> {
             .doc(widget.appointmentId)
             .collection('messages')
             .add({
-          'text': 'Image/Attachment',
+          'text': 'Attachment',
           'imageUrl': url,
           'senderId': user?.uid,
           'type': 'image',
@@ -92,8 +93,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return Center(child: Text(l10n.noAccount)); // استبدلها بكلمة "لا توجد رسائل" في l10n
-                
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(child: Text(l10n.noMessages)); // تأكد من إضافة noMessages في ملف الترجمة
+                }
                 var docs = snapshot.data!.docs;
                 return ListView.builder(
                   reverse: true,
@@ -122,9 +124,12 @@ class _ChatScreenState extends State<ChatScreen> {
           color: isMe ? Colors.blue[700] : Colors.grey[200],
           borderRadius: BorderRadius.circular(15),
         ),
-        child: data['type'] == 'image' 
-          ? Image.network(data['imageUrl'], width: 200) 
-          : Text(data['text'] ?? '', style: TextStyle(color: isMe ? Colors.white : Colors.black)),
+        child: data['type'] == 'image'
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(data['imageUrl'], width: 200),
+              )
+            : Text(data['text'] ?? '', style: TextStyle(color: isMe ? Colors.white : Colors.black)),
       ),
     );
   }
@@ -132,13 +137,21 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _inputArea(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(10),
-      color: Colors.white,
+      decoration: const BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)]),
       child: SafeArea(
         child: Row(
           children: [
-            IconButton(icon: const Icon(Icons.image, color: Colors.blue), onPressed: _sendImage),
-            Expanded(child: TextField(controller: _messageController, decoration: InputDecoration(hintText: "Message...", border: InputBorder.none))),
-            IconButton(icon: const Icon(Icons.send, color: Colors.blue), onPressed: _sendMessage),
+            IconButton(icon: const Icon(Icons.attach_file, color: Colors.blue), onPressed: _sendImage),
+            Expanded(
+              child: TextField(
+                controller: _messageController,
+                decoration: InputDecoration(hintText: l10n.searchHint, border: InputBorder.none), // يمكنك استبداله بـ typeMessage
+              ),
+            ),
+            CircleAvatar(
+              backgroundColor: Colors.blue[700],
+              child: IconButton(icon: const Icon(Icons.send, color: Colors.white), onPressed: _sendMessage),
+            ),
           ],
         ),
       ),
