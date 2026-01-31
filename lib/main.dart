@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'; 
+import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'l10n/app_localizations.dart'; 
+import 'l10n/app_localizations.dart';
 import 'providers/language_provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/patient_dashboard.dart';
 import 'screens/doctor_dashboard.dart';
+import 'screens/admin_dashboard.dart'; // تأكد من إنشاء هذا الملف
 import 'screens/home_screen.dart';
 
 void main() async {
@@ -51,6 +52,7 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             locale: languageProvider.locale,
             
+            // تعريف المسارات (Routes)
             routes: {
               '/login': (context) => const LoginScreen(),
               '/home': (context) => const HomeScreen(),
@@ -73,18 +75,33 @@ class MyApp extends StatelessWidget {
               useMaterial3: true,
             ),
 
+            // مراقب حالة تسجيل الدخول والأدوار
             home: Consumer<AuthProvider>(
               builder: (context, authProvider, child) {
+                // 1. حالة التحميل
                 if (authProvider.isLoading) {
-                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
                 }
 
+                // 2. إذا لم يسجل دخول بعد، نعرض شاشة الترحيب
                 if (authProvider.user == null) {
-                  return const HomeScreen(); 
+                  return const HomeScreen();
                 }
 
-                final String role = authProvider.userRole ?? 'patient';
-                return role == 'doctor' ? const DoctorDashboard() : const PatientDashboard();
+                // 3. توجيه المستخدم بناءً على دوره (Role)
+                final String role = authProvider.userRole;
+
+                switch (role) {
+                  case 'admin':
+                    return const AdminDashboard();
+                  case 'doctor':
+                    return const DoctorDashboard();
+                  case 'patient':
+                  default:
+                    return const PatientDashboard();
+                }
               },
             ),
           );
@@ -92,4 +109,4 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
-} // تم حذف القوس الزائد الذي كان هنا
+}
