@@ -21,6 +21,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? _selectedSpecialization;
   bool _isLoading = false;
 
+  // قائمة التخصصات المعرفة مسبقاً لجعل التطبيق احترافياً
   final List<String> _specializations = [
     "General Practice (ممارس عام)",
     "Cardiology (قلب)",
@@ -41,14 +42,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _signUp() async {
+    // 1. التأكد من صحة البيانات المدخلة
     if (!_formKey.currentState!.validate()) return;
+
+    // 2. التحقق من اختيار التخصص إذا كان المستخدم طبيباً
     if (_role == 'doctor' && _selectedSpecialization == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("الرجاء اختيار التخصص")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("الرجاء اختيار التخصص الطبي أولاً"),
+          backgroundColor: Colors.orange,
+        ),
+      );
       return;
     }
 
     setState(() => _isLoading = true);
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // 3. محاولة إنشاء الحساب عبر الـ Provider
     final error = await authProvider.signUp(
       email: _emailController.text.trim(),
       password: _passwordController.text,
@@ -58,10 +70,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
       specialization: _selectedSpecialization ?? "",
     );
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
-    if (error != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
-    } else if (mounted) {
+
+    if (error != null) {
+      // عرض رسالة الخطأ في حال فشل التسجيل
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
+      );
+    } else {
+      // النجاح: العودة لشاشة تسجيل الدخول أو التوجه للصفحة الرئيسية
       Navigator.pop(context);
     }
   }
@@ -69,59 +87,85 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final primaryColor = const Color(0xFF007BFF);
+    const primaryColor = Color(0xFF007BFF); // اللون الأزرق الطبي
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(l10n.signUp, style: const TextStyle(color: Colors.black87)),
+        title: Text(l10n.signUp, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("أنشئ حسابك الطبي", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: primaryColor)),
+              const Text(
+                "أنشئ حسابك الطبي",
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: primaryColor),
+              ),
               const SizedBox(height: 8),
-              Text("انضم إلى آلاف المستخدمين والأطباء اليوم", style: TextStyle(color: Colors.grey[600])),
+              Text(
+                "انضم إلى آلاف المستخدمين والأطباء اليوم",
+                style: TextStyle(color: Colors.grey[600], fontSize: 15),
+              ),
               const SizedBox(height: 30),
 
               _buildFieldTitle("المعلومات الأساسية"),
               _buildInputContainer(
                 child: TextFormField(
                   controller: _nameController,
-                  decoration: InputDecoration(labelText: l10n.fullName, prefixIcon: const Icon(Icons.person_outline), border: InputBorder.none),
+                  decoration: InputDecoration(
+                    labelText: l10n.fullName,
+                    prefixIcon: const Icon(Icons.person_outline, color: primaryColor),
+                    border: InputBorder.none,
+                  ),
                   validator: (val) => val == null || val.isEmpty ? l10n.pleaseEnterName : null,
                 ),
               ),
               const SizedBox(height: 16),
+              
               _buildInputContainer(
                 child: TextFormField(
                   controller: _emailController,
-                  decoration: InputDecoration(labelText: l10n.email, prefixIcon: const Icon(Icons.email_outlined), border: InputBorder.none),
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    labelText: l10n.email,
+                    prefixIcon: const Icon(Icons.email_outlined, color: primaryColor),
+                    border: InputBorder.none,
+                  ),
                   validator: (val) => val == null || !val.contains('@') ? l10n.invalidEmail : null,
                 ),
               ),
               const SizedBox(height: 16),
+
               _buildInputContainer(
                 child: TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  decoration: InputDecoration(labelText: l10n.password, prefixIcon: const Icon(Icons.lock_outline), border: InputBorder.none),
+                  decoration: InputDecoration(
+                    labelText: l10n.password,
+                    prefixIcon: const Icon(Icons.lock_outline, color: primaryColor),
+                    border: InputBorder.none,
+                  ),
                   validator: (val) => val == null || val.length < 6 ? l10n.passwordTooShort : null,
                 ),
               ),
               const SizedBox(height: 16),
+
               _buildInputContainer(
                 child: TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(labelText: l10n.phoneOptional, prefixIcon: const Icon(Icons.phone_android), border: InputBorder.none),
+                  decoration: InputDecoration(
+                    labelText: l10n.phoneOptional,
+                    prefixIcon: const Icon(Icons.phone_android, color: primaryColor),
+                    border: InputBorder.none,
+                  ),
                 ),
               ),
               
@@ -129,7 +173,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _buildFieldTitle("نوع الحساب"),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: primaryColor.withOpacity(0.2)),
+                ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButtonFormField<String>(
                     value: _role,
@@ -137,12 +185,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       DropdownMenuItem(value: 'patient', child: Text(l10n.patient)),
                       DropdownMenuItem(value: 'doctor', child: Text(l10n.doctor)),
                     ],
-                    onChanged: (val) => setState(() => _role = val!),
+                    onChanged: (val) => setState(() {
+                      _role = val!;
+                      if (_role == 'patient') _selectedSpecialization = null;
+                    }),
                     decoration: const InputDecoration(border: InputBorder.none),
                   ),
                 ),
               ),
 
+              // يظهر حقل التخصص فقط إذا كان المستخدم طبيباً
               if (_role == 'doctor') ...[
                 const SizedBox(height: 24),
                 _buildFieldTitle("التخصص الطبي"),
@@ -150,10 +202,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: DropdownButtonHideUnderline(
                     child: DropdownButtonFormField<String>(
                       value: _selectedSpecialization,
-                      hint: const Text("اختر تخصصك"),
-                      items: _specializations.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                      hint: const Text("اختر تخصصك من القائمة"),
+                      items: _specializations.map((spec) => DropdownMenuItem(
+                        value: spec,
+                        child: Text(spec),
+                      )).toList(),
                       onChanged: (val) => setState(() => _selectedSpecialization = val),
-                      decoration: const InputDecoration(prefixIcon: Icon(Icons.medical_services_outlined), border: InputBorder.none),
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.medical_services_outlined, color: primaryColor),
+                        border: InputBorder.none,
+                      ),
                     ),
                   ),
                 ),
@@ -167,13 +225,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   onPressed: _isLoading ? null : _signUp,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    elevation: 2,
                   ),
                   child: _isLoading 
                     ? const CircularProgressIndicator(color: Colors.white) 
-                    : Text(l10n.signUp, style: const TextStyle(fontSize: 18, color: Colors.white)),
+                    : Text(l10n.signUp, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -181,20 +242,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
+  // أداة مساعدة لبناء عناوين الحقول
   Widget _buildFieldTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0, left: 4),
-      child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black54)),
+      padding: const EdgeInsets.only(bottom: 8.0, left: 4, right: 4),
+      child: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black54),
+      ),
     );
   }
 
+  // أداة مساعدة لبناء حاويات الإدخال الجميلة (Shadow & Rounded Corners)
   Widget _buildInputContainer({required Widget child}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+        border: Border.all(color: Colors.grey[200]!),
       ),
       child: child,
     );
