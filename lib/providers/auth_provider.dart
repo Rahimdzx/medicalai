@@ -32,14 +32,16 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
-  // دالة رفع الصورة من الجهاز إلى Firebase Storage
+  // دالة رفع الصورة (محدثة لتعيد رابط الصورة بدقة)
   Future<String> _uploadUserImage(File imageFile, String uid) async {
     try {
       Reference ref = _storage.ref().child('user_photos').child('$uid.jpg');
-      UploadTask uploadTask = ref.putFile(imageFile);
+      // وضعنا metadata لضمان التعرف على نوع الملف كصورة
+      UploadTask uploadTask = ref.putFile(imageFile, SettableMetadata(contentType: 'image/jpeg'));
       TaskSnapshot snapshot = await uploadTask;
       return await snapshot.ref.getDownloadURL();
     } catch (e) {
+      debugPrint("Error uploading image: $e");
       return '';
     }
   }
@@ -52,22 +54,25 @@ class AuthProvider extends ChangeNotifier {
     required String phone,
     required String specialization,
     required String price,
-    File? imageFile, // ملف الصورة من جهاز المستخدم
+    File? imageFile, 
   }) async {
     try {
       _isLoading = true;
       notifyListeners();
 
+      // 1. إنشاء الحساب
       UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
+      // 2. رفع الصورة فور نجاح إنشاء الحساب
       String photoUrl = '';
       if (imageFile != null) {
         photoUrl = await _uploadUserImage(imageFile, result.user!.uid);
       }
 
+      // 3. حفظ البيانات في Firestore
       await _firestore.collection('users').doc(result.user!.uid).set({
         'uid': result.user!.uid,
         'name': name,
@@ -82,37 +87,43 @@ class AuthProvider extends ChangeNotifier {
       });
 
       _userRole = role;
-      _isLoading = false;
-      notifyListeners();
-      return null;
+      return null; // نجاح
+    } on FirebaseAuthException catch (e) {
+      return e.message; // رسالة خطأ واضحة للمستخدم
     } catch (e) {
+      return "حدث خطأ غير متوقع: ${e.toString()}";
+    } finally {
+      // هذا السطر يضمن توقف دائرة التحميل مهما كانت النتيجة
       _isLoading = false;
       notifyListeners();
-      return e.toString();
     }
   }
 
+  // دالة تسجيل الدخول محسنة
   Future<String?> signIn(String email, String password) async {
     try {
       _isLoading = true;
       notifyListeners();
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       await _loadUserRoleSafe();
-      _isLoading = false;
-      notifyListeners();
       return null;
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
+      return e.message;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      return "error";
     }
   }
 
   Future<void> _loadUserRoleSafe() async {
     if (_user == null) return;
-    final doc = await _firestore.collection('users').doc(_user!.uid).get();
-    if (doc.exists) {
-      _userRole = doc.data()?['role'] ?? 'patient';
+    try {
+      final doc = await _firestore.collection('users').doc(_user!.uid).get();
+      if (doc.exists) {
+        _userRole = doc.data()?['role'] ?? 'patient';
+      }
+    } catch (e) {
+      debugPrint("Error loading role: $e");
     }
   }
 
