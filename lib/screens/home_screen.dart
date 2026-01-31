@@ -2,23 +2,34 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import 'qr_scanner_screen.dart';
 import 'russia_programs_screen.dart';
+import 'doctor_search_screen.dart'; // تأكد من استيراد الشاشة الجديدة
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // التأكد من وجود الترجمة، وتوفير نص افتراضي في حال عدم التوفر
     final l10n = AppLocalizations.of(context);
+    final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
         centerTitle: true,
         actions: [
+          // إذا كان المستخدم مسجل دخول، يظهر أيقونة لوحة التحكم، وإلا يظهر أيقونة الدخول
           IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () => Navigator.pushNamed(context, '/login'),
+            icon: Icon(authProvider.user != null ? Icons.dashboard : Icons.person_outline),
+            onPressed: () {
+              if (authProvider.user != null) {
+                // العودة للـ home في main.dart سيوجهه تلقائياً للوحة التحكم المناسبة
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              } else {
+                Navigator.pushNamed(context, '/login');
+              }
+            },
           ),
         ],
       ),
@@ -36,6 +47,7 @@ class HomeScreen extends StatelessWidget {
                 mainAxisSpacing: 20,
                 crossAxisSpacing: 20,
                 children: [
+                  // 1. زر مسح QR
                   _buildMenuCard(
                     context,
                     title: l10n.scanQR,
@@ -43,15 +55,22 @@ class HomeScreen extends StatelessWidget {
                     color: Colors.blueAccent,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QRScannerScreen())),
                   ),
+                  
+                  // 2. زر استشارات الخبراء (معدل ليفتح قائمة الأطباء)
                   _buildMenuCard(
                     context,
                     title: l10n.specialistConsultations,
                     icon: Icons.medical_information,
                     color: Colors.teal,
                     onTap: () {
-                       // يمكنك هنا التوجيه لصفحة قائمة الأطباء
+                      Navigator.push(
+                        context, 
+                        MaterialPageRoute(builder: (_) => const DoctorSearchScreen())
+                      );
                     },
                   ),
+                  
+                  // 3. زر السياحة العلاجية
                   _buildMenuCard(
                     context,
                     title: "Medical Tourism", 
@@ -59,12 +78,21 @@ class HomeScreen extends StatelessWidget {
                     color: Colors.redAccent,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RussiaProgramsScreen())),
                   ),
+                  
+                  // 4. زر سجلاتي الطبية (معدل للتحقق من تسجيل الدخول)
                   _buildMenuCard(
                     context,
                     title: l10n.myRecords,
                     icon: Icons.assignment,
                     color: Colors.orange,
-                    onTap: () => _showLoginRequiredDialog(context, l10n),
+                    onTap: () {
+                      if (authProvider.user == null) {
+                        _showLoginRequiredDialog(context, l10n);
+                      } else {
+                        // إذا كان مسجل دخول، يذهب للـ Dashboard
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                      }
+                    },
                   ),
                 ],
               ),
@@ -83,12 +111,16 @@ class HomeScreen extends StatelessWidget {
         color: Colors.blue,
         borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
       ),
-      child: Center(
-        child: Text(
-          "${l10n.appTitle}\nExpert Medical Services",
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+      child: Column(
+        children: [
+          const Icon(Icons.health_and_safety, color: Colors.white, size: 50),
+          const SizedBox(height: 10),
+          Text(
+            "${l10n.appTitle}\nExpert Medical Services",
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
     );
   }
