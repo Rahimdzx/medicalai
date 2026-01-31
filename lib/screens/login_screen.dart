@@ -26,7 +26,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -39,19 +38,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (error != null && mounted) {
       final l10n = AppLocalizations.of(context);
-      String message;
-      switch (error) {
-        case 'user-not-found':
-          message = l10n.userNotFound;
-          break;
-        case 'wrong-password':
-          message = l10n.wrongPassword;
-          break;
-        default:
-          message = l10n.error;
-      }
+      String message = error == 'user-not-found' ? l10n.userNotFound : 
+                       error == 'wrong-password' ? l10n.wrongPassword : l10n.error;
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red),
+        SnackBar(content: Text(message), backgroundColor: Colors.redAccent, behavior: SnackBarBehavior.floating),
       );
     }
   }
@@ -59,87 +50,83 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final primaryColor = const Color(0xFF007BFF); // اللون الأزرق الاحترافي
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 30),
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.local_hospital,
-                    size: 80,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    l10n.appTitle,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 48),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: l10n.email,
-                      prefixIcon: const Icon(Icons.email),
-                      border: const OutlineInputBorder(),
+                  // شعار احترافي
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.1),
+                      shape: BoxShape.circle,
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return l10n.pleaseEnterEmail;
-                      }
-                      if (!value.contains('@')) {
-                        return l10n.invalidEmail;
-                      }
-                      return null;
-                    },
+                    child: Icon(Icons.health_and_safety, size: 80, color: primaryColor),
                   ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: l10n.password,
-                      prefixIcon: const Icon(Icons.lock),
-                      border: const OutlineInputBorder(),
+                  const SizedBox(height: 20),
+                  Text(l10n.appTitle, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: primaryColor)),
+                  const SizedBox(height: 10),
+                  Text("مرحباً بك مجدداً في نظامك الطبي", style: TextStyle(color: Colors.grey[600])),
+                  const SizedBox(height: 40),
+
+                  // حقل البريد
+                  _buildInputDecoration(
+                    child: TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        labelText: l10n.email,
+                        prefixIcon: Icon(Icons.email_outlined, color: primaryColor),
+                        border: InputBorder.none,
+                      ),
+                      validator: (val) => val == null || !val.contains('@') ? l10n.invalidEmail : null,
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return l10n.pleaseEnterPassword;
-                      }
-                      if (value.length < 6) {
-                        return l10n.passwordTooShort;
-                      }
-                      return null;
-                    },
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
+
+                  // حقل كلمة المرور
+                  _buildInputDecoration(
+                    child: TextFormField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: l10n.password,
+                        prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
+                        border: InputBorder.none,
+                      ),
+                      validator: (val) => val == null || val.length < 6 ? l10n.passwordTooShort : null,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // زر الدخول
                   SizedBox(
                     width: double.infinity,
-                    height: 48,
+                    height: 55,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _login,
-                      child: _isLoading
-                          ? const CircularProgressIndicator()
-                          : Text(l10n.login),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        elevation: 5,
+                      ),
+                      child: _isLoading 
+                        ? const CircularProgressIndicator(color: Colors.white) 
+                        : Text(l10n.login, style: const TextStyle(fontSize: 18, color: Colors.white)),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SignUpScreen(),
-                        ),
-                      );
-                    },
-                    child: Text(l10n.noAccount),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
+                    child: Text(l10n.noAccount, style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -147,6 +134,18 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildInputDecoration({required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: child,
     );
   }
 }
