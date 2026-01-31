@@ -26,34 +26,19 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // الوصول للـ Provider
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
-    // تنفيذ الدخول وانتظار النتيجة
     final error = await authProvider.signIn(
       _emailController.text.trim(),
       _passwordController.text,
     );
 
-    // إذا حدث خطأ، نظهر رسالة. أما إذا نجح، الـ main.dart سيوجه المستخدم تلقائياً
-    if (error != null && mounted) {
+    if (error == null && mounted) {
+      // الانتقال الفوري وحذف شاشة الدخول من الذاكرة
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+    } else if (error != null && mounted) {
       final l10n = AppLocalizations.of(context);
-      
-      // تبسيط معالجة رسائل الخطأ
-      String message;
-      switch (error) {
-        case 'user-not-found': message = l10n.userNotFound; break;
-        case 'wrong-password': message = l10n.wrongPassword; break;
-        case 'invalid-credential': message = "بيانات الدخول غير صحيحة"; break; // إضافة للتعامل مع التحديثات الجديدة
-        default: message = l10n.error;
-      }
-      
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message), 
-          backgroundColor: Colors.redAccent, 
-          behavior: SnackBarBehavior.floating
-        ),
+        SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
       );
     }
   }
@@ -62,8 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final primaryColor = const Color(0xFF007BFF);
-    
-    // نراقب حالة التحميل من الـ Provider مباشرة
     final authLoading = context.watch<AuthProvider>().isLoading;
 
     return Scaffold(
@@ -78,59 +61,29 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   _buildHeader(primaryColor, l10n),
                   const SizedBox(height: 40),
-                  
-                  // حقل البريد
-                  _buildInputDecoration(
-                    child: TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      enabled: !authLoading, // تعطيل الحقل أثناء التحميل
-                      decoration: InputDecoration(
-                        labelText: l10n.email,
-                        prefixIcon: Icon(Icons.email_outlined, color: primaryColor),
-                        border: InputBorder.none,
-                      ),
-                      validator: (val) => val == null || !val.contains('@') ? l10n.invalidEmail : null,
-                    ),
-                  ),
+                  _buildInput(child: TextFormField(
+                    controller: _emailController,
+                    decoration: InputDecoration(labelText: l10n.email, prefixIcon: Icon(Icons.email, color: primaryColor), border: InputBorder.none),
+                    validator: (val) => val == null || !val.contains('@') ? l10n.invalidEmail : null,
+                  )),
                   const SizedBox(height: 20),
-
-                  // حقل كلمة المرور
-                  _buildInputDecoration(
-                    child: TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      enabled: !authLoading, // تعطيل الحقل أثناء التحميل
-                      decoration: InputDecoration(
-                        labelText: l10n.password,
-                        prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
-                        border: InputBorder.none,
-                      ),
-                      validator: (val) => val == null || val.length < 6 ? l10n.passwordTooShort : null,
-                    ),
-                  ),
+                  _buildInput(child: TextFormField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(labelText: l10n.password, prefixIcon: Icon(Icons.lock, color: primaryColor), border: InputBorder.none),
+                    validator: (val) => val == null || val.length < 6 ? l10n.passwordTooShort : null,
+                  )),
                   const SizedBox(height: 30),
-
-                  // زر الدخول
                   SizedBox(
-                    width: double.infinity,
-                    height: 55,
+                    width: double.infinity, height: 55,
                     child: ElevatedButton(
                       onPressed: authLoading ? null : _login,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                        elevation: 5,
-                      ),
-                      child: authLoading 
-                        ? const CircularProgressIndicator(color: Colors.white) 
-                        : Text(l10n.login, style: const TextStyle(fontSize: 18, color: Colors.white)),
+                      style: ElevatedButton.styleFrom(backgroundColor: primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+                      child: authLoading ? const CircularProgressIndicator(color: Colors.white) : Text(l10n.login, style: const TextStyle(color: Colors.white, fontSize: 18)),
                     ),
                   ),
-                  
-                  const SizedBox(height: 20),
                   TextButton(
-                    onPressed: authLoading ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
                     child: Text(l10n.noAccount, style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
                   ),
                 ],
@@ -142,33 +95,20 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildHeader(Color color, var l10n) {
+  Widget _buildHeader(Color color, AppLocalizations l10n) {
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(Icons.health_and_safety, size: 80, color: color),
-        ),
-        const SizedBox(height: 20),
-        Text(l10n.appTitle, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: color)),
+        Icon(Icons.health_and_safety, size: 80, color: color),
         const SizedBox(height: 10),
-        Text("مرحباً بك مجدداً في نظامك الطبي", style: TextStyle(color: Colors.grey[600])),
+        Text(l10n.appTitle, style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: color)),
       ],
     );
   }
 
-  Widget _buildInputDecoration({required Widget child}) {
+  Widget _buildInput({required Widget child}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(15)),
       child: child,
     );
   }
