@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
+import '../providers/auth_provider.dart';
 import 'qr_scanner_screen.dart';
 import 'russia_programs_screen.dart';
-import 'doctor_search_screen.dart'; // تأكد من استيراد الشاشة الجديدة
-import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
+import 'doctor_search_screen.dart';
+import 'login_screen.dart'; // تأكد من استيراد شاشة الدخول
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -12,6 +13,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    // استخدام listen: true هنا ضروري لتحديث الأيقونة فور تسجيل الدخول
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
@@ -19,15 +21,19 @@ class HomeScreen extends StatelessWidget {
         title: Text(l10n.appTitle),
         centerTitle: true,
         actions: [
-          // إذا كان المستخدم مسجل دخول، يظهر أيقونة لوحة التحكم، وإلا يظهر أيقونة الدخول
+          // الأيقونة التي أشرت إليها في الصورة
           IconButton(
             icon: Icon(authProvider.user != null ? Icons.dashboard : Icons.person_outline),
             onPressed: () {
               if (authProvider.user != null) {
-                // العودة للـ home في main.dart سيوجهه تلقائياً للوحة التحكم المناسبة
+                // إذا كان مسجل دخول، يعود للشاشة الرئيسية لتقوم الحسبة في main.dart بتوجيهه
                 Navigator.of(context).popUntil((route) => route.isFirst);
               } else {
-                Navigator.pushNamed(context, '/login');
+                // الانتقال لشاشة تسجيل الدخول باستخدام المرجع المباشر للـ Class
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
               }
             },
           ),
@@ -56,18 +62,13 @@ class HomeScreen extends StatelessWidget {
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QRScannerScreen())),
                   ),
                   
-                  // 2. زر استشارات الخبراء (معدل ليفتح قائمة الأطباء)
+                  // 2. زر استشارات الخبراء
                   _buildMenuCard(
                     context,
                     title: l10n.specialistConsultations,
                     icon: Icons.medical_information,
                     color: Colors.teal,
-                    onTap: () {
-                      Navigator.push(
-                        context, 
-                        MaterialPageRoute(builder: (_) => const DoctorSearchScreen())
-                      );
-                    },
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorSearchScreen())),
                   ),
                   
                   // 3. زر السياحة العلاجية
@@ -79,7 +80,7 @@ class HomeScreen extends StatelessWidget {
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RussiaProgramsScreen())),
                   ),
                   
-                  // 4. زر سجلاتي الطبية (معدل للتحقق من تسجيل الدخول)
+                  // 4. زر سجلاتي الطبية
                   _buildMenuCard(
                     context,
                     title: l10n.myRecords,
@@ -89,7 +90,7 @@ class HomeScreen extends StatelessWidget {
                       if (authProvider.user == null) {
                         _showLoginRequiredDialog(context, l10n);
                       } else {
-                        // إذا كان مسجل دخول، يذهب للـ Dashboard
+                        // العودة للبداية والـ main.dart سيوجه المريض لـ PatientDashboard
                         Navigator.of(context).popUntil((route) => route.isFirst);
                       }
                     },
@@ -159,13 +160,16 @@ class HomeScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.error),
-        content: const Text("Login Required to view records\nيجب تسجيل الدخول لعرض السجلات"),
+        content: const Text("يجب تسجيل الدخول لعرض السجلات الطبية الخاصة بك"),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/login');
+              Navigator.pop(context); // إغلاق الحوار
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
             }, 
             child: Text(l10n.login),
           ),
