@@ -69,8 +69,6 @@ class AppLocalizations {
       'specialistConsultations': 'Specialist Consultations',
       'myRecords': 'My Records',
       'medicalTourism': 'Medical Tourism in Russia',
-
-      // Doctor Card & Specs
       'yearsExperience': 'Years Experience',
       'rating': 'Rating',
       'bookAppointment': 'Book Appointment',
@@ -84,6 +82,11 @@ class AppLocalizations {
       'specPsychiatry': 'Psychiatry',
       'specDentistry': 'Dentistry',
       'specOphthalmology': 'Ophthalmology',
+      // المفاتيح الجديدة
+      'noMessages': 'No messages yet',
+      'typeMessage': 'Type a message...',
+      'consultationPrice': 'Consultation Price',
+      'uploading': 'Uploading...',
     },
 
     // ---------------- العربية (Arabic) ----------------
@@ -143,8 +146,6 @@ class AppLocalizations {
       'specialistConsultations': 'استشارات تخصصية',
       'myRecords': 'سجلاتي الطبية',
       'medicalTourism': 'السياحة العلاجية في روسيا',
-
-      // بطاقة الطبيب والتخصصات
       'yearsExperience': 'سنوات خبرة',
       'rating': 'التقييم',
       'bookAppointment': 'حجز موعد',
@@ -158,6 +159,11 @@ class AppLocalizations {
       'specPsychiatry': 'طب نفسي',
       'specDentistry': 'طب أسنان',
       'specOphthalmology': 'عيون',
+      // المفاتيح الجديدة
+      'noMessages': 'لا توجد رسائل بعد',
+      'typeMessage': 'اكتب رسالة...',
+      'consultationPrice': 'سعر الكشف',
+      'uploading': 'جاري الرفع...',
     },
 
     // ---------------- الروسية (Russian) ----------------
@@ -217,8 +223,6 @@ class AppLocalizations {
       'specialistConsultations': 'Консультации специалистов',
       'myRecords': 'Мои медицинские записи',
       'medicalTourism': 'Медицинский туризм в России',
-
-      // Doctor Card & Specs (Russian)
       'yearsExperience': 'Лет опыта',
       'rating': 'Рейтинг',
       'bookAppointment': 'Записаться',
@@ -232,12 +236,17 @@ class AppLocalizations {
       'specPsychiatry': 'Психиатрия',
       'specDentistry': 'Стоматология',
       'specOphthalmology': 'Офтальмология',
+      // المفاتيح الجديدة
+      'noMessages': 'Сообщений пока нет',
+      'typeMessage': 'Введите сообщение...',
+      'consultationPrice': 'Цена консультации',
+      'uploading': 'Загрузка...',
     }
   };
 
   String _get(String key) => _localizedValues[locale.languageCode]?[key] ?? _localizedValues['en']![key] ?? key;
 
-  // --- Getters (لكل النصوص المستخدمة) ---
+  // --- Getters ---
   String get appTitle => _get('appTitle');
   String get login => _get('login');
   String get signUp => _get('signUp');
@@ -293,13 +302,10 @@ class AppLocalizations {
   String get specialistConsultations => _get('specialistConsultations');
   String get myRecords => _get('myRecords');
   String get medicalTourism => _get('medicalTourism');
-
-  // --- Getters الجديدة (للبطاقة والتخصصات) ---
   String get yearsExperience => _get('yearsExperience');
   String get rating => _get('rating');
   String get bookAppointment => _get('bookAppointment');
   String get viewProfile => _get('viewProfile');
-
   String get specGeneral => _get('specGeneral');
   String get specCardiology => _get('specCardiology');
   String get specDermatology => _get('specDermatology');
@@ -309,6 +315,12 @@ class AppLocalizations {
   String get specPsychiatry => _get('specPsychiatry');
   String get specDentistry => _get('specDentistry');
   String get specOphthalmology => _get('specOphthalmology');
+
+  // الـ Getters للمفاتيح الجديدة لضمان عمل الشات واللوحة
+  String get noMessages => _get('noMessages');
+  String get typeMessage => _get('typeMessage');
+  String get consultationPrice => _get('consultationPrice');
+  String get uploading => _get('uploading');
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
