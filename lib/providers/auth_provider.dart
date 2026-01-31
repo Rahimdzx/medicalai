@@ -32,11 +32,10 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
-  // دالة رفع الصورة (محدثة لتعيد رابط الصورة بدقة)
+  // رفع الصورة وإعادة الرابط
   Future<String> _uploadUserImage(File imageFile, String uid) async {
     try {
       Reference ref = _storage.ref().child('user_photos').child('$uid.jpg');
-      // وضعنا metadata لضمان التعرف على نوع الملف كصورة
       UploadTask uploadTask = ref.putFile(imageFile, SettableMetadata(contentType: 'image/jpeg'));
       TaskSnapshot snapshot = await uploadTask;
       return await snapshot.ref.getDownloadURL();
@@ -46,6 +45,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // --- دالة التسجيل (كما هي لديك مع تحسين بسيط) ---
   Future<String?> signUp({
     required String email,
     required String password,
@@ -60,19 +60,16 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      // 1. إنشاء الحساب
       UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // 2. رفع الصورة فور نجاح إنشاء الحساب
       String photoUrl = '';
       if (imageFile != null) {
         photoUrl = await _uploadUserImage(imageFile, result.user!.uid);
       }
 
-      // 3. حفظ البيانات في Firestore
       await _firestore.collection('users').doc(result.user!.uid).set({
         'uid': result.user!.uid,
         'name': name,
@@ -87,19 +84,53 @@ class AuthProvider extends ChangeNotifier {
       });
 
       _userRole = role;
-      return null; // نجاح
+      return null;
     } on FirebaseAuthException catch (e) {
-      return e.message; // رسالة خطأ واضحة للمستخدم
+      return e.message;
     } catch (e) {
-      return "حدث خطأ غير متوقع: ${e.toString()}";
+      return "حدث خطأ غير متوقع";
     } finally {
-      // هذا السطر يضمن توقف دائرة التحميل مهما كانت النتيجة
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // دالة تسجيل الدخول محسنة
+  // --- الدالة الجديدة: تحديث بيانات الطبيب (الصورة والسعر) ---
+  Future<String?> updateDoctorProfile({
+    required String name,
+    required String phone,
+    required String price,
+    File? newImageFile,
+  }) async {
+    try {
+      if (_user == null) return "مستخدم غير معروف";
+      _isLoading = true;
+      notifyListeners();
+
+      Map<String, dynamic> updates = {
+        'name': name,
+        'phone': phone,
+        'price': price,
+      };
+
+      // إذا اختار الطبيب صورة جديدة، نرفعها ونحدث الرابط
+      if (newImageFile != null) {
+        String newUrl = await _uploadUserImage(newImageFile, _user!.uid);
+        if (newUrl.isNotEmpty) {
+          updates['photoUrl'] = newUrl;
+        }
+      }
+
+      await _firestore.collection('users').doc(_user!.uid).update(updates);
+      return null; // نجاح التحديث
+    } catch (e) {
+      return e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<String?> signIn(String email, String password) async {
     try {
       _isLoading = true;
