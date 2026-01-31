@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
 
 class DoctorProfileView extends StatelessWidget {
@@ -11,11 +10,9 @@ class DoctorProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.recordDetails),
+        title: const Text("تفاصيل الطبيب"),
         centerTitle: true,
       ),
       body: FutureBuilder<DocumentSnapshot>(
@@ -26,7 +23,7 @@ class DoctorProfileView extends StatelessWidget {
           }
 
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return Center(child: Text(l10n.userNotFound));
+            return const Center(child: Text("المستخدم غير موجود"));
           }
 
           var doctorData = snapshot.data!.data() as Map<String, dynamic>;
@@ -36,7 +33,7 @@ class DoctorProfileView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // الصورة الشخصية مع معالجة الرابط الفارغ
+                // الصورة الشخصية
                 CircleAvatar(
                   radius: 70,
                   backgroundColor: Colors.blue.shade50,
@@ -50,13 +47,13 @@ class DoctorProfileView extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 Text(
-                  "Dr. ${doctorData['name'] ?? ''}",
+                  "د. ${doctorData['name'] ?? ''}",
                   style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
 
                 Text(
-                  doctorData['specialization'] ?? l10n.doctor,
+                  doctorData['specialization'] ?? "طبيب",
                   style: TextStyle(fontSize: 18, color: Colors.blue.shade700, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 30),
@@ -69,9 +66,9 @@ class DoctorProfileView extends StatelessWidget {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
-                        _infoTile(Icons.payments_outlined, "Consultation Fee / Цена / السعر", "${doctorData['price'] ?? '50'} USD"),
+                        _infoTile(Icons.payments_outlined, "سعر الكشف", "${doctorData['price'] ?? '50'} DA"),
                         const Divider(height: 30),
-                        _infoTile(Icons.event_available_outlined, "Schedule / График / المواعيد", doctorData['schedule'] ?? "Mon-Fri / Пн-Пт"),
+                        _infoTile(Icons.event_available_outlined, "المواعيد المتاحة", doctorData['schedule'] ?? "الأحد - الخميس"),
                       ],
                     ),
                   ),
@@ -89,7 +86,7 @@ class DoctorProfileView extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: const Text(
-                      "Book Now / Записаться / احجز الآن",
+                      "احجز الآن",
                       style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -125,9 +122,8 @@ class DoctorProfileView extends StatelessWidget {
     
     if (authProvider.user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please Login / Войдите / يرجى تسجيل الدخول")),
+        const SnackBar(content: Text("يرجى تسجيل الدخول أولاً")),
       );
-      Navigator.pushNamed(context, '/login');
       return;
     }
 
@@ -138,31 +134,27 @@ class DoctorProfileView extends StatelessWidget {
     );
 
     try {
-      // إرسال البيانات لمجموعتك الجديدة 'appointments'
       await FirebaseFirestore.instance.collection('appointments').add({
         'doctorId': doctorId,
         'doctorName': doctorData['name'],
         'patientId': authProvider.user!.uid,
-        'patientName': authProvider.user!.email?.split('@')[0] ?? "Patient",
+        'patientName': authProvider.userName ?? "مريض",
         'status': 'pending',
         'price': doctorData['price'],
         'createdAt': FieldValue.serverTimestamp(),
       });
 
       if (context.mounted) {
-        Navigator.pop(context); // إغلاق التحميل
+        Navigator.pop(context); 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Booking Sent! / Запись отправлена! / تم إرسال الطلب!"), 
-            backgroundColor: Colors.green
-          ),
+          const SnackBar(content: Text("تم إرسال طلب الحجز بنجاح!"), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
       if (context.mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+          SnackBar(content: Text("خطأ: $e"), backgroundColor: Colors.red),
         );
       }
     }
