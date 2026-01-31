@@ -12,6 +12,7 @@ class AppLocalizations {
   static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   static final Map<String, Map<String, String>> _localizedValues = {
+    // ---------------- الإنجليزية (English) ----------------
     'en': {
       'appTitle': 'Medical App',
       'login': 'Login',
@@ -68,7 +69,24 @@ class AppLocalizations {
       'specialistConsultations': 'Specialist Consultations',
       'myRecords': 'My Records',
       'medicalTourism': 'Medical Tourism in Russia',
+
+      // Doctor Card & Specs
+      'yearsExperience': 'Years Experience',
+      'rating': 'Rating',
+      'bookAppointment': 'Book Appointment',
+      'viewProfile': 'View Profile',
+      'specGeneral': 'General Practice',
+      'specCardiology': 'Cardiology',
+      'specDermatology': 'Dermatology',
+      'specPediatrics': 'Pediatrics',
+      'specOrthopedics': 'Orthopedics',
+      'specNeurology': 'Neurology',
+      'specPsychiatry': 'Psychiatry',
+      'specDentistry': 'Dentistry',
+      'specOphthalmology': 'Ophthalmology',
     },
+
+    // ---------------- العربية (Arabic) ----------------
     'ar': {
       'appTitle': 'التطبيق الطبي',
       'login': 'دخول',
@@ -125,12 +143,101 @@ class AppLocalizations {
       'specialistConsultations': 'استشارات تخصصية',
       'myRecords': 'سجلاتي الطبية',
       'medicalTourism': 'السياحة العلاجية في روسيا',
+
+      // بطاقة الطبيب والتخصصات
+      'yearsExperience': 'سنوات خبرة',
+      'rating': 'التقييم',
+      'bookAppointment': 'حجز موعد',
+      'viewProfile': 'عرض الملف',
+      'specGeneral': 'ممارس عام',
+      'specCardiology': 'طب القلب',
+      'specDermatology': 'جلدية',
+      'specPediatrics': 'طب أطفال',
+      'specOrthopedics': 'عظام',
+      'specNeurology': 'مخ وأعصاب',
+      'specPsychiatry': 'طب نفسي',
+      'specDentistry': 'طب أسنان',
+      'specOphthalmology': 'عيون',
+    },
+
+    // ---------------- الروسية (Russian) ----------------
+    'ru': {
+      'appTitle': 'Медицинское приложение',
+      'login': 'Вход',
+      'signUp': 'Регистрация',
+      'email': 'Электронная почта',
+      'password': 'Пароль',
+      'fullName': 'ФИО',
+      'pleaseEnterEmail': 'Введите email',
+      'pleaseEnterPassword': 'Введите пароль',
+      'passwordTooShort': 'Пароль слишком короткий',
+      'noAccount': 'Нет аккаунта?',
+      'patientDashboard': 'Панель пациента',
+      'doctorDashboard': 'Панель врача',
+      'language': 'Язык',
+      'logout': 'Выйти',
+      'newRecord': 'Новая запись',
+      'weakPassword': 'Слабый пароль',
+      'emailInUse': 'Email уже используется',
+      'pleaseEnterName': 'Введите имя',
+      'invalidEmail': 'Неверный email',
+      'phoneOptional': 'Телефон (необязательно)',
+      'patient': 'Пациент',
+      'doctor': 'Врач',
+      'haveAccount': 'Уже есть аккаунт?',
+      'specializationOptional': 'Специализация (необязательно)',
+      'languageChanged': 'Язык изменен',
+      'recordAdded': 'Запись успешно добавлена',
+      'patientNotFound': 'Пациент не найден',
+      'patientEmail': 'Email пациента',
+      'diagnosis': 'Диагноз',
+      'prescription': 'Назначение / Рецепт',
+      'notesOptional': 'Заметки (необязательно)',
+      'save': 'Сохранить',
+      'qrForRecord': 'QR-код записи',
+      'patientCanScan': 'Пациент может отсканировать',
+      'date': 'Дата',
+      'notes': 'Заметки',
+      'shareQR': 'Поделиться QR',
+      'shareFeatureComingSoon': 'Функция скоро будет доступна',
+      'search': 'Поиск',
+      'searchHint': 'Поиск записей...',
+      'dateRange': 'Диапазон дат',
+      'results': 'Результаты',
+      'pointCameraToQR': 'Наведите камеру на QR',
+      'scannedSuccessfully': 'Успешно отсканировано',
+      'scanAgain': 'Сканировать снова',
+      'checkUp': 'Осмотр',
+      'imagingReview': 'Обзор снимков',
+      'userNotFound': 'Пользователь не найден',
+      'wrongPassword': 'Неверный пароль',
+      'error': 'Ошибка',
+      'cancel': 'Отмена',
+      'scanQR': 'Сканировать QR',
+      'specialistConsultations': 'Консультации специалистов',
+      'myRecords': 'Мои медицинские записи',
+      'medicalTourism': 'Медицинский туризм в России',
+
+      // Doctor Card & Specs (Russian)
+      'yearsExperience': 'Лет опыта',
+      'rating': 'Рейтинг',
+      'bookAppointment': 'Записаться',
+      'viewProfile': 'Профиль',
+      'specGeneral': 'Терапевт',
+      'specCardiology': 'Кардиология',
+      'specDermatology': 'Дерматология',
+      'specPediatrics': 'Педиатрия',
+      'specOrthopedics': 'Ортопедия',
+      'specNeurology': 'Неврология',
+      'specPsychiatry': 'Психиатрия',
+      'specDentistry': 'Стоматология',
+      'specOphthalmology': 'Офтальмология',
     }
   };
 
   String _get(String key) => _localizedValues[locale.languageCode]?[key] ?? _localizedValues['en']![key] ?? key;
 
-  // --- Getters (يجب أن تغطي كل شيء) ---
+  // --- Getters (لكل النصوص المستخدمة) ---
   String get appTitle => _get('appTitle');
   String get login => _get('login');
   String get signUp => _get('signUp');
@@ -186,14 +293,33 @@ class AppLocalizations {
   String get specialistConsultations => _get('specialistConsultations');
   String get myRecords => _get('myRecords');
   String get medicalTourism => _get('medicalTourism');
+
+  // --- Getters الجديدة (للبطاقة والتخصصات) ---
+  String get yearsExperience => _get('yearsExperience');
+  String get rating => _get('rating');
+  String get bookAppointment => _get('bookAppointment');
+  String get viewProfile => _get('viewProfile');
+
+  String get specGeneral => _get('specGeneral');
+  String get specCardiology => _get('specCardiology');
+  String get specDermatology => _get('specDermatology');
+  String get specPediatrics => _get('specPediatrics');
+  String get specOrthopedics => _get('specOrthopedics');
+  String get specNeurology => _get('specNeurology');
+  String get specPsychiatry => _get('specPsychiatry');
+  String get specDentistry => _get('specDentistry');
+  String get specOphthalmology => _get('specOphthalmology');
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
+
   @override
   bool isSupported(Locale locale) => ['en', 'ar', 'ru'].contains(locale.languageCode);
+
   @override
   Future<AppLocalizations> load(Locale locale) async => AppLocalizations(locale);
+
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
