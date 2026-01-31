@@ -2,24 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LanguageProvider extends ChangeNotifier {
-  final SharedPreferences _prefs;
-  Locale _locale = const Locale('en');
+  final SharedPreferences prefs;
+  Locale _appLocale = const Locale('en');
 
-  LanguageProvider(this._prefs) {
-    _loadLocale();
+  LanguageProvider(this.prefs) {
+    _fetchLocale();
   }
 
-  Locale get locale => _locale;
+  // هذا هو الـ Getter الذي يطلبه الخطأ في الـ main.dart
+  Locale get appLocale => _appLocale;
 
-  void _loadLocale() {
-    final langCode = _prefs.getString('language_code') ?? 'en';
-    _locale = Locale(langCode);
+  void _fetchLocale() {
+    String? langCode = prefs.getString('language_code');
+    if (langCode == null) {
+      _appLocale = const Locale('en');
+    } else {
+      _appLocale = Locale(langCode);
+    }
     notifyListeners();
   }
 
-  Future<void> setLocale(Locale locale) async {
-    _locale = locale;
-    await _prefs.setString('language_code', locale.languageCode);
+  void changeLanguage(String languageCode) async {
+    _appLocale = Locale(languageCode);
+    await prefs.setString('language_code', languageCode);
     notifyListeners();
   }
 }
