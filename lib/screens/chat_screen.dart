@@ -18,8 +18,8 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
+  bool _isUploading = false;
 
-  // دالة إرسال النص
   void _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
     final user = Provider.of<AuthProvider>(context, listen: false).user;
@@ -27,7 +27,7 @@ class _ChatScreenState extends State<ChatScreen> {
     await FirebaseFirestore.instance
         .collection('appointments')
         .doc(widget.appointmentId)
-        .collection('messages') // سيتم إنشاؤها تلقائياً هنا
+        .collection('messages')
         .add({
       'text': _messageController.text.trim(),
       'senderId': user?.uid,
@@ -37,32 +37,34 @@ class _ChatScreenState extends State<ChatScreen> {
     _messageController.clear();
   }
 
-  // دالة إرسال صورة (تقرير طبي)
   Future<void> _sendImage() async {
     final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     
     if (image != null) {
-      File file = File(image.path);
-      String fileName = 'reports/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      setState(() => _isUploading = true);
+      try {
+        File file = File(image.path);
+        String fileName = 'chats/${widget.appointmentId}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+        
+        TaskSnapshot snapshot = await FirebaseStorage.instance.ref().child(fileName).putFile(file);
+        String url = await snapshot.ref.getDownloadURL();
 
-      // رفع الصورة لـ Storage
-      UploadTask uploadTask = FirebaseStorage.instance.ref().child(fileName).putFile(file);
-      TaskSnapshot snapshot = await uploadTask;
-      String url = await snapshot.ref.getDownloadURL();
-
-      final user = Provider.of<AuthProvider>(context, listen: false).user;
-      await FirebaseFirestore.instance
-          .collection('appointments')
-          .doc(widget.appointmentId)
-          .collection('messages')
-          .add({
-        'text': 'Sent a report / أرسل تقريراً',
-        'imageUrl': url,
-        'senderId': user?.uid,
-        'type': 'image',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+        final user = Provider.of<AuthProvider>(context, listen: false).user;
+        await FirebaseFirestore.instance
+            .collection('appointments')
+            .doc(widget.appointmentId)
+            .collection('messages')
+            .add({
+          'text': 'صورة/تقرير طبي',
+          'imageUrl': url,
+          'senderId': user?.uid,
+          'type': 'image',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      } finally {
+        setState(() => _isUploading = false);
+      }
     }
   }
 
@@ -71,9 +73,10 @@ class _ChatScreenState extends State<ChatScreen> {
     final currentUserId = Provider.of<AuthProvider>(context).user?.uid;
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.receiverName)),
+      appBar: AppBar(title: Text(widget.receiverName), centerTitle: true),
       body: Column(
         children: [
+          if (_isUploading) const LinearProgressIndicator(),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -83,14 +86,19 @@ class _ChatScreenState extends State<ChatScreen> {
                   .orderBy('createdAt', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text("لا توجد رسائل بعد.. ابدأ المحادثة"));
+                }
                 var docs = snapshot.data!.docs;
                 return ListView.builder(
                   reverse: true,
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
-                    bool isMe = docs[index]['senderId'] == currentUserId;
                     var data = docs[index].data() as Map<String, dynamic>;
+                    bool isMe = data['senderId'] == currentUserId;
                     return _buildBubble(data, isMe);
                   },
                 );
@@ -107,27 +115,44 @@ class _ChatScreenState extends State<ChatScreen> {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.all(8),
-        padding: const EdgeInsets.all(10),
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isMe ? Colors.blue : Colors.grey[300],
-          borderRadius: BorderRadius.circular(10),
+          color: isMe ? Colors.blue[700] : Colors.grey[200],
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(15),
+            topRight: const Radius.circular(15),
+            bottomLeft: isMe ? const Radius.circular(15) : Radius.zero,
+            bottomRight: isMe ? Radius.zero : const Radius.circular(15),
+          ),
         ),
-        child: data['type'] == 'image' 
-          ? Image.network(data['imageUrl'], width: 200) // عرض الصورة إذا كانت رسالة صورة
-          : Text(data['text'], style: TextStyle(color: isMe ? Colors.white : Colors.black)),
+        child: data['type'] == 'image'
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(data['imageUrl'], width: 200, placeholder: (context, url) => const CircularProgressIndicator()),
+              )
+            : Text(data['text'] ?? '', style: TextStyle(color: isMe ? Colors.white : Colors.black, fontSize: 16)),
       ),
     );
   }
 
   Widget _inputArea() {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)]),
       child: Row(
         children: [
-          IconButton(icon: const Icon(Icons.image), onPressed: _sendImage),
-          Expanded(child: TextField(controller: _messageController)),
-          IconButton(icon: const Icon(Icons.send), onPressed: _sendMessage),
+          IconButton(icon: const Icon(Icons.attach_file, color: Colors.blue), onPressed: _sendImage),
+          Expanded(
+            child: TextField(
+              controller: _messageController,
+              decoration: const InputDecoration(hintText: "اكتب رسالتك هنا...", border: InputBorder.none),
+            ),
+          ),
+          CircleAvatar(
+            backgroundColor: Colors.blue[700],
+            child: IconButton(icon: const Icon(Icons.send, color: Colors.white), onPressed: _sendMessage),
+          ),
         ],
       ),
     );
