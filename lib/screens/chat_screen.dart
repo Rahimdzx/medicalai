@@ -62,6 +62,8 @@ class _ChatScreenState extends State<ChatScreen> {
           'type': 'image',
           'createdAt': FieldValue.serverTimestamp(),
         });
+      } catch (e) {
+        debugPrint("Error uploading image: $e");
       } finally {
         setState(() => _isUploading = false);
       }
@@ -129,9 +131,25 @@ class _ChatScreenState extends State<ChatScreen> {
         child: data['type'] == 'image'
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(data['imageUrl'], width: 200, placeholder: (context, url) => const CircularProgressIndicator()),
+                child: Image.network(
+                  data['imageUrl'],
+                  width: 200,
+                  // تم استبدال placeholder بـ loadingBuilder لحل مشكلة الخطأ
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const SizedBox(
+                      width: 200,
+                      height: 150,
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
+                ),
               )
-            : Text(data['text'] ?? '', style: TextStyle(color: isMe ? Colors.white : Colors.black, fontSize: 16)),
+            : Text(
+                data['text'] ?? '',
+                style: TextStyle(color: isMe ? Colors.white : Colors.black, fontSize: 16),
+              ),
       ),
     );
   }
@@ -139,21 +157,29 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _inputArea() {
     return Container(
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)]),
-      child: Row(
-        children: [
-          IconButton(icon: const Icon(Icons.attach_file, color: Colors.blue), onPressed: _sendImage),
-          Expanded(
-            child: TextField(
-              controller: _messageController,
-              decoration: const InputDecoration(hintText: "اكتب رسالتك هنا...", border: InputBorder.none),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            IconButton(icon: const Icon(Icons.attach_file, color: Colors.blue), onPressed: _sendImage),
+            Expanded(
+              child: TextField(
+                controller: _messageController,
+                decoration: const InputDecoration(hintText: "اكتب رسالتك هنا...", border: InputBorder.none),
+              ),
             ),
-          ),
-          CircleAvatar(
-            backgroundColor: Colors.blue[700],
-            child: IconButton(icon: const Icon(Icons.send, color: Colors.white), onPressed: _sendMessage),
-          ),
-        ],
+            CircleAvatar(
+              backgroundColor: Colors.blue[700],
+              child: IconButton(
+                icon: const Icon(Icons.send, color: Colors.white),
+                onPressed: _sendMessage,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
