@@ -12,11 +12,15 @@ class AuthProvider with ChangeNotifier {
   User? _user;
   String? _userName;
   String? _userRole;
+  String? _photoUrl; // جديد
+  String? _price;    // جديد
   bool _isLoading = false;
 
   User? get user => _user;
   String? get userName => _userName;
   String? get userRole => _userRole;
+  String? get photoUrl => _photoUrl; // جديد
+  String? get price => _price;       // جديد
   bool get isLoading => _isLoading;
 
   AuthProvider() {
@@ -36,6 +40,8 @@ class AuthProvider with ChangeNotifier {
       if (doc.exists) {
         _userRole = doc.get('role');
         _userName = doc.get('name');
+        _photoUrl = doc.data().toString().contains('photoUrl') ? doc.get('photoUrl') : ""; // جلب الصورة
+        _price = doc.data().toString().contains('price') ? doc.get('price') : "0"; // جلب السعر
         notifyListeners();
       }
     } catch (e) {
@@ -43,14 +49,13 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // دالة تسجيل الدخول (تم تعديل الاسم لـ signIn ليطابق شاشة Login)
   Future<String?> signIn(String email, String password) async {
     _isLoading = true;
     notifyListeners();
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       await fetchUserData();
-      return null; // نجاح
+      return null;
     } on FirebaseAuthException catch (e) {
       return e.message;
     } finally {
@@ -59,16 +64,16 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // دالة تسجيل الخروج (تم تعديل الاسم لـ signOut ليطابق شاشات الـ Dashboards)
   Future<void> signOut() async {
     await _auth.signOut();
     _user = null;
     _userRole = null;
     _userName = null;
+    _photoUrl = null;
+    _price = null;
     notifyListeners();
   }
 
-  // دالة إنشاء حساب (معدلة لتدعم رفع الصور والسعر وتطابق شاشة SignUp)
   Future<String?> signUp({
     required String email,
     required String password,
@@ -87,12 +92,16 @@ class AuthProvider with ChangeNotifier {
         password: password,
       );
 
-      String photoUrl = "";
+      String uploadedPhotoUrl = "";
       if (imageFile != null) {
         Reference ref = _storage.ref().child('user_photos').child('${credential.user!.uid}.jpg');
         await ref.putFile(imageFile);
-        photoUrl = await ref.getDownloadURL();
+        uploadedPhotoUrl = await ref.getDownloadURL();
       }
+
+      // تحديث ملف المستخدم الأساسي في Firebase Auth (مهم جداً للتعرف الفوري)
+      await credential.user!.updateDisplayName(name);
+      await credential.user!.updatePhotoURL(uploadedPhotoUrl);
 
       await _firestore.collection('users').doc(credential.user!.uid).set({
         'uid': credential.user!.uid,
@@ -102,11 +111,12 @@ class AuthProvider with ChangeNotifier {
         'phone': phone,
         'specialization': specialization ?? "",
         'price': price ?? "0",
-        'photoUrl': photoUrl,
+        'photoUrl': uploadedPhotoUrl,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      return null; // نجاح
+      await fetchUserData();
+      return null;
     } on FirebaseAuthException catch (e) {
       return e.message;
     } finally {
