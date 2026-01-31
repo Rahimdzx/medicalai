@@ -16,7 +16,7 @@ class DoctorDashboard extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.appTitle),
+        title: Text(l10n.doctorDashboard),
         actions: [
           IconButton(
             icon: CircleAvatar(
@@ -38,15 +38,18 @@ class DoctorDashboard extends StatelessWidget {
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           return ListView.builder(
+            padding: const EdgeInsets.all(16),
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
               final record = PatientRecord.fromFirestore(snapshot.data!.docs[index]);
-              return ListTile(
-                title: Text(record.patientEmail),
-                subtitle: Text(record.date),
-                trailing: IconButton(
-                  icon: const Icon(Icons.chat, color: Colors.blue),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(appointmentId: record.doctorId, receiverName: record.patientEmail))),
+              return Card(
+                child: ListTile(
+                  title: Text(record.patientEmail),
+                  subtitle: Text(record.date),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.chat, color: Colors.blue),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(appointmentId: record.doctorId, receiverName: record.patientEmail))),
+                  ),
                 ),
               );
             },
@@ -62,15 +65,22 @@ class DoctorDashboard extends StatelessWidget {
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
       builder: (context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom + 30, // منع التداخل مع الكيبورد
+          top: 25, left: 20, right: 20
+        ),
         child: Column(
-          mainAxisSize: MainAxisSize.min, // حل مشكلة قطع النصوص
+          mainAxisSize: MainAxisSize.min, // حل مشكلة قطع النص
           children: [
             CircleAvatar(radius: 50, backgroundImage: auth.photoUrl != null ? NetworkImage(auth.photoUrl!) : null),
             const SizedBox(height: 15),
-            Text(auth.userName ?? "Doctor", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(auth.userName ?? "", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Text("Price: ${auth.price} \$", style: const TextStyle(fontSize: 18, color: Colors.green, fontWeight: FontWeight.bold)),
+            ),
             const SizedBox(height: 10),
-            Text("${l10n.login}: ${auth.price} \$", style: const TextStyle(fontSize: 18, color: Colors.green, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
