@@ -19,9 +19,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   
   String _role = 'patient';
   String? _selectedSpecialization;
-  bool _isLoading = false;
 
-  // قائمة التخصصات المعرفة مسبقاً لجعل التطبيق احترافياً
+  // قائمة التخصصات الطبية
   final List<String> _specializations = [
     "General Practice (ممارس عام)",
     "Cardiology (قلب)",
@@ -42,25 +41,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _signUp() async {
-    // 1. التأكد من صحة البيانات المدخلة
     if (!_formKey.currentState!.validate()) return;
 
-    // 2. التحقق من اختيار التخصص إذا كان المستخدم طبيباً
     if (_role == 'doctor' && _selectedSpecialization == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("الرجاء اختيار التخصص الطبي أولاً"),
-          backgroundColor: Colors.orange,
-        ),
+        const SnackBar(content: Text("الرجاء اختيار التخصص الطبي أولاً"), backgroundColor: Colors.orange),
       );
       return;
     }
 
-    setState(() => _isLoading = true);
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = context.read<AuthProvider>();
     
-    // 3. محاولة إنشاء الحساب عبر الـ Provider
     final error = await authProvider.signUp(
       email: _emailController.text.trim(),
       password: _passwordController.text,
@@ -71,23 +62,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
 
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
     if (error != null) {
-      // عرض رسالة الخطأ في حال فشل التسجيل
+      String errorMessage = error;
+      if (error == 'email-already-in-use') errorMessage = "هذا البريد الإلكتروني مستخدم بالفعل";
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
+        SnackBar(content: Text(errorMessage), backgroundColor: Colors.redAccent),
       );
     } else {
-      // النجاح: العودة لشاشة تسجيل الدخول أو التوجه للصفحة الرئيسية
-      Navigator.pop(context);
+      // في حال النجاح، الـ Consumer في main.dart سيوجه المستخدم تلقائياً
+      // نقوم بعمل pop لإغلاق صفحة التسجيل والعودة للخلف (أو للمسار الجديد)
+      Navigator.of(context).pop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    const primaryColor = Color(0xFF007BFF); // اللون الأزرق الطبي
+    const primaryColor = Color(0xFF007BFF);
+    
+    // مراقبة حالة التحميل من الـ Provider
+    final isLoading = context.watch<AuthProvider>().isLoading;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -119,6 +115,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _buildInputContainer(
                 child: TextFormField(
                   controller: _nameController,
+                  enabled: !isLoading,
                   decoration: InputDecoration(
                     labelText: l10n.fullName,
                     prefixIcon: const Icon(Icons.person_outline, color: primaryColor),
@@ -132,6 +129,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _buildInputContainer(
                 child: TextFormField(
                   controller: _emailController,
+                  enabled: !isLoading,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: l10n.email,
@@ -146,6 +144,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _buildInputContainer(
                 child: TextFormField(
                   controller: _passwordController,
+                  enabled: !isLoading,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: l10n.password,
@@ -160,6 +159,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _buildInputContainer(
                 child: TextFormField(
                   controller: _phoneController,
+                  enabled: !isLoading,
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
                     labelText: l10n.phoneOptional,
@@ -181,20 +181,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 child: DropdownButtonHideUnderline(
                   child: DropdownButtonFormField<String>(
                     value: _role,
+                    onChanged: isLoading ? null : (val) => setState(() {
+                      _role = val!;
+                      if (_role == 'patient') _selectedSpecialization = null;
+                    }),
                     items: [
                       DropdownMenuItem(value: 'patient', child: Text(l10n.patient)),
                       DropdownMenuItem(value: 'doctor', child: Text(l10n.doctor)),
                     ],
-                    onChanged: (val) => setState(() {
-                      _role = val!;
-                      if (_role == 'patient') _selectedSpecialization = null;
-                    }),
                     decoration: const InputDecoration(border: InputBorder.none),
                   ),
                 ),
               ),
 
-              // يظهر حقل التخصص فقط إذا كان المستخدم طبيباً
               if (_role == 'doctor') ...[
                 const SizedBox(height: 24),
                 _buildFieldTitle("التخصص الطبي"),
@@ -203,11 +202,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: DropdownButtonFormField<String>(
                       value: _selectedSpecialization,
                       hint: const Text("اختر تخصصك من القائمة"),
+                      onChanged: isLoading ? null : (val) => setState(() => _selectedSpecialization = val),
                       items: _specializations.map((spec) => DropdownMenuItem(
                         value: spec,
                         child: Text(spec),
                       )).toList(),
-                      onChanged: (val) => setState(() => _selectedSpecialization = val),
                       decoration: const InputDecoration(
                         prefixIcon: Icon(Icons.medical_services_outlined, color: primaryColor),
                         border: InputBorder.none,
@@ -222,14 +221,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _signUp,
+                  onPressed: isLoading ? null : _signUp,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     elevation: 2,
                   ),
-                  child: _isLoading 
+                  child: isLoading 
                     ? const CircularProgressIndicator(color: Colors.white) 
                     : Text(l10n.signUp, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
@@ -242,7 +241,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // أداة مساعدة لبناء عناوين الحقول
   Widget _buildFieldTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0, left: 4, right: 4),
@@ -253,7 +251,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // أداة مساعدة لبناء حاويات الإدخال الجميلة (Shadow & Rounded Corners)
   Widget _buildInputContainer({required Widget child}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
