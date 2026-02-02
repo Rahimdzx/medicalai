@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/language_provider.dart';
@@ -13,8 +14,11 @@ import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'screens/home_screen.dart';
 import 'screens/patient_dashboard.dart';
-import 'screens/doctor_dashboard.dart';
 import 'screens/admin_dashboard.dart';
+// New Russian market screens
+import 'screens/auth/login_screen.dart';
+import 'screens/dashboard/doctor_dashboard.dart';
+import 'screens/payment/payment_screen.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized
@@ -22,6 +26,11 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp();
+
+  // Initialize date formatting for Russian locale (Moscow Time)
+  await initializeDateFormatting('ru_RU', null);
+  await initializeDateFormatting('ar', null);
+  await initializeDateFormatting('en_US', null);
 
   // Get SharedPreferences instance
   final prefs = await SharedPreferences.getInstance();
@@ -93,6 +102,9 @@ class MedicalApp extends StatelessWidget {
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
 
+          // Route generator
+          onGenerateRoute: AppRoutes.generateRoute,
+
           // Builder for RTL support and text direction
           builder: (context, child) {
             return Directionality(
@@ -149,10 +161,48 @@ class AuthWrapper extends StatelessWidget {
       case AppConstants.roleAdmin:
         return const AdminDashboard();
       case AppConstants.roleDoctor:
-        return const DoctorDashboard();
+        // Use new Russian market doctor dashboard
+        return const DoctorDashboardScreen();
       case AppConstants.rolePatient:
       default:
         return const PatientDashboard();
+    }
+  }
+}
+
+/// Route generator for named routes
+class AppRoutes {
+  static const String home = '/';
+  static const String login = '/login';
+  static const String signup = '/signup';
+  static const String patientDashboard = '/patient-dashboard';
+  static const String doctorDashboard = '/doctor-dashboard';
+  static const String adminDashboard = '/admin-dashboard';
+  static const String payment = '/payment';
+
+  static Route<dynamic> generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case login:
+        return MaterialPageRoute(builder: (_) => const MedicalLoginScreen());
+      case doctorDashboard:
+        return MaterialPageRoute(builder: (_) => const DoctorDashboardScreen());
+      case patientDashboard:
+        return MaterialPageRoute(builder: (_) => const PatientDashboard());
+      case adminDashboard:
+        return MaterialPageRoute(builder: (_) => const AdminDashboard());
+      case payment:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => PaymentScreen(
+            appointmentId: args['appointmentId'],
+            doctorId: args['doctorId'],
+            doctorName: args['doctorName'],
+            consultationFee: args['consultationFee'],
+          ),
+        );
+      case home:
+      default:
+        return MaterialPageRoute(builder: (_) => const AuthWrapper());
     }
   }
 }
