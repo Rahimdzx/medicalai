@@ -16,7 +16,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   final prefs = await SharedPreferences.getInstance();
-  
+
   runApp(
     MultiProvider(
       providers: [
@@ -34,10 +34,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final langProvider = Provider.of<LanguageProvider>(context);
+    final isRTL = langProvider.isRTL;
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      locale: langProvider.appLocale, // الآن سيعمل بعد تعديل الـ Provider
+      locale: langProvider.appLocale,
       supportedLocales: const [
         Locale('en'),
         Locale('ar'),
@@ -49,6 +50,24 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      builder: (context, child) {
+        return Directionality(
+          textDirection: isRTL ? TextDirection.rtl : TextDirection.ltr,
+          child: child!,
+        );
+      },
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.blue,
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          titleTextStyle: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ),
       home: Consumer<AuthProvider>(
         builder: (context, auth, _) {
           if (auth.isLoading) {
@@ -67,4 +86,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-// تأكد أنه لا يوجد أي قوس إغلاق إضافي هنا
