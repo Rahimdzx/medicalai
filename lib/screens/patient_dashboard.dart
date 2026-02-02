@@ -117,6 +117,8 @@ class _PatientRecordCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16),
@@ -128,43 +130,43 @@ class _PatientRecordCard extends StatelessWidget {
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: CircleAvatar(
               backgroundColor: Colors.blue[100],
-              backgroundImage: record.doctorPhotoUrl.isNotEmpty 
-                  ? NetworkImage(record.doctorPhotoUrl) 
+              backgroundImage: record.doctorPhotoUrl.isNotEmpty
+                  ? NetworkImage(record.doctorPhotoUrl)
                   : null,
-              child: record.doctorPhotoUrl.isEmpty 
-                  ? const Icon(Icons.person, color: Colors.blue) 
+              child: record.doctorPhotoUrl.isEmpty
+                  ? const Icon(Icons.person, color: Colors.blue)
                   : null,
             ),
             title: Text(
-              "د. ${record.doctorName}", 
+              record.doctorName,
               style: const TextStyle(fontWeight: FontWeight.bold)
             ),
             subtitle: Text(record.date, style: TextStyle(color: Colors.grey[600])),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // زر المحادثة
                 IconButton(
                   icon: const Icon(Icons.chat_outlined, color: Colors.blue),
+                  tooltip: l10n.chat,
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => ChatScreen(
-                        appointmentId: record.doctorId, 
+                        appointmentId: record.doctorId,
                         receiverName: record.doctorName
                       ),
                     ),
                   ),
                 ),
-                // زر مكالمة الفيديو
                 IconButton(
                   icon: const Icon(Icons.videocam_outlined, color: Colors.green),
+                  tooltip: l10n.videoCall,
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => VideoCallScreen(
-                        channelName: record.doctorId, 
-                        token: "" // تأكد من التعامل مع التوكن لاحقاً
+                        channelName: record.doctorId,
+                        token: ""
                       )
                     ),
                   ),
@@ -178,9 +180,9 @@ class _PatientRecordCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _infoRow("التشخيص", record.diagnosis, Colors.red[700]!),
+                _infoRow(l10n.diagnosis, record.diagnosis, Colors.red[700]!),
                 const SizedBox(height: 12),
-                _infoRow("الروشتة والعلاج", record.prescription, Colors.green[700]!),
+                _infoRow(l10n.prescriptionAndTreatment, record.prescription, Colors.green[700]!),
               ],
             ),
           ),
@@ -198,16 +200,16 @@ class _PatientRecordCard extends StatelessWidget {
             Container(width: 4, height: 14, color: color),
             const SizedBox(width: 8),
             Text(
-              label, 
+              label,
               style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)
             ),
           ],
         ),
         const SizedBox(height: 4),
         Padding(
-          padding: const EdgeInsets.only(right: 12),
+          padding: const EdgeInsetsDirectional.only(start: 12),
           child: Text(
-            text, 
+            text,
             style: const TextStyle(fontSize: 15, height: 1.4, color: Colors.black87)
           ),
         ),
