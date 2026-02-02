@@ -11,8 +11,11 @@ class AppLocalizations {
 
   static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
+  // Check if current locale is RTL
+  bool get isRTL => locale.languageCode == 'ar';
+
   static final Map<String, Map<String, String>> _localizedValues = {
-    // ---------------- الإنجليزية (English) ----------------
+    // ---------------- English ----------------
     'en': {
       'appTitle': 'Medical App',
       'login': 'Login',
@@ -26,6 +29,7 @@ class AppLocalizations {
       'noAccount': "Don't have an account?",
       'patientDashboard': 'Patient Dashboard',
       'doctorDashboard': 'Doctor Dashboard',
+      'adminDashboard': 'Admin Dashboard',
       'language': 'Language',
       'logout': 'Logout',
       'newRecord': 'New Record',
@@ -36,6 +40,7 @@ class AppLocalizations {
       'phoneOptional': 'Phone (Optional)',
       'patient': 'Patient',
       'doctor': 'Doctor',
+      'admin': 'Admin',
       'haveAccount': 'Already have an account?',
       'specializationOptional': 'Specialization (Optional)',
       'languageChanged': 'Language changed',
@@ -82,14 +87,168 @@ class AppLocalizations {
       'specPsychiatry': 'Psychiatry',
       'specDentistry': 'Dentistry',
       'specOphthalmology': 'Ophthalmology',
-      // المفاتيح الجديدة
       'noMessages': 'No messages yet',
       'typeMessage': 'Type a message...',
       'consultationPrice': 'Consultation Price',
       'uploading': 'Uploading...',
+      // New extended keys
+      'welcome': 'Welcome',
+      'welcomeBack': 'Welcome Back',
+      'settings': 'Settings',
+      'profile': 'Profile',
+      'editProfile': 'Edit Profile',
+      'appointments': 'Appointments',
+      'myAppointments': 'My Appointments',
+      'upcomingAppointments': 'Upcoming Appointments',
+      'pastAppointments': 'Past Appointments',
+      'noAppointments': 'No appointments',
+      'scheduleAppointment': 'Schedule Appointment',
+      'confirmAppointment': 'Confirm Appointment',
+      'cancelAppointment': 'Cancel Appointment',
+      'appointmentConfirmed': 'Appointment confirmed',
+      'appointmentCancelled': 'Appointment cancelled',
+      'medicalHistory': 'Medical History',
+      'medications': 'Medications',
+      'medicationReminders': 'Medication Reminders',
+      'addMedication': 'Add Medication',
+      'dosage': 'Dosage',
+      'frequency': 'Frequency',
+      'startDate': 'Start Date',
+      'endDate': 'End Date',
+      'timesPerDay': 'Times per day',
+      'morning': 'Morning',
+      'afternoon': 'Afternoon',
+      'evening': 'Evening',
+      'night': 'Night',
+      'findDoctor': 'Find Doctor',
+      'findSpecialist': 'Find Specialist',
+      'nearbyDoctors': 'Nearby Doctors',
+      'topRated': 'Top Rated',
+      'available': 'Available',
+      'unavailable': 'Unavailable',
+      'online': 'Online',
+      'offline': 'Offline',
+      'experience': 'Experience',
+      'reviews': 'Reviews',
+      'patients': 'Patients',
+      'consultations': 'Consultations',
+      'chat': 'Chat',
+      'startChat': 'Start Chat',
+      'sendMessage': 'Send Message',
+      'videoCall': 'Video Call',
+      'startVideoCall': 'Start Video Call',
+      'endCall': 'End Call',
+      'calling': 'Calling...',
+      'inCall': 'In Call',
+      'callEnded': 'Call Ended',
+      'camera': 'Camera',
+      'microphone': 'Microphone',
+      'speaker': 'Speaker',
+      'switchCamera': 'Switch Camera',
+      'muteAudio': 'Mute Audio',
+      'unmuteAudio': 'Unmute Audio',
+      'uploadFile': 'Upload File',
+      'uploadImage': 'Upload Image',
+      'uploadDocument': 'Upload Document',
+      'selectFile': 'Select File',
+      'selectImage': 'Select Image',
+      'takePhoto': 'Take Photo',
+      'gallery': 'Gallery',
+      'fileUploaded': 'File uploaded',
+      'uploadFailed': 'Upload failed',
+      'downloading': 'Downloading...',
+      'downloadComplete': 'Download complete',
+      'notifications': 'Notifications',
+      'enableNotifications': 'Enable Notifications',
+      'disableNotifications': 'Disable Notifications',
+      'noNotifications': 'No notifications',
+      'markAsRead': 'Mark as read',
+      'clearAll': 'Clear all',
+      'generateQR': 'Generate QR Code',
+      'scanDoctorCode': 'Scan Doctor Code',
+      'shareProfile': 'Share Profile',
+      'copyLink': 'Copy Link',
+      'linkCopied': 'Link copied',
+      'pdfExport': 'Export PDF',
+      'exportRecords': 'Export Records',
+      'printRecords': 'Print Records',
+      'shareRecords': 'Share Records',
+      'noRecords': 'No medical records yet',
+      'uploadFirstRecord': 'Upload your first medical record',
+      'doctorName': 'Doctor Name',
+      'prescriptionAndTreatment': 'Prescription and Treatment',
+      'selectLanguage': 'Select Language',
+      'changeLanguage': 'Change Language',
+      'english': 'English',
+      'arabic': 'Arabic',
+      'russian': 'Russian',
+      'darkMode': 'Dark Mode',
+      'lightMode': 'Light Mode',
+      'systemTheme': 'System Theme',
+      'about': 'About',
+      'version': 'Version',
+      'termsOfService': 'Terms of Service',
+      'privacyPolicy': 'Privacy Policy',
+      'contactUs': 'Contact Us',
+      'support': 'Support',
+      'help': 'Help',
+      'faq': 'FAQ',
+      'success': 'Success',
+      'failed': 'Failed',
+      'loading': 'Loading...',
+      'pleaseWait': 'Please wait...',
+      'tryAgain': 'Try again',
+      'retry': 'Retry',
+      'confirm': 'Confirm',
+      'delete': 'Delete',
+      'edit': 'Edit',
+      'add': 'Add',
+      'update': 'Update',
+      'submit': 'Submit',
+      'close': 'Close',
+      'back': 'Back',
+      'next': 'Next',
+      'previous': 'Previous',
+      'done': 'Done',
+      'ok': 'OK',
+      'yes': 'Yes',
+      'no': 'No',
+      'connectionError': 'Connection error',
+      'noInternet': 'No internet connection',
+      'serverError': 'Server error',
+      'somethingWentWrong': 'Something went wrong',
+      'sessionExpired': 'Session expired',
+      'unauthorized': 'Unauthorized',
+      'accessDenied': 'Access denied',
+      'price': 'Price',
+      'total': 'Total',
+      'currency': '\$',
+      'payment': 'Payment',
+      'payNow': 'Pay Now',
+      'paymentSuccessful': 'Payment successful',
+      'paymentFailed': 'Payment failed',
+      'age': 'Age',
+      'gender': 'Gender',
+      'male': 'Male',
+      'female': 'Female',
+      'bloodType': 'Blood Type',
+      'height': 'Height',
+      'weight': 'Weight',
+      'allergies': 'Allergies',
+      'chronicDiseases': 'Chronic Diseases',
+      'russiaPrograms': 'Russia Medical Programs',
+      'medicalTourismDesc': 'Discover the best medical centers in Russia',
+      'viewPrograms': 'View Programs',
+      'bookNow': 'Book Now',
+      'doctorManagement': 'Doctor Management',
+      'addDoctor': 'Add Doctor',
+      'removeDoctor': 'Remove Doctor',
+      'verifyDoctor': 'Verify Doctor',
+      'doctorVerified': 'Doctor Verified',
+      'pendingVerification': 'Pending Verification',
     },
 
-    // ---------------- العربية (Arabic) ----------------
+    // ---------------- Arabic ----------------
     'ar': {
       'appTitle': 'التطبيق الطبي',
       'login': 'دخول',
@@ -103,6 +262,7 @@ class AppLocalizations {
       'noAccount': 'ليس لديك حساب؟',
       'patientDashboard': 'لوحة المريض',
       'doctorDashboard': 'لوحة الطبيب',
+      'adminDashboard': 'لوحة الإدارة',
       'language': 'اللغة',
       'logout': 'خروج',
       'newRecord': 'سجل جديد',
@@ -113,6 +273,7 @@ class AppLocalizations {
       'phoneOptional': 'الهاتف (اختياري)',
       'patient': 'مريض',
       'doctor': 'طبيب',
+      'admin': 'مدير',
       'haveAccount': 'لديك حساب بالفعل؟',
       'specializationOptional': 'التخصص (اختياري)',
       'languageChanged': 'تم تغيير اللغة',
@@ -159,14 +320,168 @@ class AppLocalizations {
       'specPsychiatry': 'طب نفسي',
       'specDentistry': 'طب أسنان',
       'specOphthalmology': 'عيون',
-      // المفاتيح الجديدة
       'noMessages': 'لا توجد رسائل بعد',
       'typeMessage': 'اكتب رسالة...',
       'consultationPrice': 'سعر الكشف',
       'uploading': 'جاري الرفع...',
+      // New extended keys
+      'welcome': 'مرحباً',
+      'welcomeBack': 'مرحباً بعودتك',
+      'settings': 'الإعدادات',
+      'profile': 'الملف الشخصي',
+      'editProfile': 'تعديل الملف',
+      'appointments': 'المواعيد',
+      'myAppointments': 'مواعيدي',
+      'upcomingAppointments': 'المواعيد القادمة',
+      'pastAppointments': 'المواعيد السابقة',
+      'noAppointments': 'لا توجد مواعيد',
+      'scheduleAppointment': 'حجز موعد',
+      'confirmAppointment': 'تأكيد الموعد',
+      'cancelAppointment': 'إلغاء الموعد',
+      'appointmentConfirmed': 'تم تأكيد الموعد',
+      'appointmentCancelled': 'تم إلغاء الموعد',
+      'medicalHistory': 'التاريخ الطبي',
+      'medications': 'الأدوية',
+      'medicationReminders': 'تذكيرات الأدوية',
+      'addMedication': 'إضافة دواء',
+      'dosage': 'الجرعة',
+      'frequency': 'التكرار',
+      'startDate': 'تاريخ البدء',
+      'endDate': 'تاريخ الانتهاء',
+      'timesPerDay': 'مرات في اليوم',
+      'morning': 'صباحاً',
+      'afternoon': 'ظهراً',
+      'evening': 'مساءً',
+      'night': 'ليلاً',
+      'findDoctor': 'البحث عن طبيب',
+      'findSpecialist': 'البحث عن متخصص',
+      'nearbyDoctors': 'أطباء قريبون',
+      'topRated': 'الأعلى تقييماً',
+      'available': 'متاح',
+      'unavailable': 'غير متاح',
+      'online': 'متصل',
+      'offline': 'غير متصل',
+      'experience': 'الخبرة',
+      'reviews': 'التقييمات',
+      'patients': 'المرضى',
+      'consultations': 'الاستشارات',
+      'chat': 'المحادثة',
+      'startChat': 'بدء محادثة',
+      'sendMessage': 'إرسال رسالة',
+      'videoCall': 'مكالمة فيديو',
+      'startVideoCall': 'بدء مكالمة فيديو',
+      'endCall': 'إنهاء المكالمة',
+      'calling': 'جاري الاتصال...',
+      'inCall': 'في مكالمة',
+      'callEnded': 'انتهت المكالمة',
+      'camera': 'الكاميرا',
+      'microphone': 'الميكروفون',
+      'speaker': 'مكبر الصوت',
+      'switchCamera': 'تبديل الكاميرا',
+      'muteAudio': 'كتم الصوت',
+      'unmuteAudio': 'إلغاء كتم الصوت',
+      'uploadFile': 'رفع ملف',
+      'uploadImage': 'رفع صورة',
+      'uploadDocument': 'رفع مستند',
+      'selectFile': 'اختر ملف',
+      'selectImage': 'اختر صورة',
+      'takePhoto': 'التقاط صورة',
+      'gallery': 'المعرض',
+      'fileUploaded': 'تم رفع الملف',
+      'uploadFailed': 'فشل الرفع',
+      'downloading': 'جاري التحميل...',
+      'downloadComplete': 'اكتمل التحميل',
+      'notifications': 'الإشعارات',
+      'enableNotifications': 'تفعيل الإشعارات',
+      'disableNotifications': 'تعطيل الإشعارات',
+      'noNotifications': 'لا توجد إشعارات',
+      'markAsRead': 'تحديد كمقروء',
+      'clearAll': 'مسح الكل',
+      'generateQR': 'إنشاء رمز QR',
+      'scanDoctorCode': 'مسح كود الطبيب',
+      'shareProfile': 'مشاركة الملف',
+      'copyLink': 'نسخ الرابط',
+      'linkCopied': 'تم نسخ الرابط',
+      'pdfExport': 'تصدير PDF',
+      'exportRecords': 'تصدير السجلات',
+      'printRecords': 'طباعة السجلات',
+      'shareRecords': 'مشاركة السجلات',
+      'noRecords': 'لا توجد سجلات طبية حتى الآن',
+      'uploadFirstRecord': 'رفع أول تحليل طبي لك',
+      'doctorName': 'اسم الطبيب',
+      'prescriptionAndTreatment': 'الروشتة والعلاج',
+      'selectLanguage': 'اختر اللغة',
+      'changeLanguage': 'تغيير اللغة',
+      'english': 'الإنجليزية',
+      'arabic': 'العربية',
+      'russian': 'الروسية',
+      'darkMode': 'الوضع الداكن',
+      'lightMode': 'الوضع الفاتح',
+      'systemTheme': 'سمة النظام',
+      'about': 'حول التطبيق',
+      'version': 'الإصدار',
+      'termsOfService': 'شروط الخدمة',
+      'privacyPolicy': 'سياسة الخصوصية',
+      'contactUs': 'اتصل بنا',
+      'support': 'الدعم',
+      'help': 'المساعدة',
+      'faq': 'الأسئلة الشائعة',
+      'success': 'نجاح',
+      'failed': 'فشل',
+      'loading': 'جاري التحميل...',
+      'pleaseWait': 'يرجى الانتظار...',
+      'tryAgain': 'حاول مرة أخرى',
+      'retry': 'إعادة المحاولة',
+      'confirm': 'تأكيد',
+      'delete': 'حذف',
+      'edit': 'تعديل',
+      'add': 'إضافة',
+      'update': 'تحديث',
+      'submit': 'إرسال',
+      'close': 'إغلاق',
+      'back': 'رجوع',
+      'next': 'التالي',
+      'previous': 'السابق',
+      'done': 'تم',
+      'ok': 'موافق',
+      'yes': 'نعم',
+      'no': 'لا',
+      'connectionError': 'خطأ في الاتصال',
+      'noInternet': 'لا يوجد اتصال بالإنترنت',
+      'serverError': 'خطأ في الخادم',
+      'somethingWentWrong': 'حدث خطأ ما',
+      'sessionExpired': 'انتهت الجلسة',
+      'unauthorized': 'غير مصرح',
+      'accessDenied': 'تم رفض الوصول',
+      'price': 'السعر',
+      'total': 'الإجمالي',
+      'currency': 'ر.س',
+      'payment': 'الدفع',
+      'payNow': 'ادفع الآن',
+      'paymentSuccessful': 'تم الدفع بنجاح',
+      'paymentFailed': 'فشل الدفع',
+      'age': 'العمر',
+      'gender': 'الجنس',
+      'male': 'ذكر',
+      'female': 'أنثى',
+      'bloodType': 'فصيلة الدم',
+      'height': 'الطول',
+      'weight': 'الوزن',
+      'allergies': 'الحساسية',
+      'chronicDiseases': 'الأمراض المزمنة',
+      'russiaPrograms': 'برامج روسيا الطبية',
+      'medicalTourismDesc': 'اكتشف أفضل المراكز الطبية في روسيا',
+      'viewPrograms': 'عرض البرامج',
+      'bookNow': 'احجز الآن',
+      'doctorManagement': 'إدارة الأطباء',
+      'addDoctor': 'إضافة طبيب',
+      'removeDoctor': 'إزالة طبيب',
+      'verifyDoctor': 'تحقق من الطبيب',
+      'doctorVerified': 'طبيب موثق',
+      'pendingVerification': 'في انتظار التحقق',
     },
 
-    // ---------------- الروسية (Russian) ----------------
+    // ---------------- Russian ----------------
     'ru': {
       'appTitle': 'Медицинское приложение',
       'login': 'Вход',
@@ -180,6 +495,7 @@ class AppLocalizations {
       'noAccount': 'Нет аккаунта?',
       'patientDashboard': 'Панель пациента',
       'doctorDashboard': 'Панель врача',
+      'adminDashboard': 'Панель администратора',
       'language': 'Язык',
       'logout': 'Выйти',
       'newRecord': 'Новая запись',
@@ -190,6 +506,7 @@ class AppLocalizations {
       'phoneOptional': 'Телефон (необязательно)',
       'patient': 'Пациент',
       'doctor': 'Врач',
+      'admin': 'Администратор',
       'haveAccount': 'Уже есть аккаунт?',
       'specializationOptional': 'Специализация (необязательно)',
       'languageChanged': 'Язык изменен',
@@ -236,17 +553,171 @@ class AppLocalizations {
       'specPsychiatry': 'Психиатрия',
       'specDentistry': 'Стоматология',
       'specOphthalmology': 'Офтальмология',
-      // المفاتيح الجديدة
       'noMessages': 'Сообщений пока нет',
       'typeMessage': 'Введите сообщение...',
       'consultationPrice': 'Цена консультации',
       'uploading': 'Загрузка...',
+      // New extended keys
+      'welcome': 'Добро пожаловать',
+      'welcomeBack': 'С возвращением',
+      'settings': 'Настройки',
+      'profile': 'Профиль',
+      'editProfile': 'Редактировать профиль',
+      'appointments': 'Записи',
+      'myAppointments': 'Мои записи',
+      'upcomingAppointments': 'Предстоящие записи',
+      'pastAppointments': 'Прошедшие записи',
+      'noAppointments': 'Нет записей',
+      'scheduleAppointment': 'Записаться на прием',
+      'confirmAppointment': 'Подтвердить запись',
+      'cancelAppointment': 'Отменить запись',
+      'appointmentConfirmed': 'Запись подтверждена',
+      'appointmentCancelled': 'Запись отменена',
+      'medicalHistory': 'Медицинская история',
+      'medications': 'Лекарства',
+      'medicationReminders': 'Напоминания о лекарствах',
+      'addMedication': 'Добавить лекарство',
+      'dosage': 'Дозировка',
+      'frequency': 'Частота',
+      'startDate': 'Дата начала',
+      'endDate': 'Дата окончания',
+      'timesPerDay': 'Раз в день',
+      'morning': 'Утро',
+      'afternoon': 'День',
+      'evening': 'Вечер',
+      'night': 'Ночь',
+      'findDoctor': 'Найти врача',
+      'findSpecialist': 'Найти специалиста',
+      'nearbyDoctors': 'Ближайшие врачи',
+      'topRated': 'Лучшие по рейтингу',
+      'available': 'Доступен',
+      'unavailable': 'Недоступен',
+      'online': 'Онлайн',
+      'offline': 'Офлайн',
+      'experience': 'Опыт',
+      'reviews': 'Отзывы',
+      'patients': 'Пациенты',
+      'consultations': 'Консультации',
+      'chat': 'Чат',
+      'startChat': 'Начать чат',
+      'sendMessage': 'Отправить сообщение',
+      'videoCall': 'Видеозвонок',
+      'startVideoCall': 'Начать видеозвонок',
+      'endCall': 'Завершить звонок',
+      'calling': 'Вызов...',
+      'inCall': 'В звонке',
+      'callEnded': 'Звонок завершен',
+      'camera': 'Камера',
+      'microphone': 'Микрофон',
+      'speaker': 'Динамик',
+      'switchCamera': 'Переключить камеру',
+      'muteAudio': 'Выключить звук',
+      'unmuteAudio': 'Включить звук',
+      'uploadFile': 'Загрузить файл',
+      'uploadImage': 'Загрузить изображение',
+      'uploadDocument': 'Загрузить документ',
+      'selectFile': 'Выбрать файл',
+      'selectImage': 'Выбрать изображение',
+      'takePhoto': 'Сделать фото',
+      'gallery': 'Галерея',
+      'fileUploaded': 'Файл загружен',
+      'uploadFailed': 'Ошибка загрузки',
+      'downloading': 'Загрузка...',
+      'downloadComplete': 'Загрузка завершена',
+      'notifications': 'Уведомления',
+      'enableNotifications': 'Включить уведомления',
+      'disableNotifications': 'Отключить уведомления',
+      'noNotifications': 'Нет уведомлений',
+      'markAsRead': 'Отметить как прочитанное',
+      'clearAll': 'Очистить все',
+      'generateQR': 'Создать QR-код',
+      'scanDoctorCode': 'Сканировать код врача',
+      'shareProfile': 'Поделиться профилем',
+      'copyLink': 'Копировать ссылку',
+      'linkCopied': 'Ссылка скопирована',
+      'pdfExport': 'Экспорт PDF',
+      'exportRecords': 'Экспорт записей',
+      'printRecords': 'Печать записей',
+      'shareRecords': 'Поделиться записями',
+      'noRecords': 'Медицинских записей пока нет',
+      'uploadFirstRecord': 'Загрузите свою первую медицинскую запись',
+      'doctorName': 'Имя врача',
+      'prescriptionAndTreatment': 'Назначения и лечение',
+      'selectLanguage': 'Выберите язык',
+      'changeLanguage': 'Изменить язык',
+      'english': 'Английский',
+      'arabic': 'Арабский',
+      'russian': 'Русский',
+      'darkMode': 'Темная тема',
+      'lightMode': 'Светлая тема',
+      'systemTheme': 'Системная тема',
+      'about': 'О приложении',
+      'version': 'Версия',
+      'termsOfService': 'Условия использования',
+      'privacyPolicy': 'Политика конфиденциальности',
+      'contactUs': 'Связаться с нами',
+      'support': 'Поддержка',
+      'help': 'Помощь',
+      'faq': 'Частые вопросы',
+      'success': 'Успешно',
+      'failed': 'Ошибка',
+      'loading': 'Загрузка...',
+      'pleaseWait': 'Пожалуйста, подождите...',
+      'tryAgain': 'Попробуйте снова',
+      'retry': 'Повторить',
+      'confirm': 'Подтвердить',
+      'delete': 'Удалить',
+      'edit': 'Редактировать',
+      'add': 'Добавить',
+      'update': 'Обновить',
+      'submit': 'Отправить',
+      'close': 'Закрыть',
+      'back': 'Назад',
+      'next': 'Далее',
+      'previous': 'Назад',
+      'done': 'Готово',
+      'ok': 'ОК',
+      'yes': 'Да',
+      'no': 'Нет',
+      'connectionError': 'Ошибка соединения',
+      'noInternet': 'Нет подключения к интернету',
+      'serverError': 'Ошибка сервера',
+      'somethingWentWrong': 'Что-то пошло не так',
+      'sessionExpired': 'Сессия истекла',
+      'unauthorized': 'Не авторизован',
+      'accessDenied': 'Доступ запрещен',
+      'price': 'Цена',
+      'total': 'Итого',
+      'currency': '₽',
+      'payment': 'Оплата',
+      'payNow': 'Оплатить',
+      'paymentSuccessful': 'Оплата успешна',
+      'paymentFailed': 'Ошибка оплаты',
+      'age': 'Возраст',
+      'gender': 'Пол',
+      'male': 'Мужской',
+      'female': 'Женский',
+      'bloodType': 'Группа крови',
+      'height': 'Рост',
+      'weight': 'Вес',
+      'allergies': 'Аллергии',
+      'chronicDiseases': 'Хронические заболевания',
+      'russiaPrograms': 'Медицинские программы России',
+      'medicalTourismDesc': 'Откройте для себя лучшие медицинские центры России',
+      'viewPrograms': 'Посмотреть программы',
+      'bookNow': 'Забронировать',
+      'doctorManagement': 'Управление врачами',
+      'addDoctor': 'Добавить врача',
+      'removeDoctor': 'Удалить врача',
+      'verifyDoctor': 'Верифицировать врача',
+      'doctorVerified': 'Врач верифицирован',
+      'pendingVerification': 'Ожидает верификации',
     }
   };
 
   String _get(String key) => _localizedValues[locale.languageCode]?[key] ?? _localizedValues['en']![key] ?? key;
 
-  // --- Getters ---
+  // --- Original Getters ---
   String get appTitle => _get('appTitle');
   String get login => _get('login');
   String get signUp => _get('signUp');
@@ -259,6 +730,7 @@ class AppLocalizations {
   String get noAccount => _get('noAccount');
   String get patientDashboard => _get('patientDashboard');
   String get doctorDashboard => _get('doctorDashboard');
+  String get adminDashboard => _get('adminDashboard');
   String get language => _get('language');
   String get logout => _get('logout');
   String get newRecord => _get('newRecord');
@@ -269,6 +741,7 @@ class AppLocalizations {
   String get phoneOptional => _get('phoneOptional');
   String get patient => _get('patient');
   String get doctor => _get('doctor');
+  String get admin => _get('admin');
   String get haveAccount => _get('haveAccount');
   String get specializationOptional => _get('specializationOptional');
   String get languageChanged => _get('languageChanged');
@@ -315,12 +788,166 @@ class AppLocalizations {
   String get specPsychiatry => _get('specPsychiatry');
   String get specDentistry => _get('specDentistry');
   String get specOphthalmology => _get('specOphthalmology');
-
-  // الـ Getters للمفاتيح الجديدة لضمان عمل الشات واللوحة
   String get noMessages => _get('noMessages');
   String get typeMessage => _get('typeMessage');
   String get consultationPrice => _get('consultationPrice');
   String get uploading => _get('uploading');
+
+  // --- New Extended Getters ---
+  String get welcome => _get('welcome');
+  String get welcomeBack => _get('welcomeBack');
+  String get settings => _get('settings');
+  String get profile => _get('profile');
+  String get editProfile => _get('editProfile');
+  String get appointments => _get('appointments');
+  String get myAppointments => _get('myAppointments');
+  String get upcomingAppointments => _get('upcomingAppointments');
+  String get pastAppointments => _get('pastAppointments');
+  String get noAppointments => _get('noAppointments');
+  String get scheduleAppointment => _get('scheduleAppointment');
+  String get confirmAppointment => _get('confirmAppointment');
+  String get cancelAppointment => _get('cancelAppointment');
+  String get appointmentConfirmed => _get('appointmentConfirmed');
+  String get appointmentCancelled => _get('appointmentCancelled');
+  String get medicalHistory => _get('medicalHistory');
+  String get medications => _get('medications');
+  String get medicationReminders => _get('medicationReminders');
+  String get addMedication => _get('addMedication');
+  String get dosage => _get('dosage');
+  String get frequency => _get('frequency');
+  String get startDate => _get('startDate');
+  String get endDate => _get('endDate');
+  String get timesPerDay => _get('timesPerDay');
+  String get morning => _get('morning');
+  String get afternoon => _get('afternoon');
+  String get evening => _get('evening');
+  String get night => _get('night');
+  String get findDoctor => _get('findDoctor');
+  String get findSpecialist => _get('findSpecialist');
+  String get nearbyDoctors => _get('nearbyDoctors');
+  String get topRated => _get('topRated');
+  String get available => _get('available');
+  String get unavailable => _get('unavailable');
+  String get online => _get('online');
+  String get offline => _get('offline');
+  String get experience => _get('experience');
+  String get reviews => _get('reviews');
+  String get patients => _get('patients');
+  String get consultations => _get('consultations');
+  String get chat => _get('chat');
+  String get startChat => _get('startChat');
+  String get sendMessage => _get('sendMessage');
+  String get videoCall => _get('videoCall');
+  String get startVideoCall => _get('startVideoCall');
+  String get endCall => _get('endCall');
+  String get calling => _get('calling');
+  String get inCall => _get('inCall');
+  String get callEnded => _get('callEnded');
+  String get camera => _get('camera');
+  String get microphone => _get('microphone');
+  String get speaker => _get('speaker');
+  String get switchCamera => _get('switchCamera');
+  String get muteAudio => _get('muteAudio');
+  String get unmuteAudio => _get('unmuteAudio');
+  String get uploadFile => _get('uploadFile');
+  String get uploadImage => _get('uploadImage');
+  String get uploadDocument => _get('uploadDocument');
+  String get selectFile => _get('selectFile');
+  String get selectImage => _get('selectImage');
+  String get takePhoto => _get('takePhoto');
+  String get gallery => _get('gallery');
+  String get fileUploaded => _get('fileUploaded');
+  String get uploadFailed => _get('uploadFailed');
+  String get downloading => _get('downloading');
+  String get downloadComplete => _get('downloadComplete');
+  String get notifications => _get('notifications');
+  String get enableNotifications => _get('enableNotifications');
+  String get disableNotifications => _get('disableNotifications');
+  String get noNotifications => _get('noNotifications');
+  String get markAsRead => _get('markAsRead');
+  String get clearAll => _get('clearAll');
+  String get generateQR => _get('generateQR');
+  String get scanDoctorCode => _get('scanDoctorCode');
+  String get shareProfile => _get('shareProfile');
+  String get copyLink => _get('copyLink');
+  String get linkCopied => _get('linkCopied');
+  String get pdfExport => _get('pdfExport');
+  String get exportRecords => _get('exportRecords');
+  String get printRecords => _get('printRecords');
+  String get shareRecords => _get('shareRecords');
+  String get noRecords => _get('noRecords');
+  String get uploadFirstRecord => _get('uploadFirstRecord');
+  String get doctorName => _get('doctorName');
+  String get prescriptionAndTreatment => _get('prescriptionAndTreatment');
+  String get selectLanguage => _get('selectLanguage');
+  String get changeLanguage => _get('changeLanguage');
+  String get english => _get('english');
+  String get arabic => _get('arabic');
+  String get russian => _get('russian');
+  String get darkMode => _get('darkMode');
+  String get lightMode => _get('lightMode');
+  String get systemTheme => _get('systemTheme');
+  String get about => _get('about');
+  String get version => _get('version');
+  String get termsOfService => _get('termsOfService');
+  String get privacyPolicy => _get('privacyPolicy');
+  String get contactUs => _get('contactUs');
+  String get support => _get('support');
+  String get help => _get('help');
+  String get faq => _get('faq');
+  String get success => _get('success');
+  String get failed => _get('failed');
+  String get loading => _get('loading');
+  String get pleaseWait => _get('pleaseWait');
+  String get tryAgain => _get('tryAgain');
+  String get retry => _get('retry');
+  String get confirm => _get('confirm');
+  String get delete => _get('delete');
+  String get edit => _get('edit');
+  String get add => _get('add');
+  String get update => _get('update');
+  String get submit => _get('submit');
+  String get close => _get('close');
+  String get back => _get('back');
+  String get next => _get('next');
+  String get previous => _get('previous');
+  String get done => _get('done');
+  String get ok => _get('ok');
+  String get yes => _get('yes');
+  String get no => _get('no');
+  String get connectionError => _get('connectionError');
+  String get noInternet => _get('noInternet');
+  String get serverError => _get('serverError');
+  String get somethingWentWrong => _get('somethingWentWrong');
+  String get sessionExpired => _get('sessionExpired');
+  String get unauthorized => _get('unauthorized');
+  String get accessDenied => _get('accessDenied');
+  String get price => _get('price');
+  String get total => _get('total');
+  String get currency => _get('currency');
+  String get payment => _get('payment');
+  String get payNow => _get('payNow');
+  String get paymentSuccessful => _get('paymentSuccessful');
+  String get paymentFailed => _get('paymentFailed');
+  String get age => _get('age');
+  String get gender => _get('gender');
+  String get male => _get('male');
+  String get female => _get('female');
+  String get bloodType => _get('bloodType');
+  String get height => _get('height');
+  String get weight => _get('weight');
+  String get allergies => _get('allergies');
+  String get chronicDiseases => _get('chronicDiseases');
+  String get russiaPrograms => _get('russiaPrograms');
+  String get medicalTourismDesc => _get('medicalTourismDesc');
+  String get viewPrograms => _get('viewPrograms');
+  String get bookNow => _get('bookNow');
+  String get doctorManagement => _get('doctorManagement');
+  String get addDoctor => _get('addDoctor');
+  String get removeDoctor => _get('removeDoctor');
+  String get verifyDoctor => _get('verifyDoctor');
+  String get doctorVerified => _get('doctorVerified');
+  String get pendingVerification => _get('pendingVerification');
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

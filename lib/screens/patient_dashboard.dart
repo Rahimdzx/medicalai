@@ -3,10 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../providers/auth_provider.dart';
 import '../models/patient_record.dart';
+import '../l10n/app_localizations.dart';
 import 'video_call_screen.dart';
-import 'scan_qr_screen.dart'; 
+import 'scan_qr_screen.dart';
 import 'upload_records_screen.dart';
-import 'chat_screen.dart'; 
+import 'chat_screen.dart';
 
 class PatientDashboard extends StatelessWidget {
   const PatientDashboard({super.key});
@@ -14,11 +15,12 @@ class PatientDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text("سجلاتي الطبية", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(l10n.myRecords, style: const TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.white,
@@ -26,6 +28,7 @@ class PatientDashboard extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.upload_file, color: Colors.blue),
+            tooltip: l10n.uploadFile,
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const UploadRecordsScreen()),
@@ -33,6 +36,7 @@ class PatientDashboard extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.redAccent),
+            tooltip: l10n.logout,
             onPressed: () => auth.signOut(),
           )
         ],
@@ -48,7 +52,7 @@ class PatientDashboard extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return _buildEmptyState(context);
+            return _buildEmptyState(context, l10n);
           }
 
           return ListView.builder(
@@ -65,31 +69,31 @@ class PatientDashboard extends StatelessWidget {
         backgroundColor: Colors.blue[800],
         onPressed: () async {
           await Navigator.push(
-            context, 
+            context,
             MaterialPageRoute(builder: (_) => const ScanQRScreen())
           );
         },
-        label: const Text("مسح كود الطبيب", style: TextStyle(color: Colors.white)),
+        label: Text(l10n.scanDoctorCode, style: const TextStyle(color: Colors.white)),
         icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
       ),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.history_edu, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
-          const Text(
-            "لا توجد سجلات طبية حتى الآن",
-            style: TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.w500),
+          Text(
+            l10n.noRecords,
+            style: const TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () => Navigator.push(
-              context, 
+              context,
               MaterialPageRoute(builder: (_) => const UploadRecordsScreen())
             ),
             style: ElevatedButton.styleFrom(
@@ -99,7 +103,7 @@ class PatientDashboard extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             icon: const Icon(Icons.add),
-            label: const Text("رفع أول تحليل طبي لك"),
+            label: Text(l10n.uploadFirstRecord),
           )
         ],
       ),
@@ -113,6 +117,8 @@ class _PatientRecordCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16),
@@ -124,43 +130,43 @@ class _PatientRecordCard extends StatelessWidget {
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: CircleAvatar(
               backgroundColor: Colors.blue[100],
-              backgroundImage: record.doctorPhotoUrl.isNotEmpty 
-                  ? NetworkImage(record.doctorPhotoUrl) 
+              backgroundImage: record.doctorPhotoUrl.isNotEmpty
+                  ? NetworkImage(record.doctorPhotoUrl)
                   : null,
-              child: record.doctorPhotoUrl.isEmpty 
-                  ? const Icon(Icons.person, color: Colors.blue) 
+              child: record.doctorPhotoUrl.isEmpty
+                  ? const Icon(Icons.person, color: Colors.blue)
                   : null,
             ),
             title: Text(
-              "د. ${record.doctorName}", 
+              record.doctorName,
               style: const TextStyle(fontWeight: FontWeight.bold)
             ),
             subtitle: Text(record.date, style: TextStyle(color: Colors.grey[600])),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // زر المحادثة
                 IconButton(
                   icon: const Icon(Icons.chat_outlined, color: Colors.blue),
+                  tooltip: l10n.chat,
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => ChatScreen(
-                        appointmentId: record.doctorId, 
+                        appointmentId: record.doctorId,
                         receiverName: record.doctorName
                       ),
                     ),
                   ),
                 ),
-                // زر مكالمة الفيديو
                 IconButton(
                   icon: const Icon(Icons.videocam_outlined, color: Colors.green),
+                  tooltip: l10n.videoCall,
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => VideoCallScreen(
-                        channelName: record.doctorId, 
-                        token: "" // تأكد من التعامل مع التوكن لاحقاً
+                        channelName: record.doctorId,
+                        token: ""
                       )
                     ),
                   ),
@@ -174,9 +180,9 @@ class _PatientRecordCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _infoRow("التشخيص", record.diagnosis, Colors.red[700]!),
+                _infoRow(l10n.diagnosis, record.diagnosis, Colors.red[700]!),
                 const SizedBox(height: 12),
-                _infoRow("الروشتة والعلاج", record.prescription, Colors.green[700]!),
+                _infoRow(l10n.prescriptionAndTreatment, record.prescription, Colors.green[700]!),
               ],
             ),
           ),
@@ -194,16 +200,16 @@ class _PatientRecordCard extends StatelessWidget {
             Container(width: 4, height: 14, color: color),
             const SizedBox(width: 8),
             Text(
-              label, 
+              label,
               style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)
             ),
           ],
         ),
         const SizedBox(height: 4),
         Padding(
-          padding: const EdgeInsets.only(right: 12),
+          padding: const EdgeInsetsDirectional.only(start: 12),
           child: Text(
-            text, 
+            text,
             style: const TextStyle(fontSize: 15, height: 1.4, color: Colors.black87)
           ),
         ),
