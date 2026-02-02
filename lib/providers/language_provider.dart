@@ -16,16 +16,10 @@ class LanguageProvider extends ChangeNotifier {
   Locale get appLocale => _appLocale;
   Locale get locale => _appLocale;
 
-  // Check if current language is RTL
-  bool get isRTL => _appLocale.languageCode == 'ar';
-
-  // Get current language code
+  /// Get current language code (تم الإبقاء على نسخة واحدة فقط)
   String get languageCode => _appLocale.languageCode;
 
-  /// Current language code (e.g., 'en', 'ar', 'ru')
-  String get languageCode => _appLocale.languageCode;
-
-  /// Whether the current language is RTL
+  /// Whether the current language is RTL (تم الإبقاء على النسخة الأكثر دقة)
   bool get isRTL => AppConstants.rtlLanguages.contains(_appLocale.languageCode);
 
   /// Text direction based on current language
