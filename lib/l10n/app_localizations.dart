@@ -246,6 +246,61 @@ class AppLocalizations {
       'verifyDoctor': 'Verify Doctor',
       'doctorVerified': 'Doctor Verified',
       'pendingVerification': 'Pending Verification',
+      // Login & Auth Extended
+      'welcomeToMedical': 'Welcome to Medical Portal',
+      'signInToContinue': 'Sign in to continue',
+      'forgotPassword': 'Forgot Password?',
+      'rememberMe': 'Remember me',
+      'orSignInWith': 'Or sign in with',
+      'secureLogin': 'Secure Login',
+      'enterCredentials': 'Enter your credentials',
+      // Doctor Dashboard Extended
+      'dailyPatients': 'Daily Patients',
+      'pendingConsultations': 'Pending Consultations',
+      'completedToday': 'Completed Today',
+      'totalEarnings': 'Total Earnings',
+      'todaySchedule': 'Today\'s Schedule',
+      'noScheduledAppointments': 'No scheduled appointments',
+      'viewAllAppointments': 'View All Appointments',
+      'quickActions': 'Quick Actions',
+      'startConsultation': 'Start Consultation',
+      'viewPatientRecords': 'View Patient Records',
+      'manageSchedule': 'Manage Schedule',
+      'appointmentWith': 'Appointment with',
+      'scheduledFor': 'Scheduled for',
+      'consultationType': 'Consultation type',
+      'videoConsultation': 'Video Consultation',
+      'inPersonVisit': 'In-person Visit',
+      'chatConsultation': 'Chat Consultation',
+      // Payment Extended
+      'paymentProcessing': 'Processing Payment',
+      'paymentAmount': 'Payment Amount',
+      'consultationFee': 'Consultation Fee',
+      'serviceFee': 'Service Fee',
+      'totalAmount': 'Total Amount',
+      'paymentMethod': 'Payment Method',
+      'bankCard': 'Bank Card',
+      'onlinePayment': 'Online Payment',
+      'confirmPayment': 'Confirm Payment',
+      'paymentPending': 'Payment Pending',
+      'paymentCompleted': 'Payment Completed',
+      'paymentCancelled': 'Payment Cancelled',
+      'paymentError': 'Payment Error',
+      'tryPaymentAgain': 'Try Payment Again',
+      'backToConsultation': 'Back to Consultation',
+      'receiptSent': 'Receipt sent to your email',
+      'transactionId': 'Transaction ID',
+      // Time & Scheduling
+      'moscowTime': 'Moscow Time (MSK)',
+      'localTime': 'Local Time',
+      'selectTime': 'Select Time',
+      'selectDate': 'Select Date',
+      'timeSlot': 'Time Slot',
+      'duration': 'Duration',
+      'minutes': 'minutes',
+      // Currency
+      'rubles': 'Rubles',
+      'rub': 'RUB',
     },
 
     // ---------------- Arabic ----------------
@@ -479,6 +534,61 @@ class AppLocalizations {
       'verifyDoctor': 'تحقق من الطبيب',
       'doctorVerified': 'طبيب موثق',
       'pendingVerification': 'في انتظار التحقق',
+      // Login & Auth Extended
+      'welcomeToMedical': 'مرحباً بك في البوابة الطبية',
+      'signInToContinue': 'سجل الدخول للمتابعة',
+      'forgotPassword': 'نسيت كلمة المرور؟',
+      'rememberMe': 'تذكرني',
+      'orSignInWith': 'أو سجل الدخول باستخدام',
+      'secureLogin': 'تسجيل دخول آمن',
+      'enterCredentials': 'أدخل بيانات الاعتماد',
+      // Doctor Dashboard Extended
+      'dailyPatients': 'المرضى اليوم',
+      'pendingConsultations': 'الاستشارات المعلقة',
+      'completedToday': 'مكتملة اليوم',
+      'totalEarnings': 'إجمالي الأرباح',
+      'todaySchedule': 'جدول اليوم',
+      'noScheduledAppointments': 'لا توجد مواعيد مجدولة',
+      'viewAllAppointments': 'عرض جميع المواعيد',
+      'quickActions': 'إجراءات سريعة',
+      'startConsultation': 'بدء الاستشارة',
+      'viewPatientRecords': 'عرض سجلات المرضى',
+      'manageSchedule': 'إدارة الجدول',
+      'appointmentWith': 'موعد مع',
+      'scheduledFor': 'مجدول لـ',
+      'consultationType': 'نوع الاستشارة',
+      'videoConsultation': 'استشارة فيديو',
+      'inPersonVisit': 'زيارة شخصية',
+      'chatConsultation': 'استشارة محادثة',
+      // Payment Extended
+      'paymentProcessing': 'جاري معالجة الدفع',
+      'paymentAmount': 'مبلغ الدفع',
+      'consultationFee': 'رسوم الاستشارة',
+      'serviceFee': 'رسوم الخدمة',
+      'totalAmount': 'المبلغ الإجمالي',
+      'paymentMethod': 'طريقة الدفع',
+      'bankCard': 'بطاقة بنكية',
+      'onlinePayment': 'الدفع الإلكتروني',
+      'confirmPayment': 'تأكيد الدفع',
+      'paymentPending': 'الدفع معلق',
+      'paymentCompleted': 'تم الدفع',
+      'paymentCancelled': 'تم إلغاء الدفع',
+      'paymentError': 'خطأ في الدفع',
+      'tryPaymentAgain': 'حاول الدفع مرة أخرى',
+      'backToConsultation': 'العودة للاستشارة',
+      'receiptSent': 'تم إرسال الإيصال إلى بريدك',
+      'transactionId': 'رقم المعاملة',
+      // Time & Scheduling
+      'moscowTime': 'توقيت موسكو (MSK)',
+      'localTime': 'التوقيت المحلي',
+      'selectTime': 'اختر الوقت',
+      'selectDate': 'اختر التاريخ',
+      'timeSlot': 'الفترة الزمنية',
+      'duration': 'المدة',
+      'minutes': 'دقائق',
+      // Currency
+      'rubles': 'روبل',
+      'rub': 'RUB',
     },
 
     // ---------------- Russian ----------------
@@ -712,6 +822,61 @@ class AppLocalizations {
       'verifyDoctor': 'Верифицировать врача',
       'doctorVerified': 'Врач верифицирован',
       'pendingVerification': 'Ожидает верификации',
+      // Login & Auth Extended
+      'welcomeToMedical': 'Добро пожаловать в Медицинский портал',
+      'signInToContinue': 'Войдите для продолжения',
+      'forgotPassword': 'Забыли пароль?',
+      'rememberMe': 'Запомнить меня',
+      'orSignInWith': 'Или войдите через',
+      'secureLogin': 'Безопасный вход',
+      'enterCredentials': 'Введите данные для входа',
+      // Doctor Dashboard Extended
+      'dailyPatients': 'Пациентов сегодня',
+      'pendingConsultations': 'Ожидающие консультации',
+      'completedToday': 'Завершено сегодня',
+      'totalEarnings': 'Общий доход',
+      'todaySchedule': 'Расписание на сегодня',
+      'noScheduledAppointments': 'Нет запланированных приёмов',
+      'viewAllAppointments': 'Все приёмы',
+      'quickActions': 'Быстрые действия',
+      'startConsultation': 'Начать консультацию',
+      'viewPatientRecords': 'Записи пациентов',
+      'manageSchedule': 'Управление расписанием',
+      'appointmentWith': 'Приём с',
+      'scheduledFor': 'Назначен на',
+      'consultationType': 'Тип консультации',
+      'videoConsultation': 'Видеоконсультация',
+      'inPersonVisit': 'Очный приём',
+      'chatConsultation': 'Чат-консультация',
+      // Payment Extended
+      'paymentProcessing': 'Обработка платежа',
+      'paymentAmount': 'Сумма платежа',
+      'consultationFee': 'Стоимость консультации',
+      'serviceFee': 'Сервисный сбор',
+      'totalAmount': 'Итоговая сумма',
+      'paymentMethod': 'Способ оплаты',
+      'bankCard': 'Банковская карта',
+      'onlinePayment': 'Онлайн-оплата',
+      'confirmPayment': 'Подтвердить оплату',
+      'paymentPending': 'Ожидание оплаты',
+      'paymentCompleted': 'Оплата завершена',
+      'paymentCancelled': 'Оплата отменена',
+      'paymentError': 'Ошибка оплаты',
+      'tryPaymentAgain': 'Повторить оплату',
+      'backToConsultation': 'Вернуться к консультации',
+      'receiptSent': 'Чек отправлен на ваш email',
+      'transactionId': 'Номер транзакции',
+      // Time & Scheduling
+      'moscowTime': 'Московское время (MSK)',
+      'localTime': 'Местное время',
+      'selectTime': 'Выберите время',
+      'selectDate': 'Выберите дату',
+      'timeSlot': 'Временной слот',
+      'duration': 'Длительность',
+      'minutes': 'минут',
+      // Currency
+      'rubles': 'Рублей',
+      'rub': 'RUB',
     }
   };
 
@@ -948,6 +1113,67 @@ class AppLocalizations {
   String get verifyDoctor => _get('verifyDoctor');
   String get doctorVerified => _get('doctorVerified');
   String get pendingVerification => _get('pendingVerification');
+
+  // --- New Extended Getters for Russian Market ---
+  // Login & Auth
+  String get welcomeToMedical => _get('welcomeToMedical');
+  String get signInToContinue => _get('signInToContinue');
+  String get forgotPassword => _get('forgotPassword');
+  String get rememberMe => _get('rememberMe');
+  String get orSignInWith => _get('orSignInWith');
+  String get secureLogin => _get('secureLogin');
+  String get enterCredentials => _get('enterCredentials');
+
+  // Doctor Dashboard
+  String get dailyPatients => _get('dailyPatients');
+  String get pendingConsultations => _get('pendingConsultations');
+  String get completedToday => _get('completedToday');
+  String get totalEarnings => _get('totalEarnings');
+  String get todaySchedule => _get('todaySchedule');
+  String get noScheduledAppointments => _get('noScheduledAppointments');
+  String get viewAllAppointments => _get('viewAllAppointments');
+  String get quickActions => _get('quickActions');
+  String get startConsultation => _get('startConsultation');
+  String get viewPatientRecords => _get('viewPatientRecords');
+  String get manageSchedule => _get('manageSchedule');
+  String get appointmentWith => _get('appointmentWith');
+  String get scheduledFor => _get('scheduledFor');
+  String get consultationType => _get('consultationType');
+  String get videoConsultation => _get('videoConsultation');
+  String get inPersonVisit => _get('inPersonVisit');
+  String get chatConsultation => _get('chatConsultation');
+
+  // Payment
+  String get paymentProcessing => _get('paymentProcessing');
+  String get paymentAmount => _get('paymentAmount');
+  String get consultationFee => _get('consultationFee');
+  String get serviceFee => _get('serviceFee');
+  String get totalAmount => _get('totalAmount');
+  String get paymentMethod => _get('paymentMethod');
+  String get bankCard => _get('bankCard');
+  String get onlinePayment => _get('onlinePayment');
+  String get confirmPayment => _get('confirmPayment');
+  String get paymentPending => _get('paymentPending');
+  String get paymentCompleted => _get('paymentCompleted');
+  String get paymentCancelled => _get('paymentCancelled');
+  String get paymentError => _get('paymentError');
+  String get tryPaymentAgain => _get('tryPaymentAgain');
+  String get backToConsultation => _get('backToConsultation');
+  String get receiptSent => _get('receiptSent');
+  String get transactionId => _get('transactionId');
+
+  // Time & Scheduling
+  String get moscowTime => _get('moscowTime');
+  String get localTime => _get('localTime');
+  String get selectTime => _get('selectTime');
+  String get selectDate => _get('selectDate');
+  String get timeSlot => _get('timeSlot');
+  String get duration => _get('duration');
+  String get minutes => _get('minutes');
+
+  // Currency
+  String get rubles => _get('rubles');
+  String get rub => _get('rub');
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
