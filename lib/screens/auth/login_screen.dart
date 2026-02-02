@@ -6,9 +6,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../core/constants/colors.dart';
 import '../../widgets/language_selector.dart';
-import '../signup_screen.dart';
+import 'signup_screen.dart'; // تأكد من صحة المسار حسب مجلداتك
 
-/// Professional medical login screen tailored for Russian market
 class MedicalLoginScreen extends StatefulWidget {
   const MedicalLoginScreen({super.key});
 
@@ -68,8 +67,7 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
-    final l10n = AppLocalizations.of(context);
-
+    
     final error = await authProvider.signInWithLocale(
       _emailController.text.trim(),
       _passwordController.text,
@@ -110,6 +108,7 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.dark,
         child: SafeArea(
@@ -123,24 +122,13 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
                   position: _slideAnimation,
                   child: Column(
                     children: [
-                      // Header with Language Selector
                       _buildHeader(l10n),
-
                       const Spacer(flex: 1),
-
-                      // Logo and Title
                       _buildLogoSection(l10n, theme),
-
                       const SizedBox(height: 40),
-
-                      // Login Form
                       _buildLoginForm(l10n, theme, authLoading),
-
                       const Spacer(flex: 2),
-
-                      // Sign Up Link
                       _buildSignUpLink(l10n, theme),
-
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -159,11 +147,10 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Security badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.successLight,
+              color: AppColors.success.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -182,7 +169,6 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
               ],
             ),
           ),
-          // Language Selector
           const LanguageSelector(isAppBarAction: true),
         ],
       ),
@@ -192,7 +178,6 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
   Widget _buildLogoSection(AppLocalizations l10n, ThemeData theme) {
     return Column(
       children: [
-        // Medical Logo
         Container(
           width: 100,
           height: 100,
@@ -205,7 +190,8 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
             borderRadius: BorderRadius.circular(25),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.3),
+                // تم التصحيح: استبدال withValues بـ withOpacity
+                color: AppColors.primary.withOpacity(0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -242,7 +228,6 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
       key: _formKey,
       child: Column(
         children: [
-          // Email Field
           _buildTextField(
             controller: _emailController,
             focusNode: _emailFocusNode,
@@ -252,22 +237,15 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return l10n.pleaseEnterEmail;
-              }
+              if (value == null || value.isEmpty) return l10n.pleaseEnterEmail;
               if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
                 return l10n.invalidEmail;
               }
               return null;
             },
-            onFieldSubmitted: (_) {
-              FocusScope.of(context).requestFocus(_passwordFocusNode);
-            },
+            onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_passwordFocusNode),
           ),
-
           const SizedBox(height: 16),
-
-          // Password Field
           _buildTextField(
             controller: _passwordController,
             focusNode: _passwordFocusNode,
@@ -284,20 +262,13 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return l10n.pleaseEnterPassword;
-              }
-              if (value.length < 6) {
-                return l10n.passwordTooShort;
-              }
+              if (value == null || value.isEmpty) return l10n.pleaseEnterPassword;
+              if (value.length < 6) return l10n.passwordTooShort;
               return null;
             },
             onFieldSubmitted: (_) => _handleLogin(),
           ),
-
-          const SizedBox(height: 16),
-
-          // Remember Me & Forgot Password
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -314,33 +285,21 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    l10n.rememberMe,
-                    style: TextStyle(
-                      color: AppColors.textSecondaryLight,
-                      fontSize: 14,
-                    ),
-                  ),
+                  Text(l10n.rememberMe, style: const TextStyle(color: AppColors.textSecondaryLight)),
                 ],
               ),
               TextButton(
                 onPressed: () {
-                  // TODO: Implement forgot password
+                  // أضف وظيفة استعادة كلمة المرور هنا
                 },
                 child: Text(
                   l10n.forgotPassword,
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 24),
-
-          // Login Button
           SizedBox(
             width: double.infinity,
             height: 56,
@@ -349,34 +308,18 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.6),
-                elevation: 0,
+                elevation: 2,
+                // تم التصحيح: استبدال withValues بـ withOpacity
+                disabledBackgroundColor: AppColors.primary.withOpacity(0.6),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
               child: isLoading
                   ? const SizedBox(
                       height: 24,
                       width: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                     )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.login_rounded, size: 22),
-                        const SizedBox(width: 10),
-                        Text(
-                          l10n.login,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
+                  : Text(l10n.login, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -405,35 +348,19 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
       textInputAction: textInputAction,
       validator: validator,
       onFieldSubmitted: onFieldSubmitted,
-      style: const TextStyle(fontSize: 16),
+      style: const TextStyle(color: AppColors.textPrimaryLight),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
+        labelStyle: const TextStyle(color: AppColors.textSecondaryLight),
         prefixIcon: Icon(prefixIcon, color: AppColors.textSecondaryLight),
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: Colors.grey[50],
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey[200]!, width: 1),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error, width: 1),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error, width: 2),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey[200]!)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.error)),
       ),
     );
   }
@@ -442,27 +369,14 @@ class _MedicalLoginScreenState extends State<MedicalLoginScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          l10n.noAccount,
-          style: TextStyle(
-            color: AppColors.textSecondaryLight,
-            fontSize: 15,
-          ),
-        ),
+        Text(l10n.noAccount, style: const TextStyle(color: AppColors.textSecondaryLight)),
         TextButton(
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SignUpScreen()),
-            );
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen()));
           },
           child: Text(
             l10n.signUp,
-            style: const TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
+            style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
           ),
         ),
       ],
