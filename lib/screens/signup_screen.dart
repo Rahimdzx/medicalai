@@ -166,7 +166,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
               _buildTextField(
                 controller: _phoneController,
-                label: l10n.phoneNumber ?? "Phone Number",
+                label: "Phone Number", // ✅ إزالة الاعتماد على l10n مؤقتاً
                 icon: Icons.phone_android,
                 keyboardType: TextInputType.phone,
                 enabled: !isLoading,
