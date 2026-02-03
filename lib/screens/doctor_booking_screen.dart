@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/constants/colors.dart'; // تأكد من المسار
-import '../../providers/auth_provider.dart'; // تأكد من المسار
-import 'auth/login_screen.dart'; // ✅ بدلاً من 'login_screen.dart'
+import '../../core/constants/colors.dart'; 
+import '../../providers/auth_provider.dart'; 
+import 'auth/login_screen.dart'; 
+
 class DoctorBookingScreen extends StatefulWidget {
   final String doctorId;
 
@@ -14,18 +15,58 @@ class DoctorBookingScreen extends StatefulWidget {
 }
 
 class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
-  // متغيرات الاختيار
   String _selectedFormat = 'video';
   String _selectedTime = 'today';
-  
-  // دالة مساعدة لتحديد أيقونة بناءً على التخصص (اختياري)
+  bool _isBooking = false;
+
   IconData _getSpecialtyIcon(String? specialty) {
     if (specialty == null) return Icons.medical_services;
     final s = specialty.toLowerCase();
-    if (s.contains('dentist')) return Icons.favorite_border; // مثال
+    if (s.contains('dentist')) return Icons.favorite_border;
     if (s.contains('heart') || s.contains('cardio')) return Icons.favorite;
     if (s.contains('eye')) return Icons.remove_red_eye;
-    return Icons.person; // أيقونة افتراضية
+    return Icons.person;
+  }
+
+  // دالة تنفيذ الحجز الفعلي في Firebase
+  Future<void> _handleBooking(Map<String, dynamic> doctorData, double finalPrice) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    setState(() => _isBooking = true);
+
+    try {
+      final appointmentId = FirebaseFirestore.instance.collection('appointments').doc().id;
+      
+      await FirebaseFirestore.instance.collection('appointments').doc(appointmentId).set({
+        'appointmentId': appointmentId,
+        'patientId': authProvider.user?.uid,
+        'patientName': authProvider.userName,
+        'doctorId': widget.doctorId,
+        'doctorName': doctorData['name'],
+        'status': 'pending',
+        'format': _selectedFormat,
+        'timeSlot': _selectedTime,
+        'price': finalPrice,
+        'currency': 'RUB',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Booking Confirmed!"), backgroundColor: Colors.green),
+      );
+      
+      // العودة للشاشة الرئيسية
+      Navigator.of(context).popUntil((route) => route.isFirst);
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _isBooking = false);
+    }
   }
 
   @override
@@ -35,35 +76,31 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("Complete Booking", style: TextStyle(color: Colors.black)),
+        title: const Text("Complete Booking", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      // استخدام FutureBuilder لجلب بيانات الطبيب المحدد
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance.collection('users').doc(widget.doctorId).get(),
         builder: (context, snapshot) {
-          // 1. حالة التحميل
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          // 2. حالة الخطأ أو عدم وجود بيانات
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return const Center(child: Text("Doctor info unavailable"));
           }
 
-          // 3. استخراج البيانات
           var data = snapshot.data!.data() as Map<String, dynamic>;
           String name = data['name'] ?? 'Doctor';
           String specialization = data['specialization'] ?? 'Specialist';
-          // تحويل السعر بأمان إلى double
-          double basePrice = double.tryParse(data['price']?.toString() ?? '50') ?? 50.0;
+          double basePrice = double.tryParse(data['price']?.toString() ?? '3000') ?? 3000.0;
 
-          // حساب السعر النهائي بناءً على نوع الاستشارة (مثال: الشات أرخص)
+          // حساب السعر بالروبل بناءً على الخيار
           double finalPrice = basePrice;
-          if (_selectedFormat == 'chat') finalPrice = basePrice * 0.7; // خصم 30% للشات
-          if (_selectedFormat == 'audio') finalPrice = basePrice * 0.9; // خصم 10% للصوت
+          if (_selectedFormat == 'chat') finalPrice = basePrice * 0.7;
+          if (_selectedFormat == 'audio') finalPrice = basePrice * 0.9;
+          if (_selectedTime == 'tomorrow') finalPrice -= 500; // خصم بسيط للمواعيد الآجلة
 
           return Column(
             children: [
@@ -73,7 +110,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // === كارت معلومات الطبيب ===
+                      // كارت الطبيب
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -100,11 +137,11 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                                   const SizedBox(height: 5),
                                   Text(specialization, style: const TextStyle(color: Colors.grey, fontSize: 14)),
                                   const SizedBox(height: 5),
-                                  Row(
+                                  const Row(
                                     children: [
-                                      const Icon(Icons.star, color: Colors.orange, size: 16),
-                                      const SizedBox(width: 4),
-                                      const Text("4.9 (120 reviews)", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                      Icon(Icons.star, color: Colors.orange, size: 16),
+                                      SizedBox(width: 4),
+                                      Text("4.9 (Moscow Clinic)", style: TextStyle(fontSize: 12, color: Colors.grey)),
                                     ],
                                   )
                                 ],
@@ -115,9 +152,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                       ),
 
                       const SizedBox(height: 25),
-
-                      // === اختيار نوع الاستشارة ===
-                      const Text("Consultation Type", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      const Text("Consultation Format", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       Container(
                         decoration: BoxDecoration(
@@ -127,25 +162,23 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                         ),
                         child: Column(
                           children: [
-                            _buildFormatOption("Video Call", Icons.videocam, "video"),
+                            _buildFormatOption("Video Consultation", Icons.videocam, "video"),
                             const Divider(height: 1, indent: 50),
                             _buildFormatOption("Audio Call", Icons.phone, "audio"),
                             const Divider(height: 1, indent: 50),
-                            _buildFormatOption("Chat", Icons.chat_bubble, "chat"),
+                            _buildFormatOption("Chat & Messaging", Icons.chat_bubble, "chat"),
                           ],
                         ),
                       ),
 
                       const SizedBox(height: 25),
-
-                      // === اختيار الوقت ===
-                      const Text("Preferred Time", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      const Text("Availability", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          Expanded(child: _buildTimeOption("Today", "Available", "today", Icons.today)),
+                          Expanded(child: _buildTimeOption("Today", "Urgent", "today", Icons.bolt)),
                           const SizedBox(width: 10),
-                          Expanded(child: _buildTimeOption("Tomorrow", "10 Slots", "tomorrow", Icons.calendar_month)),
+                          Expanded(child: _buildTimeOption("Tomorrow", "Scheduled", "tomorrow", Icons.calendar_month)),
                         ],
                       ),
                     ],
@@ -153,7 +186,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                 ),
               ),
 
-              // === القائمة السفلية (الدفع) ===
+              // شريط الدفع السفلي بالروبل
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -168,10 +201,10 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("Total Payment", style: TextStyle(color: Colors.grey)),
+                          const Text("Total (Moscow Time)", style: TextStyle(color: Colors.grey)),
                           Text(
-                            "\$${finalPrice.toStringAsFixed(0)}", 
-                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primary)
+                            "${finalPrice.toStringAsFixed(0)} ₽", 
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue)
                           ),
                         ],
                       ),
@@ -181,23 +214,20 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                         height: 55,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: const Color(0xFF4CAF50), // اللون الأخضر للتأكيد
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                             elevation: 0,
                           ),
-                          onPressed: () {
+                          onPressed: _isBooking ? null : () {
                             if (authProvider.user == null) {
-                              // إذا لم يكن مسجلاً، اطلب التسجيل
                               _showLoginDialog(context);
                             } else {
-                              // إذا كان مسجلاً، تابع للدفع
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Processing Payment..."), backgroundColor: Colors.green),
-                              );
-                              // Navigator.pushNamed(context, '/payment_gateway');
+                              _handleBooking(data, finalPrice);
                             }
                           },
-                          child: const Text("Book Appointment", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                          child: _isBooking 
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text("Confirm and Pay", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                         ),
                       ),
                     ],
@@ -211,8 +241,6 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
     );
   }
 
-  // --- Widgets مساعدة للتصميم ---
-
   Widget _buildFormatOption(String title, IconData icon, String value) {
     final isSelected = _selectedFormat == value;
     return InkWell(
@@ -224,15 +252,15 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.grey.shade100,
+                color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.grey.shade100,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: isSelected ? AppColors.primary : Colors.grey, size: 20),
+              child: Icon(icon, color: isSelected ? Colors.blue : Colors.grey, size: 20),
             ),
             const SizedBox(width: 15),
             Text(title, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
             const Spacer(),
-            if (isSelected) const Icon(Icons.check_circle, color: AppColors.primary, size: 22),
+            if (isSelected) const Icon(Icons.check_circle, color: Colors.blue, size: 22),
           ],
         ),
       ),
@@ -246,9 +274,9 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.white,
+          color: isSelected ? Colors.blue : Colors.white,
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: isSelected ? AppColors.primary : Colors.grey.shade300),
+          border: Border.all(color: isSelected ? Colors.blue : Colors.grey.shade300),
         ),
         child: Column(
           children: [
@@ -266,8 +294,8 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Login Required"),
-        content: const Text("You need to login to book an appointment."),
+        title: const Text("Authentication"),
+        content: const Text("Please login to proceed with the booking."),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
           ElevatedButton(
