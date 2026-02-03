@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../l10n/app_localizations.dart';
-import '../providers/auth_provider.dart';
-import 'signup_screen.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/auth_provider.dart';
+// تم تصحيح المسار هنا لاستخدام الاستيراد الكامل لضمان الوصول للملف
+import 'package:medical_app/screens/signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,7 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (error == null && mounted) {
-      // الحل الجذري: الانتقال لصفحة الـ main ليتولى الـ Consumer التوجيه
       Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
     } else if (error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -70,8 +70,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity, height: 55,
                   child: ElevatedButton(
                     onPressed: authLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700], shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-                    child: authLoading ? const CircularProgressIndicator(color: Colors.white) : Text(l10n.login, style: const TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[700], 
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))
+                    ),
+                    child: authLoading 
+                      ? const CircularProgressIndicator(color: Colors.white) 
+                      : Text(l10n.login, style: const TextStyle(color: Colors.white)),
                   ),
                 ),
                 TextButton(
