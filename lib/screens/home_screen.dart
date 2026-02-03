@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
-import '../providers/language_provider.dart'; // ✅ إضافة مزود اللغة
+import '../providers/language_provider.dart';
 import 'russia_programs_screen.dart';
 
-// ✅ تصحيح المسارات (تأكد من وجود هذه الملفات في المجلدات المذكورة)
+// ✅ التأكد من صحة المسارات بناءً على هيكلة المشروع
 import 'auth/login_screen.dart'; 
 import 'common/qr_share_scan_screen.dart'; 
 import 'specialist_list_screen.dart'; 
@@ -15,19 +15,25 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // استخدام AppLocalizations اليدوي
     final l10n = AppLocalizations.of(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(l10n.appTitle),
         centerTitle: true,
-        // ✅ إضافة زر تغيير اللغة في جهة اليسار (أو اليمين حسب اتجاه اللغة)
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black,
+        // ✅ زر تغيير اللغة
         leading: PopupMenuButton<String>(
           icon: const Icon(Icons.language, color: Colors.blue),
           tooltip: l10n.selectLanguage,
           onSelected: (String code) {
+            // ✅ تمرير Locale ليتوافق مع ميثود LanguageProvider
             languageProvider.changeLanguage(Locale(code));
           },
           itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -50,7 +56,7 @@ class HomeScreen extends StatelessWidget {
             icon: Icon(authProvider.user != null ? Icons.dashboard : Icons.person_outline),
             onPressed: () {
               if (authProvider.user != null) {
-                // إذا كان مسجلاً، يمكن توجيهه للوحة التحكم الخاصة به
+                // العودة لأول شاشة في المكدس (لوحة التحكم المناسبة للدور)
                 Navigator.of(context).popUntil((route) => route.isFirst);
               } else {
                 Navigator.push(
@@ -76,7 +82,7 @@ class HomeScreen extends StatelessWidget {
                 mainAxisSpacing: 20,
                 crossAxisSpacing: 20,
                 children: [
-                  // 1. زر مسح الـ QR
+                  // 1. مسح QR
                   _buildMenuCard(
                     context,
                     title: l10n.scanQR,
@@ -88,7 +94,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   
-                  // 2. قائمة الأطباء والاستشارات
+                  // 2. استشارات المتخصصين
                   _buildMenuCard(
                     context,
                     title: l10n.specialistConsultations,
@@ -100,7 +106,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   
-                  // 3. السياحة العلاجية (روسيا)
+                  // 3. السياحة العلاجية
                   _buildMenuCard(
                     context,
                     title: l10n.medicalTourism, 
@@ -112,7 +118,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   
-                  // 4. السجلات الطبية (تحتاج تسجيل دخول)
+                  // 4. السجلات الطبية
                   _buildMenuCard(
                     context,
                     title: l10n.myRecords,
@@ -120,12 +126,13 @@ class HomeScreen extends StatelessWidget {
                     color: Colors.orange,
                     onTap: () {
                       if (authProvider.user == null) {
-                         Navigator.push(
-                           context, 
-                           MaterialPageRoute(builder: (_) => const LoginScreen())
-                         );
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(builder: (_) => const LoginScreen())
+                        );
                       } else {
-                        // توجيه للسجلات إذا كان مسجل دخول
+                        // يتم التعامل مع التوجيه بناءً على الدور من الـ main
+                        Navigator.of(context).popUntil((route) => route.isFirst);
                       }
                     },
                   ),
@@ -164,7 +171,7 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           Text(
-            l10n.welcome, // تأكد من وجود مفتاح welcome في ملف الترجمة
+            l10n.welcome, 
             style: const TextStyle(color: Colors.white70, fontSize: 16),
           ),
         ],
