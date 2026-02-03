@@ -6,65 +6,47 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+// استيراد المزودين (Providers)
 import 'providers/auth_provider.dart';
 import 'providers/language_provider.dart';
 import 'providers/theme_provider.dart';
+
+// استيراد ملفات الترجمة والثيم
 import 'l10n/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
+
+// استيراد الشاشات
 import 'screens/home_screen.dart';
 import 'screens/patient_dashboard.dart';
 import 'screens/admin_dashboard.dart';
-// New Russian market screens
 import 'screens/auth/login_screen.dart';
+import 'screens/auth/signup_screen.dart'; // تأكد من إنشاء هذا الملف
 import 'screens/dashboard/doctor_dashboard.dart';
 import 'screens/payment/payment_screen.dart';
 
 void main() async {
-  // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Firebase
   await Firebase.initializeApp();
 
-  // Initialize date formatting for Russian locale (Moscow Time)
+  // تهيئة تنسيق التاريخ للغات المختلفة
   await initializeDateFormatting('ru_RU', null);
   await initializeDateFormatting('ar', null);
   await initializeDateFormatting('en_US', null);
 
-  // Get SharedPreferences instance
   final prefs = await SharedPreferences.getInstance();
 
-  // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // Set system UI overlay style
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
-    ),
-  );
-
   runApp(
     MultiProvider(
       providers: [
-        // Language Provider - must be first for localization
-        ChangeNotifierProvider(
-          create: (_) => LanguageProvider(prefs),
-        ),
-        // Theme Provider
-        ChangeNotifierProvider(
-          create: (_) => ThemeProvider(prefs),
-        ),
-        // Auth Provider
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => LanguageProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: const MedicalApp(),
     ),
@@ -79,11 +61,10 @@ class MedicalApp extends StatelessWidget {
     return Consumer2<LanguageProvider, ThemeProvider>(
       builder: (context, languageProvider, themeProvider, _) {
         return MaterialApp(
-          // App configuration
           title: AppConstants.appName,
           debugShowCheckedModeBanner: false,
-
-          // Localization
+          
+          // إعدادات اللغة
           locale: languageProvider.appLocale,
           supportedLocales: const [
             Locale('en'),
@@ -97,23 +78,21 @@ class MedicalApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
 
-          // Theme
+          // إعدادات الثيم
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
 
-          // Route generator
+          // إدارة المسارات
           onGenerateRoute: AppRoutes.generateRoute,
 
-          // Builder for RTL support and text direction
           builder: (context, child) {
             return Directionality(
               textDirection: languageProvider.textDirection,
-              child: child ?? const SizedBox.shrink(),
+              child: child!,
             );
           },
 
-          // Home screen with auth state handling
           home: const AuthWrapper(),
         );
       },
@@ -121,7 +100,6 @@ class MedicalApp extends StatelessWidget {
   }
 }
 
-/// Wrapper widget that handles authentication state
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
@@ -129,28 +107,12 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) {
-        // Show loading indicator while checking auth state
         if (auth.isLoading) {
-          return const Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Loading...'),
-                ],
-              ),
-            ),
-          );
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
-
-        // User not logged in - show home/login screen
         if (auth.user == null) {
           return const HomeScreen();
         }
-
-        // User logged in - route based on role
         return _buildDashboardForRole(auth.userRole);
       },
     );
@@ -161,7 +123,6 @@ class AuthWrapper extends StatelessWidget {
       case AppConstants.roleAdmin:
         return const AdminDashboard();
       case AppConstants.roleDoctor:
-        // Use new Russian market doctor dashboard
         return const DoctorDashboardScreen();
       case AppConstants.rolePatient:
       default:
@@ -170,27 +131,14 @@ class AuthWrapper extends StatelessWidget {
   }
 }
 
-/// Route generator for named routes
 class AppRoutes {
-  static const String home = '/';
-  static const String login = '/login';
-  static const String signup = '/signup';
-  static const String patientDashboard = '/patient-dashboard';
-  static const String doctorDashboard = '/doctor-dashboard';
-  static const String adminDashboard = '/admin-dashboard';
-  static const String payment = '/payment';
-
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case login:
-        return MaterialPageRoute(builder: (_) => const MedicalLoginScreen());
-      case doctorDashboard:
-        return MaterialPageRoute(builder: (_) => const DoctorDashboardScreen());
-      case patientDashboard:
-        return MaterialPageRoute(builder: (_) => const PatientDashboard());
-      case adminDashboard:
-        return MaterialPageRoute(builder: (_) => const AdminDashboard());
-      case payment:
+      case '/login':
+        return MaterialPageRoute(builder: (_) => const LoginScreen());
+      case '/signup':
+        return MaterialPageRoute(builder: (_) => const SignupScreen());
+      case '/payment':
         final args = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
           builder: (_) => PaymentScreen(
@@ -200,7 +148,6 @@ class AppRoutes {
             consultationFee: args['consultationFee'],
           ),
         );
-      case home:
       default:
         return MaterialPageRoute(builder: (_) => const AuthWrapper());
     }
