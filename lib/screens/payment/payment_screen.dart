@@ -44,6 +44,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _processPayment() async {
+    // التحقق من البيانات فقط في حالة اختيار البطاقة البنكية
     if (_selectedMethod == PaymentMethod.bankCard && !_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -51,57 +52,111 @@ class _PaymentScreenState extends State<PaymentScreen> {
       _status = PaymentStatus.processing;
     });
 
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      
+      // استخراج آخر 4 أرقام بأمان
+      String? lastFour;
+      if (_selectedMethod == PaymentMethod.bankCard && _cardNumberController.text.length >= 4) {
+        lastFour = _cardNumberController.text.replaceAll(' ', '').substring(
+          _cardNumberController.text.replaceAll(' ', '').length - 4
+        );
+      }
 
-    final result = await _paymentService.processConsultationPayment(
-      patientId: auth.user?.uid ?? '',
-      doctorId: widget.doctorId,
-      appointmentId: widget.appointmentId,
-      consultationFee: widget.consultationFee,
-      method: _selectedMethod,
-      cardLastFour: _selectedMethod == PaymentMethod.bankCard && _cardNumberController.text.length >= 4
-          ? _cardNumberController.text.substring(_cardNumberController.text.length - 4)
-          : null,
-    );
+      final result = await _paymentService.processConsultationPayment(
+        patientId: auth.user?.uid ?? '',
+        doctorId: widget.doctorId,
+        appointmentId: widget.appointmentId,
+        consultationFee: widget.consultationFee,
+        method: _selectedMethod,
+        cardLastFour: lastFour,
+      );
 
-    setState(() {
-      _isProcessing = false;
-      _status = result.status;
-    });
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+          _status = result.status;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+          _status = PaymentStatus.failed;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final locale = Provider.of<LanguageProvider>(context).languageCode;
-    final totalAmount = _paymentService.calculateTotalAmount(widget.consultationFee);
+    // استخدام try-catch بسيط للتعامل مع ملفات l10n إذا كانت ناقصة
+    String title = "Payment";
+    try {
+      title = AppLocalizations.of(context).payment;
+    } catch (_) {}
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.payment)),
-      body: _buildBody(l10n, locale, totalAmount),
+      appBar: AppBar(
+        title: Text(title),
+        centerTitle: true,
+      ),
+      body: _buildBody(),
     );
   }
 
-  Widget _buildBody(AppLocalizations l10n, String locale, double totalAmount) {
-    if (_status == PaymentStatus.processing) return const Center(child: CircularProgressIndicator());
-    if (_status == PaymentStatus.success) return _buildSuccessState();
+  Widget _buildBody() {
+    if (_status == PaymentStatus.processing) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_status == PaymentStatus.success) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.check_circle, size: 100, color: Colors.green),
+            const SizedBox(height: 20),
+            const Text("Success!", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Back to Home"),
+            )
+          ],
+        ),
+      );
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Form(
         key: _formKey,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSummaryCard(l10n, locale, totalAmount),
+            _buildSummaryCard(),
             const SizedBox(height: 24),
+            const Text("Select Payment Method", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
             _buildMethodSelector(),
             const SizedBox(height: 24),
             if (_selectedMethod == PaymentMethod.bankCard) _buildCardForm(),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: _isProcessing ? null : _processPayment,
-              style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-              child: Text("Pay ${totalAmount.toStringAsFixed(2)}"),
+            const SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
+              height: 55,
+              child: ElevatedButton(
+                onPressed: _isProcessing ? null : _processPayment,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                ),
+                child: Text(
+                  "Pay Now (\$${widget.consultationFee})",
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
             ),
           ],
         ),
@@ -109,12 +164,31 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buildSummaryCard(l10n, locale, total) {
+  Widget _buildSummaryCard() {
     return Card(
-      child: ListTile(
-        title: Text(widget.doctorName),
-        subtitle: Text(l10n.consultationFee),
-        trailing: Text(total.toStringAsFixed(2)),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Doctor:"),
+                Text(widget.doctorName, style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Amount:"),
+                Text("\$${widget.consultationFee}", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -123,25 +197,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return Row(
       children: [
         Expanded(child: _buildMethodOption(Icons.credit_card, "Card", PaymentMethod.bankCard)),
-        const SizedBox(width: 10),
-        // تم التأكد من مطابقة PaymentMethod.wallet مع الـ enum
+        const SizedBox(width: 12),
         Expanded(child: _buildMethodOption(Icons.account_balance_wallet, "Wallet", PaymentMethod.wallet)),
       ],
     );
   }
 
   Widget _buildMethodOption(IconData icon, String label, PaymentMethod method) {
-    bool isSelected = _selectedMethod == method;
+    final bool isSelected = _selectedMethod == method;
     return InkWell(
       onTap: () => setState(() => _selectedMethod = method),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(vertical: 15),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-          border: Border.all(color: isSelected ? AppColors.primary : Colors.grey),
-          borderRadius: BorderRadius.circular(10),
+          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? AppColors.primary : Colors.transparent, width: 2),
         ),
-        child: Column(children: [Icon(icon), Text(label)]),
+        child: Column(
+          children: [
+            Icon(icon, color: isSelected ? AppColors.primary : Colors.grey),
+            const SizedBox(height: 5),
+            Text(label, style: TextStyle(color: isSelected ? AppColors.primary : Colors.black)),
+          ],
+        ),
       ),
     );
   }
@@ -151,19 +230,40 @@ class _PaymentScreenState extends State<PaymentScreen> {
       children: [
         TextFormField(
           controller: _cardNumberController,
-          decoration: const InputDecoration(labelText: "Card Number"),
+          decoration: InputDecoration(
+            labelText: "Card Number",
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            prefixIcon: const Icon(Icons.payment),
+          ),
           keyboardType: TextInputType.number,
+          validator: (val) => (val == null || val.isEmpty) ? "Required" : null,
+        ),
+        const SizedBox(height: 15),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _expiryController,
+                decoration: InputDecoration(
+                  labelText: "MM/YY",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 15),
+            Expanded(
+              child: TextFormField(
+                controller: _cvvController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: "CVV",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
-    );
-  }
-
-  Widget _buildSuccessState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [Icon(Icons.check_circle, size: 100, color: Colors.green), Text("Success!")],
-      ),
     );
   }
 }
