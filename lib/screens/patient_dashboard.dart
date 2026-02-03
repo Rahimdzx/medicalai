@@ -5,9 +5,10 @@ import '../providers/auth_provider.dart';
 import '../models/patient_record.dart';
 import '../l10n/app_localizations.dart';
 import 'video_call_screen.dart';
-import 'scan_qr_screen.dart';
 import 'upload_records_screen.dart';
 import 'chat_screen.dart';
+// 👇 التعديل الهام: استدعاء ملف QR المشترك الجديد
+import 'common/qr_share_scan_screen.dart';
 
 class PatientDashboard extends StatelessWidget {
   const PatientDashboard({super.key});
@@ -68,9 +69,10 @@ class PatientDashboard extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.blue[800],
         onPressed: () async {
+          // 👇 التعديل الهام: استخدام الكلاس الجديد GeneralQRScanner
           await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const ScanQRScreen())
+            MaterialPageRoute(builder: (_) => const GeneralQRScanner(title: "Scan Doctor QR"))
           );
         },
         label: Text(l10n.scanDoctorCode, style: const TextStyle(color: Colors.white)),
