@@ -117,7 +117,7 @@
   "confirmDeleteMsg": "Вы уверены, что хотите удалить этого врача?",
   "deletedSuccess": "Успешно удалено",
   "welcome": "Добро пожаловать",
-  "selectLanguage": "Выберите язык"
+  "selectLanguage": "Выберите язык",
 
   "nMessages": "{count, plural, =0{Нет сообщений} =1{1 сообщение} few{{count} сообщения} other{{count} сообщений}}",
   "nAppointments": "{count, plural, =0{Нет записей} =1{1 запись} few{{count} записи} other{{count} записей}}"
