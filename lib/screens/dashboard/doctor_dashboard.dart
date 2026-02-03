@@ -1,14 +1,14 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 
-// ✅ تصحيح المسارات (نعود للخلف مرتين ../../ للوصول للمجلد الرئيسي)
+// ✅ تصحيح المسارات للوصول للمجلدات الصحيحة
 import '../../../providers/auth_provider.dart';
 import '../../../providers/language_provider.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/constants/colors.dart';
-import '../../common/qr_share_scan_screen.dart'; // ✅ المسار الصحيح للـ QR
+
+// ✅ تأكد أن هذا الملف موجود في هذا المسار ويحتوي على GeneralQRScanner و QRDisplayScreen
+import '../common/qr_share_scan_screen.dart'; 
 
 class DoctorDashboardScreen extends StatefulWidget {
   const DoctorDashboardScreen({super.key});
@@ -18,8 +18,6 @@ class DoctorDashboardScreen extends StatefulWidget {
 }
 
 class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
-  // توقيت موسكو
-  static const int moscowTimeOffset = 3;
   
   String formatCurrency(double amount, String locale) {
     if (locale == 'ru') return '${amount.toStringAsFixed(0)} ₽';
@@ -31,14 +29,12 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
     final l10n = AppLocalizations.of(context);
-    final languageProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // الشريط العلوي
             SliverAppBar(
               expandedHeight: 100,
               floating: true,
@@ -54,7 +50,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                         backgroundImage: auth.photoUrl != null && auth.photoUrl!.isNotEmpty
                             ? NetworkImage(auth.photoUrl!)
                             : null,
-                        child: auth.photoUrl == null 
+                        child: (auth.photoUrl == null || auth.photoUrl!.isEmpty)
                             ? const Icon(Icons.person, color: Colors.white) 
                             : null,
                       ),
@@ -76,14 +72,12 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                 IconButton(
                   icon: const Icon(Icons.settings, color: Colors.white),
                   onPressed: () {
-                     // الذهاب لصفحة البروفايل (موجودة في نفس الملف بالأسفل)
-                     Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorProfileScreen()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorProfileScreen()));
                   },
                 ),
               ],
             ),
 
-            // المحتوى
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -108,13 +102,13 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // أزرار QR (أهم جزء)
+                    // أزرار QR
                     Row(
                       children: [
                         Expanded(
                           child: _ActionButton(
                             icon: Icons.qr_code, 
-                            label: "My QR Code", // ✅ تم التثبيت بالإنجليزية لتجاوز الخطأ
+                            label: "My QR Code", 
                             color: Colors.blue,
                             onTap: () {
                                Navigator.push(context, MaterialPageRoute(builder: (_) => QRDisplayScreen(
@@ -129,7 +123,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                         Expanded(
                           child: _ActionButton(
                             icon: Icons.qr_code_scanner, 
-                            label: "Scan Patient", // ✅ تم التثبيت بالإنجليزية لتجاوز الخطأ
+                            label: "Scan Patient", 
                             color: Colors.orange,
                             onTap: () {
                                 Navigator.push(context, MaterialPageRoute(builder: (_) => const GeneralQRScanner(title: "Scan Patient")));
@@ -149,7 +143,6 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
   }
 }
 
-// Widgets مساعدة صغيرة
 class _StatItem extends StatelessWidget {
   final String label;
   final String value;
@@ -194,9 +187,6 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
-// ==========================================
-// Doctor Profile Screen (مدمجة هنا لحل مشاكل الربط)
-// ==========================================
 class DoctorProfileScreen extends StatefulWidget {
   const DoctorProfileScreen({super.key});
   @override
@@ -218,7 +208,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Profile Settings")), // ✅ نص ثابت
+      appBar: AppBar(title: const Text("Profile Settings")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -233,12 +223,12 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                 final auth = Provider.of<AuthProvider>(context, listen: false);
                 await auth.updateDoctorProfile(
                     name: _nameController.text,
-                    specialization: "General", // قيمة افتراضية
+                    specialization: "General",
                     fees: double.tryParse(_feesController.text) ?? 0,
                 );
                 if(mounted) Navigator.pop(context);
              },
-             child: const Text("Save Changes"), // ✅ نص ثابت
+             child: const Text("Save Changes"),
            )
         ],
       ),
