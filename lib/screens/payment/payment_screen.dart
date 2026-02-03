@@ -110,7 +110,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return _buildResultState(
         icon: Icons.check_circle,
         color: Colors.green,
-        title: "Payment Successful", // يمكنك استبدالها بـ l10n إذا كانت موجودة
+        title: "Payment Successful",
         subtitle: "Your appointment has been confirmed.",
       );
     }
@@ -163,7 +163,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Doctor", style: TextStyle(color: Colors.grey[600])),
+              const Text("Doctor"),
               Text(widget.doctorName, style: const TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
@@ -188,7 +188,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
       children: [
         Expanded(child: _methodCard(Icons.credit_card, "Card", PaymentMethod.bankCard)),
         const SizedBox(width: 12),
-        // هنا تم استخدام wallet التي أضفناها للـ Enum
         Expanded(child: _methodCard(Icons.account_balance_wallet, "Wallet", PaymentMethod.wallet)),
       ],
     );
@@ -209,7 +208,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           children: [
             Icon(icon, color: isSelected ? AppColors.primary : Colors.grey[600]),
             const SizedBox(height: 8),
-            Text(label, style: TextStyle(color: isSelected ? AppColors.primary : Colors.black87, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+            Text(label, style: TextStyle(color: isSelected ? AppColors.primary : Colors.black87)),
           ],
         ),
       ),
@@ -274,28 +273,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Widget _buildResultState({required IconData icon, required Color color, required String title, required String subtitle, bool showRetry = false}) {
-    return Center(
+    return Padding(
       padding: const EdgeInsets.all(30),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 80, color: color),
-          const SizedBox(height: 20),
-          Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 10),
-          Text(subtitle, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600])),
-          const SizedBox(height: 30),
-          ElevatedButton(
-            onPressed: () {
-              if (showRetry) {
-                setState(() => _status = PaymentStatus.pending);
-              } else {
-                Navigator.of(context).pop();
-              }
-            },
-            child: Text(showRetry ? "Try Again" : "Done"),
-          )
-        ],
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 80, color: color),
+            const SizedBox(height: 20),
+            Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Text(subtitle, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600])),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: () {
+                if (showRetry) {
+                  setState(() => _status = PaymentStatus.pending);
+                } else {
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Text(showRetry ? "Try Again" : "Done"),
+            )
+          ],
+        ),
       ),
     );
   }
