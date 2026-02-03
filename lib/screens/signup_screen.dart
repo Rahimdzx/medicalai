@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../l10n/app_localizations.dart';
-import '../../providers/auth_provider.dart';
-import '../../core/constants/colors.dart';
+import '../l10n/app_localizations.dart';
+import '../providers/auth_provider.dart';
+import '../providers/language_provider.dart'; // لاستدعاء اللغة الحالية
+import '../core/constants/colors.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -23,6 +23,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _priceController = TextEditingController();
   
   String _role = 'patient';
+  // ignore: unused_field
   String? _selectedSpecialization;
   File? _imageFile;
 
@@ -55,15 +56,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
     
-    final error = await authProvider.signUp(
+    // 👇 استخدام الدالة الصحيحة مع تمرير اللغة
+    final error = await authProvider.signUpWithLocale(
       email: _emailController.text.trim(),
       password: _passwordController.text,
       name: _nameController.text.trim(),
       role: _role,
-      phone: _phoneController.text.trim(),
-      specialization: _selectedSpecialization ?? "",
-      price: _priceController.text.trim(),
+      phone: _phoneController.text.trim().isEmpty ? "0000000000" : _phoneController.text.trim(), // قيمة افتراضية إذا كان فارغاً
+      locale: languageProvider.languageCode, // لغة المستخدم الحالية (en, ar, ru)
+      specialization: _role == 'doctor' ? "General" : "", // تخصص افتراضي
+      price: _role == 'doctor' ? _priceController.text.trim() : "0",
       imageFile: _imageFile,
     );
 
@@ -157,6 +161,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: true,
                 enabled: !isLoading,
                 validator: (v) => v!.length < 6 ? "Short password" : null,
+              ),
+              const SizedBox(height: 16),
+
+              _buildTextField(
+                controller: _phoneController,
+                label: l10n.phoneNumber ?? "Phone Number",
+                icon: Icons.phone_android,
+                keyboardType: TextInputType.phone,
+                enabled: !isLoading,
               ),
               const SizedBox(height: 16),
 
