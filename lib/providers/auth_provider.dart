@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
-/// Firebase Auth error messages localized for Russian, Arabic, and English
+/// رسائل خطأ Firebase مترجمة (روسي، عربي، إنجليزي)
 class AuthErrorMessages {
   static const Map<String, Map<String, String>> _messages = {
     'user-not-found': {
@@ -47,35 +47,10 @@ class AuthErrorMessages {
       'ar': 'محاولات كثيرة جداً. حاول مرة أخرى لاحقاً',
       'ru': 'Слишком много попыток. Попробуйте позже',
     },
-    'operation-not-allowed': {
-      'en': 'This operation is not allowed',
-      'ar': 'هذه العملية غير مسموح بها',
-      'ru': 'Эта операция не разрешена',
-    },
     'network-request-failed': {
       'en': 'Network error. Please check your connection',
       'ar': 'خطأ في الشبكة. يرجى التحقق من اتصالك',
       'ru': 'Ошибка сети. Проверьте подключение к интернету',
-    },
-    'requires-recent-login': {
-      'en': 'Please log in again to continue',
-      'ar': 'يرجى تسجيل الدخول مرة أخرى للمتابعة',
-      'ru': 'Пожалуйста, войдите снова для продолжения',
-    },
-    'account-exists-with-different-credential': {
-      'en': 'Account exists with different sign-in method',
-      'ar': 'الحساب موجود بطريقة تسجيل دخول مختلفة',
-      'ru': 'Аккаунт существует с другим методом входа',
-    },
-    'expired-action-code': {
-      'en': 'The action code has expired',
-      'ar': 'انتهت صلاحية رمز الإجراء',
-      'ru': 'Срок действия кода истёк',
-    },
-    'invalid-action-code': {
-      'en': 'The action code is invalid',
-      'ar': 'رمز الإجراء غير صالح',
-      'ru': 'Недействительный код',
     },
   };
 
@@ -85,7 +60,6 @@ class AuthErrorMessages {
     'ru': 'Произошла ошибка. Попробуйте снова',
   };
 
-  /// Get localized error message for Firebase Auth error codes
   static String getLocalizedMessage(String code, String locale) {
     final messages = _messages[code];
     if (messages != null) {
@@ -103,15 +77,15 @@ class AuthProvider with ChangeNotifier {
   User? _user;
   String? _userName;
   String? _userRole;
-  String? _photoUrl; // جديد
-  String? _price;    // جديد
+  String? _photoUrl;
+  String? _price;
   bool _isLoading = false;
 
   User? get user => _user;
   String? get userName => _userName;
   String? get userRole => _userRole;
-  String? get photoUrl => _photoUrl; // جديد
-  String? get price => _price;       // جديد
+  String? get photoUrl => _photoUrl;
+  String? get price => _price;
   bool get isLoading => _isLoading;
 
   AuthProvider() {
@@ -119,6 +93,12 @@ class AuthProvider with ChangeNotifier {
       _user = user;
       if (user != null) {
         fetchUserData();
+      } else {
+        // تصفية البيانات عند الخروج
+        _userName = null;
+        _userRole = null;
+        _photoUrl = null;
+        _price = null;
       }
       notifyListeners();
     });
@@ -129,17 +109,21 @@ class AuthProvider with ChangeNotifier {
     try {
       DocumentSnapshot doc = await _firestore.collection('users').doc(_user!.uid).get();
       if (doc.exists) {
-        _userRole = doc.get('role');
-        _userName = doc.get('name');
-        _photoUrl = doc.data().toString().contains('photoUrl') ? doc.get('photoUrl') : ""; // جلب الصورة
-        _price = doc.data().toString().contains('price') ? doc.get('price') : "0"; // جلب السعر
-        notifyListeners();
+        Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+        if (data != null) {
+          _userRole = data['role'];
+          _userName = data['name'];
+          _photoUrl = data['photoUrl'] ?? "";
+          _price = data['price']?.toString() ?? "0";
+          notifyListeners();
+        }
       }
     } catch (e) {
       debugPrint("Error fetching user data: $e");
     }
   }
 
+  // تسجيل الدخول العادي
   Future<String?> signIn(String email, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -155,7 +139,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Sign in with localized error messages for Russian market
+  // تسجيل الدخول مع رسائل مترجمة
   Future<String?> signInWithLocale(String email, String password, String locale) async {
     _isLoading = true;
     notifyListeners();
@@ -166,18 +150,20 @@ class AuthProvider with ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       return AuthErrorMessages.getLocalizedMessage(e.code, locale);
     } catch (e) {
-      // Handle network and other errors
-      if (e.toString().contains('network') || e.toString().contains('SocketException')) {
-        return AuthErrorMessages.getLocalizedMessage('network-request-failed', locale);
-      }
-      return AuthErrorMessages.getLocalizedMessage('unknown', locale);
+      return AuthErrorMessages.getLocalizedMessage('network-request-failed', locale);
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Sign up with localized error messages for Russian market
+  // تسجيل الخروج
+  Future<void> signOut() async {
+    await _auth.signOut();
+    notifyListeners();
+  }
+
+  // إنشاء حساب جديد
   Future<String?> signUpWithLocale({
     required String email,
     required String password,
@@ -199,13 +185,19 @@ class AuthProvider with ChangeNotifier {
 
       String uploadedPhotoUrl = "";
       if (imageFile != null) {
-        Reference ref = _storage.ref().child('user_photos').child('${credential.user!.uid}.jpg');
-        await ref.putFile(imageFile);
-        uploadedPhotoUrl = await ref.getDownloadURL();
+        try {
+          Reference ref = _storage.ref().child('user_photos').child('${credential.user!.uid}.jpg');
+          await ref.putFile(imageFile);
+          uploadedPhotoUrl = await ref.getDownloadURL();
+        } catch (e) {
+          debugPrint("Error uploading image: $e");
+        }
       }
 
       await credential.user!.updateDisplayName(name);
-      await credential.user!.updatePhotoURL(uploadedPhotoUrl);
+      if (uploadedPhotoUrl.isNotEmpty) {
+        await credential.user!.updatePhotoURL(uploadedPhotoUrl);
+      }
 
       await _firestore.collection('users').doc(credential.user!.uid).set({
         'uid': credential.user!.uid,
@@ -224,71 +216,57 @@ class AuthProvider with ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       return AuthErrorMessages.getLocalizedMessage(e.code, locale);
     } catch (e) {
-      if (e.toString().contains('network') || e.toString().contains('SocketException')) {
-        return AuthErrorMessages.getLocalizedMessage('network-request-failed', locale);
-      }
-      return AuthErrorMessages.getLocalizedMessage('unknown', locale);
+      return AuthErrorMessages.getLocalizedMessage('network-request-failed', locale);
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> signOut() async {
-    await _auth.signOut();
-    _user = null;
-    _userRole = null;
-    _userName = null;
-    _photoUrl = null;
-    _price = null;
-    notifyListeners();
-  }
-
-  Future<String?> signUp({
-    required String email,
-    required String password,
+  // ==========================================================
+  // 👇 هذه هي الدالة التي كانت ناقصة وتسبب الخطأ، تمت إضافتها
+  // ==========================================================
+  Future<void> updateDoctorProfile({
     required String name,
-    required String role,
-    required String phone,
-    String? specialization,
-    String? price,
+    required String specialization,
+    required double fees,
     File? imageFile,
   }) async {
+    if (_user == null) return;
     _isLoading = true;
     notifyListeners();
-    try {
-      UserCredential credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
 
-      String uploadedPhotoUrl = "";
+    try {
+      String currentPhotoUrl = _photoUrl ?? "";
+
+      // 1. رفع الصورة الجديدة إذا وجدت
       if (imageFile != null) {
-        Reference ref = _storage.ref().child('user_photos').child('${credential.user!.uid}.jpg');
+        Reference ref = _storage.ref().child('user_photos').child('${_user!.uid}.jpg');
         await ref.putFile(imageFile);
-        uploadedPhotoUrl = await ref.getDownloadURL();
+        currentPhotoUrl = await ref.getDownloadURL();
       }
 
-      // تحديث ملف المستخدم الأساسي في Firebase Auth (مهم جداً للتعرف الفوري)
-      await credential.user!.updateDisplayName(name);
-      await credential.user!.updatePhotoURL(uploadedPhotoUrl);
+      // 2. تحديث الاسم والصورة في Auth
+      await _user!.updateDisplayName(name);
+      if (currentPhotoUrl.isNotEmpty) {
+        await _user!.updatePhotoURL(currentPhotoUrl);
+      }
 
-      await _firestore.collection('users').doc(credential.user!.uid).set({
-        'uid': credential.user!.uid,
+      // 3. تحديث البيانات في Firestore
+      await _firestore.collection('users').doc(_user!.uid).update({
         'name': name,
-        'email': email,
-        'role': role,
-        'phone': phone,
-        'specialization': specialization ?? "",
-        'price': price ?? "0",
-        'photoUrl': uploadedPhotoUrl,
-        'createdAt': FieldValue.serverTimestamp(),
+        'specialization': specialization,
+        'price': fees, // أو fees.toString() حسب نوع الحقل لديك
+        'photoUrl': currentPhotoUrl,
       });
 
-      await fetchUserData();
-      return null;
-    } on FirebaseAuthException catch (e) {
-      return e.message;
+      // 4. تحديث البيانات محلياً
+      await _user!.reload();
+      _user = FirebaseAuth.instance.currentUser;
+      await fetchUserData(); // إعادة جلب البيانات لتحديث الواجهة
+
+    } catch (e) {
+      throw e; // رمي الخطأ ليظهر في الواجهة
     } finally {
       _isLoading = false;
       notifyListeners();
