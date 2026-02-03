@@ -29,11 +29,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final _cardNumberController = TextEditingController();
   final _expiryController = TextEditingController();
   final _cvvController = TextEditingController();
+  
   final PaymentService _paymentService = PaymentService();
 
   PaymentStatus _status = PaymentStatus.pending;
   PaymentMethod _selectedMethod = PaymentMethod.bankCard;
   bool _isProcessing = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -44,38 +46,33 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _processPayment() async {
-    // التحقق من البيانات فقط في حالة اختيار البطاقة البنكية
     if (_selectedMethod == PaymentMethod.bankCard && !_formKey.currentState!.validate()) return;
 
     setState(() {
       _isProcessing = true;
       _status = PaymentStatus.processing;
+      _errorMessage = null;
     });
 
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       
-      // استخراج آخر 4 أرقام بأمان
-      String? lastFour;
-      if (_selectedMethod == PaymentMethod.bankCard && _cardNumberController.text.length >= 4) {
-        lastFour = _cardNumberController.text.replaceAll(' ', '').substring(
-          _cardNumberController.text.replaceAll(' ', '').length - 4
-        );
-      }
-
       final result = await _paymentService.processConsultationPayment(
-        patientId: auth.user?.uid ?? '',
+        patientId: auth.user?.uid ?? 'guest',
         doctorId: widget.doctorId,
         appointmentId: widget.appointmentId,
         consultationFee: widget.consultationFee,
         method: _selectedMethod,
-        cardLastFour: lastFour,
+        cardLastFour: _selectedMethod == PaymentMethod.bankCard && _cardNumberController.text.length >= 4
+            ? _cardNumberController.text.replaceAll(' ', '').substring(_cardNumberController.text.replaceAll(' ', '').length - 4)
+            : null,
       );
 
       if (mounted) {
         setState(() {
           _isProcessing = false;
           _status = result.status;
+          _errorMessage = result.errorMessage;
         });
       }
     } catch (e) {
@@ -83,6 +80,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         setState(() {
           _isProcessing = false;
           _status = PaymentStatus.failed;
+          _errorMessage = e.toString();
         });
       }
     }
@@ -90,41 +88,40 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // استخدام try-catch بسيط للتعامل مع ملفات l10n إذا كانت ناقصة
-    String title = "Payment";
-    try {
-      title = AppLocalizations.of(context).payment;
-    } catch (_) {}
+    final l10n = AppLocalizations.of(context);
+    final languageProvider = Provider.of<LanguageProvider>(context);
+    final totalAmount = _paymentService.calculateTotalAmount(widget.consultationFee);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text(l10n.payment),
         centerTitle: true,
       ),
-      body: _buildBody(),
+      body: _buildBody(l10n, languageProvider.languageCode, totalAmount),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(AppLocalizations l10n, String locale, double totalAmount) {
     if (_status == PaymentStatus.processing) {
       return const Center(child: CircularProgressIndicator());
     }
 
     if (_status == PaymentStatus.success) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.check_circle, size: 100, color: Colors.green),
-            const SizedBox(height: 20),
-            const Text("Success!", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Back to Home"),
-            )
-          ],
-        ),
+      return _buildResultState(
+        icon: Icons.check_circle,
+        color: Colors.green,
+        title: "Payment Successful", // يمكنك استبدالها بـ l10n إذا كانت موجودة
+        subtitle: "Your appointment has been confirmed.",
+      );
+    }
+
+    if (_status == PaymentStatus.failed) {
+      return _buildResultState(
+        icon: Icons.error,
+        color: Colors.red,
+        title: "Payment Failed",
+        subtitle: _errorMessage ?? "Something went wrong.",
+        showRetry: true,
       );
     }
 
@@ -135,60 +132,53 @@ class _PaymentScreenState extends State<PaymentScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSummaryCard(),
-            const SizedBox(height: 24),
-            const Text("Select Payment Method", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            _buildMethodSelector(),
-            const SizedBox(height: 24),
-            if (_selectedMethod == PaymentMethod.bankCard) _buildCardForm(),
-            const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton(
-                onPressed: _isProcessing ? null : _processPayment,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                ),
-                child: Text(
-                  "Pay Now (\$${widget.consultationFee})",
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ),
+            _buildOrderSummary(l10n, locale, totalAmount),
+            const SizedBox(height: 30),
+            const Text(
+              "Select Payment Method",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 15),
+            _buildMethodSelector(),
+            const SizedBox(height: 25),
+            if (_selectedMethod == PaymentMethod.bankCard) _buildCardFields(),
+            const SizedBox(height: 40),
+            _buildPayButton(totalAmount, locale),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSummaryCard() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Doctor:"),
-                Text(widget.doctorName, style: const TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const Divider(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Amount:"),
-                Text("\$${widget.consultationFee}", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
-              ],
-            ),
-          ],
-        ),
+  Widget _buildOrderSummary(AppLocalizations l10n, String locale, double total) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Doctor", style: TextStyle(color: Colors.grey[600])),
+              Text(widget.doctorName, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const Divider(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Total Amount", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(
+                _paymentService.formatPrice(total, locale),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -196,47 +186,48 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget _buildMethodSelector() {
     return Row(
       children: [
-        Expanded(child: _buildMethodOption(Icons.credit_card, "Card", PaymentMethod.bankCard)),
+        Expanded(child: _methodCard(Icons.credit_card, "Card", PaymentMethod.bankCard)),
         const SizedBox(width: 12),
-        Expanded(child: _buildMethodOption(Icons.account_balance_wallet, "Wallet", PaymentMethod.wallet)),
+        // هنا تم استخدام wallet التي أضفناها للـ Enum
+        Expanded(child: _methodCard(Icons.account_balance_wallet, "Wallet", PaymentMethod.wallet)),
       ],
     );
   }
 
-  Widget _buildMethodOption(IconData icon, String label, PaymentMethod method) {
-    final bool isSelected = _selectedMethod == method;
+  Widget _methodCard(IconData icon, String label, PaymentMethod method) {
+    bool isSelected = _selectedMethod == method;
     return InkWell(
       onTap: () => setState(() => _selectedMethod = method),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.grey[100],
+          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.grey[50],
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? AppColors.primary : Colors.transparent, width: 2),
+          border: Border.all(color: isSelected ? AppColors.primary : Colors.grey[300]!, width: 2),
         ),
         child: Column(
           children: [
-            Icon(icon, color: isSelected ? AppColors.primary : Colors.grey),
-            const SizedBox(height: 5),
-            Text(label, style: TextStyle(color: isSelected ? AppColors.primary : Colors.black)),
+            Icon(icon, color: isSelected ? AppColors.primary : Colors.grey[600]),
+            const SizedBox(height: 8),
+            Text(label, style: TextStyle(color: isSelected ? AppColors.primary : Colors.black87, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCardForm() {
+  Widget _buildCardFields() {
     return Column(
       children: [
         TextFormField(
           controller: _cardNumberController,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: "Card Number",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            prefixIcon: const Icon(Icons.payment),
+            prefixIcon: Icon(Icons.payment),
+            border: OutlineInputBorder(),
           ),
           keyboardType: TextInputType.number,
-          validator: (val) => (val == null || val.isEmpty) ? "Required" : null,
+          validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
         ),
         const SizedBox(height: 15),
         Row(
@@ -244,10 +235,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Expanded(
               child: TextFormField(
                 controller: _expiryController,
-                decoration: InputDecoration(
-                  labelText: "MM/YY",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+                decoration: const InputDecoration(labelText: "MM/YY", border: OutlineInputBorder()),
+                keyboardType: TextInputType.number,
               ),
             ),
             const SizedBox(width: 15),
@@ -255,15 +244,59 @@ class _PaymentScreenState extends State<PaymentScreen> {
               child: TextFormField(
                 controller: _cvvController,
                 obscureText: true,
-                decoration: InputDecoration(
-                  labelText: "CVV",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+                decoration: const InputDecoration(labelText: "CVV", border: OutlineInputBorder()),
+                keyboardType: TextInputType.number,
               ),
             ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildPayButton(double amount, String locale) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: _isProcessing ? null : _processPayment,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: Text(
+          "Confirm Payment (${_paymentService.formatPrice(amount, locale)})",
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResultState({required IconData icon, required Color color, required String title, required String subtitle, bool showRetry = false}) {
+    return Center(
+      padding: const EdgeInsets.all(30),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 80, color: color),
+          const SizedBox(height: 20),
+          Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          Text(subtitle, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600])),
+          const SizedBox(height: 30),
+          ElevatedButton(
+            onPressed: () {
+              if (showRetry) {
+                setState(() => _status = PaymentStatus.pending);
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
+            child: Text(showRetry ? "Try Again" : "Done"),
+          )
+        ],
+      ),
     );
   }
 }
