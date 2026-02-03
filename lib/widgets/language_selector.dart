@@ -3,15 +3,15 @@ import 'package:provider/provider.dart';
 import '../providers/language_provider.dart';
 import '../core/constants/colors.dart';
 
-/// A widget for selecting and displaying the current language
+/// ويدجت لاختيار وعرض اللغة الحالية
 class LanguageSelector extends StatelessWidget {
-  /// Whether to show the full language name or just the flag
+  /// هل يتم عرض اسم اللغة بالكامل أم العلم فقط
   final bool showName;
 
-  /// Whether this is used in an app bar
+  /// هل يتم استخدامها داخل AppBar
   final bool isAppBarAction;
 
-  /// Custom callback when language changes
+  /// استدعاء مخصص عند تغيير اللغة
   final VoidCallback? onLanguageChanged;
 
   const LanguageSelector({
@@ -103,7 +103,7 @@ class LanguageSelector extends StatelessWidget {
   }
 }
 
-/// A full-screen language selection dialog
+/// دايلوج ملء الشاشة لاختيار اللغة
 class LanguageSelectionDialog extends StatelessWidget {
   const LanguageSelectionDialog({super.key});
 
@@ -155,7 +155,7 @@ class LanguageSelectionDialog extends StatelessWidget {
   }
 }
 
-/// A tile for use in settings screens
+/// خيار (Tile) للاستخدام في شاشات الإعدادات
 class LanguageSettingsTile extends StatelessWidget {
   const LanguageSettingsTile({super.key});
 
@@ -183,7 +183,7 @@ class LanguageSettingsTile extends StatelessWidget {
   }
 }
 
-/// A bottom sheet for language selection
+/// ورقة سفلية (Bottom Sheet) لاختيار اللغة
 class LanguageBottomSheet extends StatelessWidget {
   const LanguageBottomSheet({super.key});
 
@@ -206,7 +206,7 @@ class LanguageBottomSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle bar
+          // شريط السحب
           Container(
             width: 40,
             height: 4,
@@ -216,7 +216,7 @@ class LanguageBottomSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          // Title
+          // العنوان
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
@@ -232,7 +232,7 @@ class LanguageBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const Divider(),
-          // Language options
+          // خيارات اللغة
           ...languageProvider.availableLanguages.map((lang) {
             return ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
@@ -241,7 +241,7 @@ class LanguageBottomSheet extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   color: lang.isSelected
-                      ? AppColors.primary.withValues(alpha: 0.1)
+                      ? AppColors.primary.withOpacity(0.1) // تم التصحيح هنا من withValues
                       : Colors.grey[100],
                   borderRadius: BorderRadius.circular(12),
                 ),
