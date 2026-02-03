@@ -4,8 +4,9 @@ import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
 import 'qr_scanner_screen.dart';
 import 'russia_programs_screen.dart';
-import 'doctor_search_screen.dart';
-import 'login_screen.dart'; // تأكد من استيراد شاشة الدخول
+import 'login_screen.dart'; 
+// 👇 التغيير الأول: استدعاء ملف الحجز الجديد بدلاً من البحث القديم
+import 'doctor_booking_screen.dart'; 
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -13,7 +14,6 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    // استخدام listen: true هنا ضروري لتحديث الأيقونة فور تسجيل الدخول
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
@@ -21,15 +21,12 @@ class HomeScreen extends StatelessWidget {
         title: Text(l10n.appTitle),
         centerTitle: true,
         actions: [
-          // الأيقونة التي أشرت إليها في الصورة
           IconButton(
             icon: Icon(authProvider.user != null ? Icons.dashboard : Icons.person_outline),
             onPressed: () {
               if (authProvider.user != null) {
-                // إذا كان مسجل دخول، يعود للشاشة الرئيسية لتقوم الحسبة في main.dart بتوجيهه
                 Navigator.of(context).popUntil((route) => route.isFirst);
               } else {
-                // الانتقال لشاشة تسجيل الدخول باستخدام المرجع المباشر للـ Class
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -62,13 +59,14 @@ class HomeScreen extends StatelessWidget {
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QRScannerScreen())),
                   ),
                   
-                  // 2. زر استشارات الخبراء
+                  // 👇 التغيير الثاني: هنا ربطنا التصميم الجديد (الروسي)
                   _buildMenuCard(
                     context,
                     title: l10n.specialistConsultations,
                     icon: Icons.medical_information,
                     color: Colors.teal,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorSearchScreen())),
+                    // تم التوجيه إلى DoctorBookingScreen
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorBookingScreen())),
                   ),
                   
                   // 3. زر السياحة العلاجية
@@ -90,7 +88,6 @@ class HomeScreen extends StatelessWidget {
                       if (authProvider.user == null) {
                         _showLoginRequiredDialog(context, l10n);
                       } else {
-                        // العودة للبداية والـ main.dart سيوجه المريض لـ PatientDashboard
                         Navigator.of(context).popUntil((route) => route.isFirst);
                       }
                     },
@@ -165,7 +162,7 @@ class HomeScreen extends StatelessWidget {
           TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context); // إغلاق الحوار
+              Navigator.pop(context); 
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
