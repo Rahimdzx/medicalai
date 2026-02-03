@@ -56,7 +56,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _processPayment() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_selectedMethod == PaymentMethod.bankCard && !_formKey.currentState!.validate()) return;
 
     setState(() {
       _isProcessing = true;
@@ -71,9 +71,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       appointmentId: widget.appointmentId,
       consultationFee: widget.consultationFee,
       method: _selectedMethod,
-      cardLastFour: _cardNumberController.text.replaceAll(' ', '').substring(
+      cardLastFour: _selectedMethod == PaymentMethod.bankCard 
+        ? _cardNumberController.text.replaceAll(' ', '').substring(
             _cardNumberController.text.replaceAll(' ', '').length - 4,
-          ),
+          )
+        : null,
     );
 
     setState(() {
@@ -151,7 +153,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   children: [
                     const Icon(Icons.lock, size: 20),
                     const SizedBox(width: 8),
-                    Text('${l10n.payNow} ${_paymentService.formatPrice(totalAmount, locale)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text('${l10n.payNow} ${_paymentService.formatPrice(totalAmount, locale)}', 
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -170,7 +173,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05), // تم التصحيح هنا
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -183,7 +186,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundColor: AppColors.primary.withOpacity(0.1), // تم التصحيح هنا
+                backgroundColor: AppColors.primary.withOpacity(0.1),
                 child: const Icon(Icons.medical_services, color: AppColors.primary),
               ),
               const SizedBox(width: 12),
@@ -209,6 +212,36 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // --- الدوال التي كانت مفقودة وتمت إضافتها الآن ---
+
+  Widget _buildPriceRow(String label, String value, {bool isSecondary = false, bool isBold = false, bool isTotal = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(
+          fontSize: isTotal ? 18 : 14,
+          fontWeight: isBold || isTotal ? FontWeight.bold : FontWeight.normal,
+          color: isSecondary ? AppColors.textSecondaryLight : AppColors.textPrimaryLight,
+        )),
+        Text(value, style: TextStyle(
+          fontSize: isTotal ? 18 : 14,
+          fontWeight: isBold || isTotal ? FontWeight.bold : FontWeight.normal,
+          color: isTotal ? AppColors.primary : AppColors.textPrimaryLight,
+        )),
+      ],
+    );
+  }
+
+  Widget _buildPaymentMethodSelector(AppLocalizations l10n) {
+    return Row(
+      children: [
+        Expanded(child: _buildMethodOption(icon: Icons.credit_card, label: l10n.bankCard, method: PaymentMethod.bankCard)),
+        const SizedBox(width: 12),
+        Expanded(child: _buildMethodOption(icon: Icons.account_balance_wallet, label: l10n.wallet, method: PaymentMethod.wallet)),
+      ],
+    );
+  }
+
   Widget _buildMethodOption({required IconData icon, required String label, required PaymentMethod method}) {
     final isSelected = _selectedMethod == method;
     return InkWell(
@@ -217,7 +250,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.white, // تم التصحيح هنا
+          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: isSelected ? AppColors.primary : Colors.grey[300]!, width: isSelected ? 2 : 1),
         ),
@@ -226,13 +259,63 @@ class _PaymentScreenState extends State<PaymentScreen> {
           children: [
             Icon(icon, color: isSelected ? AppColors.primary : AppColors.textSecondaryLight),
             const SizedBox(width: 8),
-            Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: isSelected ? AppColors.primary : AppColors.textPrimaryLight)),
+            Text(label, style: TextStyle(
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, 
+              color: isSelected ? AppColors.primary : AppColors.textPrimaryLight
+            )),
           ],
         ),
       ),
     );
   }
 
-  // ... بقية الـ Widgets (_buildPriceRow, _buildPaymentMethodSelector, _buildCardForm, إلخ)
-  // يرجى استبدال withValues بـ withOpacity في أي مكان آخر داخل هذه الـ Widgets
+  Widget _buildCardForm(AppLocalizations l10n) {
+    return Column(
+      children: [
+        TextFormField(
+          controller: _cardNumberController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: l10n.cardNumber,
+            prefixIcon: const Icon(Icons.credit_card),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onChanged: _onCardNumberChanged,
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _expiryController,
+                decoration: InputDecoration(
+                  labelText: 'MM/YY',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: TextFormField(
+                controller: _cvvController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'CVV',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProcessingState(AppLocalizations l10n) => const Center(child: CircularProgressIndicator());
+  Widget _buildSuccessState(AppLocalizations l10n, String locale) => Center(child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [const Icon(Icons.check_circle, color: Colors.green, size: 80), Text(l10n.paymentSuccess)],
+  ));
+  Widget _buildFailedState(AppLocalizations l10n, String locale) => Center(child: Text(l10n.paymentFailed));
+  Widget _buildCancelledState(AppLocalizations l10n) => Center(child: Text(l10n.paymentCancelled));
 }
