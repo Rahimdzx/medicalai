@@ -4,17 +4,18 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/language_provider.dart'; 
+import '../../providers/language_provider.dart';
 import '../../core/constants/colors.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+// ✅ تم تصحيح الاسم هنا ليصبح SignupScreen بدلاً من SignUpScreen
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -66,6 +67,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _handleSignUp() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // التحقق من اختيار التخصص للطبيب
     if (_role == 'doctor' && _selectedSpecialization == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please select a specialization")),
@@ -83,6 +85,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       role: _role,
       phone: _phoneController.text.trim().isEmpty ? "0000000000" : _phoneController.text.trim(),
       locale: languageProvider.languageCode,
+      // إذا كان طبيب نأخذ التخصص المختار، وإلا نرسل قيمة فارغة
       specialization: _role == 'doctor' ? (_selectedSpecialization ?? "General") : "", 
       price: _role == 'doctor' ? _priceController.text.trim() : "0",
       imageFile: _imageFile,
@@ -121,6 +124,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.language, color: AppColors.primary),
+            tooltip: l10n.selectLanguage,
             onSelected: (String code) {
               langProvider.changeLanguage(code);
             },
