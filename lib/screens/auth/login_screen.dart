@@ -6,8 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../core/constants/colors.dart';
 import '../../widgets/language_selector.dart';
-import 'signup_screen.dart'; // تأكد من صحة المسار حسب مجلداتك
-
+import 'package:medical_app/screens/signup_screen.dart';
 class MedicalLoginScreen extends StatefulWidget {
   const MedicalLoginScreen({super.key});
 
