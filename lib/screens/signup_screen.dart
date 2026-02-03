@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import '../l10n/app_localizations.dart';
-import '../providers/auth_provider.dart';
-import '../providers/language_provider.dart'; // لاستدعاء اللغة الحالية
-import '../core/constants/colors.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/language_provider.dart'; 
+import '../../core/constants/colors.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -23,9 +23,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _priceController = TextEditingController();
   
   String _role = 'patient';
-  // ignore: unused_field
   String? _selectedSpecialization;
   File? _imageFile;
+
+  // قائمة التخصصات الطبية
+  final List<String> _medicalSpecialties = [
+    "General / عام",
+    "Cardiology / أمراض القلب",
+    "Dermatology / الجلدية",
+    "Pediatrics / طب الأطفال",
+    "Neurology / المخ والأعصاب",
+    "Orthopedics / العظام",
+    "Dentistry / طب الأسنان",
+    "Ophthalmology / العيون",
+  ];
 
   @override
   void dispose() {
@@ -55,18 +66,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _handleSignUp() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (_role == 'doctor' && _selectedSpecialization == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a specialization")),
+      );
+      return;
+    }
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
     
-    // 👇 استخدام الدالة الصحيحة مع تمرير اللغة
     final error = await authProvider.signUpWithLocale(
       email: _emailController.text.trim(),
       password: _passwordController.text,
       name: _nameController.text.trim(),
       role: _role,
-      phone: _phoneController.text.trim().isEmpty ? "0000000000" : _phoneController.text.trim(), // قيمة افتراضية إذا كان فارغاً
-      locale: languageProvider.languageCode, // لغة المستخدم الحالية (en, ar, ru)
-      specialization: _role == 'doctor' ? "General" : "", // تخصص افتراضي
+      phone: _phoneController.text.trim().isEmpty ? "0000000000" : _phoneController.text.trim(),
+      locale: languageProvider.languageCode,
+      specialization: _role == 'doctor' ? (_selectedSpecialization ?? "General") : "", 
       price: _role == 'doctor' ? _priceController.text.trim() : "0",
       imageFile: _imageFile,
     );
@@ -82,7 +99,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
       );
     } else {
-      // العودة لشاشة تسجيل الدخول أو الشاشة الرئيسية
       Navigator.of(context).pop(); 
     }
   }
@@ -91,6 +107,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isLoading = context.watch<AuthProvider>().isLoading;
+    final langProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -100,6 +117,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimaryLight,
         elevation: 0,
+        // ✅ زر تغيير اللغة في الـ AppBar
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.language, color: AppColors.primary),
+            onSelected: (String code) {
+              langProvider.changeLanguage(code);
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(value: 'en', child: Text('🇺🇸 English')),
+              const PopupMenuItem<String>(value: 'ar', child: Text('🇸🇦 العربية')),
+              const PopupMenuItem<String>(value: 'ru', child: Text('🇷🇺 Русский')),
+            ],
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -166,33 +197,60 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
               _buildTextField(
                 controller: _phoneController,
-                label: "Phone Number", // ✅ إزالة الاعتماد على l10n مؤقتاً
+                label: "Phone Number / رقم الهاتف", 
                 icon: Icons.phone_android,
                 keyboardType: TextInputType.phone,
                 enabled: !isLoading,
               ),
               const SizedBox(height: 16),
 
-              // اختيار الدور (مريض/طبيب)
+              // اختيار الدور
               DropdownButtonFormField<String>(
                 value: _role,
                 items: [
                   DropdownMenuItem(value: 'patient', child: Text(l10n.patient ?? "Patient")),
                   DropdownMenuItem(value: 'doctor', child: Text(l10n.doctor ?? "Doctor")),
                 ],
-                onChanged: isLoading ? null : (v) => setState(() => _role = v!),
+                onChanged: isLoading ? null : (v) {
+                  setState(() {
+                    _role = v!;
+                    if (_role == 'patient') _selectedSpecialization = null;
+                  });
+                },
                 decoration: InputDecoration(
-                  labelText: "Role",
+                  labelText: "Role / الدور",
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   prefixIcon: const Icon(Icons.badge_outlined),
                 ),
               ),
               
+              // حقول إضافية للطبيب
               if (_role == 'doctor') ...[
                 const SizedBox(height: 16),
+                // ✅ خانة اختيار التخصص
+                DropdownButtonFormField<String>(
+                  value: _selectedSpecialization,
+                  hint: const Text("Select Specialization / اختر التخصص"),
+                  items: _medicalSpecialties.map((String specialty) {
+                    return DropdownMenuItem(
+                      value: specialty,
+                      child: Text(specialty),
+                    );
+                  }).toList(),
+                  onChanged: isLoading ? null : (v) => setState(() => _selectedSpecialization = v),
+                  decoration: InputDecoration(
+                    labelText: "Medical Specialization",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    prefixIcon: const Icon(Icons.medical_services_outlined),
+                  ),
+                  validator: (v) => v == null ? "Required" : null,
+                ),
+                
+                const SizedBox(height: 16),
+                // ✅ خانة السعر بالروبل
                 _buildTextField(
                   controller: _priceController,
-                  label: "Consultation Price",
+                  label: "Consultation Price (₽) / سعر الاستشارة",
                   icon: Icons.payments_outlined,
                   keyboardType: TextInputType.number,
                   enabled: !isLoading,
