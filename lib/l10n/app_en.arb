@@ -1,7 +1,6 @@
 {
   "@@locale": "en",
   "appTitle": "Medical App",
-  
   "login": "Login",
   "signUp": "Sign Up",
   "logout": "Logout",
@@ -12,7 +11,6 @@
   "phoneNumber": "Phone Number",
   "phone": "Phone",
   "phoneOptional": "Phone (Optional)",
-
   "pleaseEnterEmail": "Please enter email",
   "pleaseEnterPassword": "Please enter password",
   "pleaseEnterName": "Please enter name",
@@ -20,15 +18,12 @@
   "passwordTooShort": "Password must be at least 6 characters",
   "passwordsDoNotMatch": "Passwords do not match",
   "invalidEmail": "Invalid email address",
-
   "patient": "Patient",
   "doctor": "Doctor",
   "admin": "Admin",
-
   "patientDashboard": "Patient Dashboard",
   "doctorDashboard": "Doctor Dashboard",
   "adminDashboard": "Admin Dashboard",
-
   "specialization": "Specialization",
   "consultationPrice": "Consultation Price",
   "consultationFee": "Consultation Fee",
@@ -36,11 +31,9 @@
   "rating": "Rating",
   "aboutDoctor": "About Doctor",
   "about": "About",
-
   "appointments": "Appointments",
   "myAppointments": "My Appointments",
   "bookAppointment": "Book Appointment",
-  "
   "medicalRecords": "Medical Records",
   "myRecords": "My Records",
   "uploadFile": "Upload File",
@@ -48,10 +41,8 @@
   "noRecords": "No medical records found",
   "diagnosis": "Diagnosis",
   "prescriptionAndTreatment": "Prescription & Treatment",
-  
   "chat": "Chat",
   "videoCall": "Video Call",
-
   "qrCode": "QR Code",
   "scanQR": "Scan QR Code",
   "myQrCode": "My QR Code",
@@ -60,15 +51,12 @@
   "scanPatient": "Scan Patient",
   "shareQrDescription": "Share this code with patients",
   "scannedSuccessfully": "Scanned successfully",
-
   "specialistConsultations": "Specialist Consultations",
   "medicalTourism": "Medical Tourism in Russia",
-
   "profile": "Profile",
   "profileSettings": "Profile Settings",
   "saveChanges": "Save Changes",
   "profileUpdatedSuccess": "Profile updated successfully",
-
   "error": "Error",
   "success": "Success",
   "cancel": "Cancel",
@@ -77,9 +65,9 @@
   "yes": "Yes",
   "no": "No",
   "ok": "OK",
-
   "welcomeBack": "Welcome back",
-
+  "welcome": "Welcome",
+  "selectLanguage": "Select Language",
   "generalStats": "General Statistics",
   "totalUsers": "Total Users",
   "adminOptions": "Management Options",
