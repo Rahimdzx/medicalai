@@ -57,5 +57,5 @@ flutter:
   generate: true # ضروري لنظام الترجمة l10n
 
   # تأكد من إضافة قسم الأصول (Assets) إذا كنت ستستخدم صوراً محلية أو أيقونات
-  assets:
-    - assets/images/
+ # assets:
+    # assets/images/
