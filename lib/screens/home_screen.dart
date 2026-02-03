@@ -4,10 +4,10 @@ import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
 import 'russia_programs_screen.dart';
 
-// 👇 1. تصحيح المسارات (تأكد أن هذه الملفات موجودة في هذه المسارات)
-import 'auth/login_screen.dart'; // تأكد أن ملف تسجيل الدخول هنا
-import 'common/qr_share_scan_screen.dart'; // الملف الجديد للـ QR
-import 'specialist_list_screen.dart'; // ملف قائمة الأطباء
+// ✅ تصحيح المسارات
+import 'auth/login_screen.dart'; // تأكد أن ملف الدخول داخل مجلد auth
+import 'common/qr_share_scan_screen.dart'; // الملف الجديد
+import 'specialist_list_screen.dart'; 
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -28,10 +28,7 @@ class HomeScreen extends StatelessWidget {
               if (authProvider.user != null) {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
               }
             },
           ),
@@ -51,30 +48,29 @@ class HomeScreen extends StatelessWidget {
                 mainAxisSpacing: 20,
                 crossAxisSpacing: 20,
                 children: [
-                  // 1. زر مسح QR (تم تصحيح الكلاس)
+                  // 1. QR Scan
                   _buildMenuCard(
                     context,
                     title: l10n.scanQR,
                     icon: Icons.qr_code_scanner,
                     color: Colors.blueAccent,
-                    // 👇 استخدام GeneralQRScanner بدلاً من QRScannerScreen القديم
+                    // ✅ استخدام الاسم الجديد للكلاس
                     onTap: () => Navigator.push(
                       context, 
-                      MaterialPageRoute(builder: (_) => GeneralQRScanner(title: l10n.scanQR))
+                      MaterialPageRoute(builder: (_) => const GeneralQRScanner(title: "Scan QR"))
                     ),
                   ),
                   
-                  // 2. زر استشارات الخبراء (يفتح القائمة الروسية)
+                  // 2. Doctors List
                   _buildMenuCard(
                     context,
                     title: l10n.specialistConsultations,
                     icon: Icons.medical_information,
                     color: Colors.teal,
-                    // 👇 التوجيه الصحيح لقائمة الأطباء
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SpecialistListScreen())),
                   ),
                   
-                  // 3. زر السياحة العلاجية
+                  // 3. Medical Tourism
                   _buildMenuCard(
                     context,
                     title: "Medical Tourism", 
@@ -83,7 +79,7 @@ class HomeScreen extends StatelessWidget {
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RussiaProgramsScreen())),
                   ),
                   
-                  // 4. زر سجلاتي الطبية
+                  // 4. My Records
                   _buildMenuCard(
                     context,
                     title: l10n.myRecords,
@@ -91,9 +87,8 @@ class HomeScreen extends StatelessWidget {
                     color: Colors.orange,
                     onTap: () {
                       if (authProvider.user == null) {
-                        _showLoginRequiredDialog(context, l10n);
-                      } else {
-                        Navigator.of(context).popUntil((route) => route.isFirst);
+                         // منطق تسجيل الدخول
+                         Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
                       }
                     },
                   ),
@@ -153,29 +148,6 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showLoginRequiredDialog(BuildContext context, AppLocalizations l10n) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.error),
-        content: const Text("يجب تسجيل الدخول لعرض السجلات الطبية الخاصة بك"),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context); 
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-              );
-            }, 
-            child: Text(l10n.login),
-          ),
-        ],
       ),
     );
   }
