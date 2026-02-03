@@ -4,9 +4,9 @@ import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
 import 'qr_scanner_screen.dart';
 import 'russia_programs_screen.dart';
-import 'login_screen.dart'; 
-// 👇 التغيير الأول: استدعاء ملف الحجز الجديد بدلاً من البحث القديم
-import 'doctor_booking_screen.dart'; 
+import 'login_screen.dart';
+// 👇 التغيير الأول: استدعاء ملف القائمة (الروسية) بدلاً من الحجز المباشر
+import 'specialist_list_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -59,14 +59,14 @@ class HomeScreen extends StatelessWidget {
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QRScannerScreen())),
                   ),
                   
-                  // 👇 التغيير الثاني: هنا ربطنا التصميم الجديد (الروسي)
+                  // 👇 التغيير الثاني: هنا نفتح قائمة الأطباء (List Screen)
                   _buildMenuCard(
                     context,
                     title: l10n.specialistConsultations,
                     icon: Icons.medical_information,
                     color: Colors.teal,
-                    // تم التوجيه إلى DoctorBookingScreen
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorBookingScreen())),
+                    // تم التوجيه إلى SpecialistListScreen لكي يختار المستخدم الطبيب أولاً
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SpecialistListScreen())),
                   ),
                   
                   // 3. زر السياحة العلاجية
