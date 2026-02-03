@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
-import 'qr_scanner_screen.dart';
 import 'russia_programs_screen.dart';
-import 'login_screen.dart';
-// 👇 التغيير الأول: استدعاء ملف القائمة (الروسية) بدلاً من الحجز المباشر
-import 'specialist_list_screen.dart';
+
+// 👇 1. تصحيح المسارات (تأكد أن هذه الملفات موجودة في هذه المسارات)
+import 'auth/login_screen.dart'; // تأكد أن ملف تسجيل الدخول هنا
+import 'common/qr_share_scan_screen.dart'; // الملف الجديد للـ QR
+import 'specialist_list_screen.dart'; // ملف قائمة الأطباء
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -50,22 +51,26 @@ class HomeScreen extends StatelessWidget {
                 mainAxisSpacing: 20,
                 crossAxisSpacing: 20,
                 children: [
-                  // 1. زر مسح QR
+                  // 1. زر مسح QR (تم تصحيح الكلاس)
                   _buildMenuCard(
                     context,
                     title: l10n.scanQR,
                     icon: Icons.qr_code_scanner,
                     color: Colors.blueAccent,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QRScannerScreen())),
+                    // 👇 استخدام GeneralQRScanner بدلاً من QRScannerScreen القديم
+                    onTap: () => Navigator.push(
+                      context, 
+                      MaterialPageRoute(builder: (_) => GeneralQRScanner(title: l10n.scanQR))
+                    ),
                   ),
                   
-                  // 👇 التغيير الثاني: هنا نفتح قائمة الأطباء (List Screen)
+                  // 2. زر استشارات الخبراء (يفتح القائمة الروسية)
                   _buildMenuCard(
                     context,
                     title: l10n.specialistConsultations,
                     icon: Icons.medical_information,
                     color: Colors.teal,
-                    // تم التوجيه إلى SpecialistListScreen لكي يختار المستخدم الطبيب أولاً
+                    // 👇 التوجيه الصحيح لقائمة الأطباء
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SpecialistListScreen())),
                   ),
                   
