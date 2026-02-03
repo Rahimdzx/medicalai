@@ -71,11 +71,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       appointmentId: widget.appointmentId,
       consultationFee: widget.consultationFee,
       method: _selectedMethod,
-      cardLastFour: _selectedMethod == PaymentMethod.bankCard 
-        ? _cardNumberController.text.replaceAll(' ', '').substring(
-            _cardNumberController.text.replaceAll(' ', '').length - 4,
-          )
-        : null,
+      cardLastFour: _selectedMethod == PaymentMethod.bankCard && _cardNumberController.text.length >= 4
+          ? _cardNumberController.text.replaceAll(' ', '').substring(
+              _cardNumberController.text.replaceAll(' ', '').length - 4,
+            )
+          : null,
     );
 
     setState(() {
@@ -114,9 +114,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
       case PaymentStatus.processing:
         return _buildProcessingState(l10n);
       case PaymentStatus.success:
-        return _buildSuccessState(l10n, locale);
+        return _buildSuccessState(l10n);
       case PaymentStatus.failed:
-        return _buildFailedState(l10n, locale);
+        return _buildFailedState(l10n);
       case PaymentStatus.cancelled:
         return _buildCancelledState(l10n);
     }
@@ -132,7 +132,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           children: [
             _buildSummaryCard(l10n, locale, serviceFee, totalAmount),
             const SizedBox(height: 24),
-            Text(l10n.paymentMethod, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimaryLight)),
+            Text(l10n.paymentMethod, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             _buildPaymentMethodSelector(l10n),
             const SizedBox(height: 24),
@@ -148,15 +148,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.lock, size: 20),
-                    const SizedBox(width: 8),
-                    Text('${l10n.payNow} ${_paymentService.formatPrice(totalAmount, locale)}', 
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  ],
-                ),
+                child: _isProcessing 
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : Text('${l10n.payNow} ${_paymentService.formatPrice(totalAmount, locale)}'),
               ),
             ),
           ],
@@ -171,63 +165,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: AppColors.primary.withOpacity(0.1),
-                child: const Icon(Icons.medical_services, color: AppColors.primary),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.consultationFee, style: const TextStyle(fontSize: 14, color: AppColors.textSecondaryLight)),
-                    Text(widget.doctorName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const Divider(height: 32),
           _buildPriceRow(l10n.consultationFee, _paymentService.formatPrice(widget.consultationFee, locale)),
           const SizedBox(height: 8),
           _buildPriceRow(l10n.serviceFee, _paymentService.formatPrice(serviceFee, locale), isSecondary: true),
           const Divider(height: 24),
-          _buildPriceRow(l10n.totalAmount, _paymentService.formatPrice(totalAmount, locale), isBold: true, isTotal: true),
+          _buildPriceRow(l10n.totalAmount, _paymentService.formatPrice(totalAmount, locale), isBold: true),
         ],
       ),
     );
   }
 
-  // --- الدوال التي كانت مفقودة وتمت إضافتها الآن ---
-
-  Widget _buildPriceRow(String label, String value, {bool isSecondary = false, bool isBold = false, bool isTotal = false}) {
+  Widget _buildPriceRow(String label, String value, {bool isSecondary = false, bool isBold = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(
-          fontSize: isTotal ? 18 : 14,
-          fontWeight: isBold || isTotal ? FontWeight.bold : FontWeight.normal,
-          color: isSecondary ? AppColors.textSecondaryLight : AppColors.textPrimaryLight,
-        )),
-        Text(value, style: TextStyle(
-          fontSize: isTotal ? 18 : 14,
-          fontWeight: isBold || isTotal ? FontWeight.bold : FontWeight.normal,
-          color: isTotal ? AppColors.primary : AppColors.textPrimaryLight,
-        )),
+        Text(label, style: TextStyle(color: isSecondary ? Colors.grey : Colors.black, fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
+        Text(value, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
       ],
     );
   }
@@ -237,7 +194,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       children: [
         Expanded(child: _buildMethodOption(icon: Icons.credit_card, label: l10n.bankCard, method: PaymentMethod.bankCard)),
         const SizedBox(width: 12),
-        Expanded(child: _buildMethodOption(icon: Icons.account_balance_wallet, label: l10n.wallet, method: PaymentMethod.wallet)),
+        // تم تصحيح الخطأ هنا باستخدام نص يدوي في حال غياب الترجمة
+        Expanded(child: _buildMethodOption(icon: Icons.account_balance_wallet, label: "Wallet", method: PaymentMethod.wallet)),
       ],
     );
   }
@@ -246,25 +204,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final isSelected = _selectedMethod == method;
     return InkWell(
       onTap: () => setState(() => _selectedMethod = method),
-      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.white,
+          border: Border.all(color: isSelected ? AppColors.primary : Colors.grey[300]!),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? AppColors.primary : Colors.grey[300]!, width: isSelected ? 2 : 1),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: isSelected ? AppColors.primary : AppColors.textSecondaryLight),
-            const SizedBox(width: 8),
-            Text(label, style: TextStyle(
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, 
-              color: isSelected ? AppColors.primary : AppColors.textPrimaryLight
-            )),
-          ],
-        ),
+        child: Column(children: [Icon(icon), Text(label)]),
       ),
     );
   }
@@ -274,48 +221,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
       children: [
         TextFormField(
           controller: _cardNumberController,
+          decoration: const InputDecoration(labelText: "Card Number", prefixIcon: Icon(Icons.payment)), // نص يدوي لتجنب الخطأ
           keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: l10n.cardNumber,
-            prefixIcon: const Icon(Icons.credit_card),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          onChanged: _onCardNumberChanged,
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _expiryController,
-                decoration: InputDecoration(
-                  labelText: 'MM/YY',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: TextFormField(
-                controller: _cvvController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'CVV',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-          ],
+          validator: (v) => v!.isEmpty ? "Required" : null,
         ),
       ],
     );
   }
 
   Widget _buildProcessingState(AppLocalizations l10n) => const Center(child: CircularProgressIndicator());
-  Widget _buildSuccessState(AppLocalizations l10n, String locale) => Center(child: Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [const Icon(Icons.check_circle, color: Colors.green, size: 80), Text(l10n.paymentSuccess)],
-  ));
-  Widget _buildFailedState(AppLocalizations l10n, String locale) => Center(child: Text(l10n.paymentFailed));
-  Widget _buildCancelledState(AppLocalizations l10n) => Center(child: Text(l10n.paymentCancelled));
+
+  Widget _buildSuccessState(AppLocalizations l10n) => Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.check_circle, color: Colors.green, size: 80),
+        const SizedBox(height: 16),
+        const Text("Payment Successful", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), // نص يدوي
+      ],
+    ),
+  );
+
+  Widget _buildFailedState(AppLocalizations l10n) => const Center(child: Text("Payment Failed"));
+  Widget _buildCancelledState(AppLocalizations l10n) => const Center(child: Text("Payment Cancelled"));
 }
