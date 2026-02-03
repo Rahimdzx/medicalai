@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart'; // تأكد من المسار
 import '../../providers/auth_provider.dart'; // تأكد من المسار
-import 'login_screen.dart'; // تأكد من المسار
-
+import 'auth/login_screen.dart'; // ✅ بدلاً من 'login_screen.dart'
 class DoctorBookingScreen extends StatefulWidget {
   final String doctorId;
 
