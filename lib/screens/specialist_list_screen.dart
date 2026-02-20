@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/doctor_model.dart';
 import '../services/doctor_service.dart';
-import 'doctor_profile_screen.dart';  // <-- تصحيح المسار
+import 'doctor_profile_screen.dart';
 
 class SpecialistListScreen extends StatefulWidget {
   const SpecialistListScreen({super.key});
@@ -60,21 +60,21 @@ class _SpecialistListScreenState extends State<SpecialistListScreen> {
                     },
                   ),
                   ..._specialties.map((s) => Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: FilterChip(
-                      label: Text(s),
-                      selected: _selectedSpecialty == s,
-                      onSelected: (_) async {
-                        setState(() => _isLoading = true);
-                        final doctors = await _doctorService.getDoctors(specialty: s);
-                        setState(() {
-                          _selectedSpecialty = s;
-                          _doctors = doctors;
-                          _isLoading = false;
-                        });
-                      },
-                    ),
-                  )),
+                        padding: const EdgeInsets.only(left: 8),
+                        child: FilterChip(
+                          label: Text(s),
+                          selected: _selectedSpecialty == s,
+                          onSelected: (_) async {
+                            setState(() => _isLoading = true);
+                            final doctors = await _doctorService.getDoctors(specialty: s);
+                            setState(() {
+                              _selectedSpecialty = s;
+                              _doctors = doctors;
+                              _isLoading = false;
+                            });
+                          },
+                        ),
+                      )),
                 ],
               ),
             ),
@@ -83,24 +83,45 @@ class _SpecialistListScreenState extends State<SpecialistListScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _doctors.length,
-              itemBuilder: (context, index) {
-                final doctor = _doctors[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage: doctor.photo != null ? NetworkImage(doctor.photo!) : null,
-                      child: doctor.photo == null ? const Icon(Icons.person) : null,
-                    ),
-                    title: Text(doctor.name),
-                    subtitle: Text(doctor.specialty),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('\$${doctor.price}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
+          : _doctors.isEmpty
+              ? const Center(child: Text('No doctors found'))
+              : ListView.builder(
+                  itemCount: _doctors.length,
+                  itemBuilder: (context, index) {
+                    final doctor = _doctors[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: doctor.photo != null ? NetworkImage(doctor.photo!) : null,
+                          child: doctor.photo == null ? const Icon(Icons.person) : null,
+                        ),
+                        title: Text(doctor.name),
+                        subtitle: Text(doctor.specialty),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.star, size:
+                            Text(
+                              '\$${doctor.price}',
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.star, size: 16, color: Colors.amber),
+                                Text('${doctor.rating}'),
+                              ],
+                            ),
+                          ],
+                        ),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => DoctorProfileScreen(doctor: doctor)),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+    );
+  }
+}
