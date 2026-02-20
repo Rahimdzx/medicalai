@@ -3,9 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // Providers
 import 'providers/auth_provider.dart';
@@ -23,25 +21,23 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  // تهيئة critical للتاريخ (للتقويم)
+  // تهيئة التاريخ
   await initializeDateFormatting('ru_RU', null);
   await initializeDateFormatting('ar', null);
   await initializeDateFormatting('en_US', null);
 
   final prefs = await SharedPreferences.getInstance();
 
-  // تثبيت الوضع العمودي (اختياري لكن مفيد)
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // تهيئة Providers قبل runApp
   final localeProvider = LocaleProvider(prefs);
   await localeProvider.init();
   
   final themeProvider = ThemeProvider(prefs);
-  await themeProvider.init();
+  //themeProvider.init(); // <-- تم التعليق عليه إذا لم تكن موجودة
 
   runApp(
     MultiProvider(
@@ -60,7 +56,6 @@ class MedicalApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // استخدام Selector بدلاً من Consumer للأداء الأفضل
     return Selector2<LocaleProvider, ThemeProvider, ({Locale locale, ThemeMode themeMode, bool isRTL})>(
       selector: (_, locale, theme) => (
         locale: locale.locale, 
@@ -80,7 +75,6 @@ class MedicalApp extends StatelessWidget {
             Locale('ru'),
           ],
           localizationsDelegates: const [
-            AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
@@ -91,7 +85,7 @@ class MedicalApp extends StatelessWidget {
           darkTheme: AppTheme.darkTheme,
           themeMode: data.themeMode,
 
-          // RTL Support (من الخيار الأول)
+          // RTL Support
           builder: (context, child) {
             return Directionality(
               textDirection: data.isRTL ? TextDirection.rtl : TextDirection.ltr,
