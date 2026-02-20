@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../models/doctor_model.dart';
-import '../../services/doctor_service.dart';
-import '../doctor/doctor_profile_screen.dart';
+import '../models/doctor_model.dart';
+import '../services/doctor_service.dart';
+import 'doctor_profile_screen.dart';  // <-- تصحيح المسار
 
 class SpecialistListScreen extends StatefulWidget {
   const SpecialistListScreen({super.key});
@@ -103,20 +103,4 @@ class _SpecialistListScreenState extends State<SpecialistListScreen> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.star, size: 16, color: Colors.orange),
-                            Text('${doctor.rating}'),
-                          ],
-                        ),
-                      ],
-                    ),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => DoctorProfileScreen(doctor: doctor)),
-                    ),
-                  ),
-                );
-              },
-            ),
-    );
-  }
-}
+                            const Icon(Icons.star, size:
