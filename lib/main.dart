@@ -5,47 +5,49 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-// استيراد المزودين (Providers)
+// Providers
 import 'providers/auth_provider.dart';
-import 'providers/language_provider.dart';
+import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 
-// استيراد ملفات الترجمة والثيم
-import 'l10n/app_localizations.dart';
+// Theme & Constants
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 
-// استيراد الشاشات
-import 'screens/home_screen.dart';
-import 'screens/patient_dashboard.dart';
-import 'screens/admin_dashboard.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/auth/signup_screen.dart'; // تأكد من إنشاء هذا الملف
-import 'screens/dashboard/doctor_dashboard.dart';
-import 'screens/payment/payment_screen.dart';
+// Screens
+import 'screens/auth_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  // تهيئة تنسيق التاريخ للغات المختلفة
+  // تهيئة critical للتاريخ (للتقويم)
   await initializeDateFormatting('ru_RU', null);
   await initializeDateFormatting('ar', null);
   await initializeDateFormatting('en_US', null);
 
   final prefs = await SharedPreferences.getInstance();
 
+  // تثبيت الوضع العمودي (اختياري لكن مفيد)
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
+  // تهيئة Providers قبل runApp
+  final localeProvider = LocaleProvider(prefs);
+  await localeProvider.init();
+  
+  final themeProvider = ThemeProvider(prefs);
+  await themeProvider.init();
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => LanguageProvider(prefs)),
-        ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
+        ChangeNotifierProvider.value(value: localeProvider),
+        ChangeNotifierProvider.value(value: themeProvider),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: const MedicalApp(),
@@ -58,14 +60,20 @@ class MedicalApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<LanguageProvider, ThemeProvider>(
-      builder: (context, languageProvider, themeProvider, _) {
+    // استخدام Selector بدلاً من Consumer للأداء الأفضل
+    return Selector2<LocaleProvider, ThemeProvider, ({Locale locale, ThemeMode themeMode, bool isRTL})>(
+      selector: (_, locale, theme) => (
+        locale: locale.locale, 
+        themeMode: theme.themeMode,
+        isRTL: locale.isRTL,
+      ),
+      builder: (context, data, child) {
         return MaterialApp(
           title: AppConstants.appName,
           debugShowCheckedModeBanner: false,
           
-          // إعدادات اللغة
-          locale: languageProvider.appLocale,
+          // Localization
+          locale: data.locale,
           supportedLocales: const [
             Locale('en'),
             Locale('ar'),
@@ -78,17 +86,15 @@ class MedicalApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
 
-          // إعدادات الثيم
+          // Theme
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
-          themeMode: themeProvider.themeMode,
+          themeMode: data.themeMode,
 
-          // إدارة المسارات
-          onGenerateRoute: AppRoutes.generateRoute,
-
+          // RTL Support (من الخيار الأول)
           builder: (context, child) {
             return Directionality(
-              textDirection: languageProvider.textDirection,
+              textDirection: data.isRTL ? TextDirection.rtl : TextDirection.ltr,
               child: child!,
             );
           },
@@ -97,59 +103,5 @@ class MedicalApp extends StatelessWidget {
         );
       },
     );
-  }
-}
-
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, auth, _) {
-        if (auth.isLoading) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
-        }
-        if (auth.user == null) {
-          return const HomeScreen();
-        }
-        return _buildDashboardForRole(auth.userRole);
-      },
-    );
-  }
-
-  Widget _buildDashboardForRole(String? role) {
-    switch (role) {
-      case AppConstants.roleAdmin:
-        return const AdminDashboard();
-      case AppConstants.roleDoctor:
-        return const DoctorDashboardScreen();
-      case AppConstants.rolePatient:
-      default:
-        return const PatientDashboard();
-    }
-  }
-}
-
-class AppRoutes {
-  static Route<dynamic> generateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case '/login':
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
-      case '/signup':
-        return MaterialPageRoute(builder: (_) => const SignupScreen());
-      case '/payment':
-        final args = settings.arguments as Map<String, dynamic>;
-        return MaterialPageRoute(
-          builder: (_) => PaymentScreen(
-            appointmentId: args['appointmentId'],
-            doctorId: args['doctorId'],
-            doctorName: args['doctorName'],
-            consultationFee: args['consultationFee'],
-          ),
-        );
-      default:
-        return MaterialPageRoute(builder: (_) => const AuthWrapper());
-    }
   }
 }
