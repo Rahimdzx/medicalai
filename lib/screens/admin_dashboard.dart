@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -16,7 +16,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
@@ -39,7 +39,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 int total = snapshot.data?.docs.length ?? 0;
                 int doctors = 0;
                 int patients = 0;
-                
+
                 if (snapshot.hasData) {
                   for (var doc in snapshot.data!.docs) {
                     final role = doc['role'] ?? 'patient';
@@ -57,10 +57,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 );
               },
             ),
-            
+
             const SizedBox(height: 20),
             const Text('Doctors Management', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            
+
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
@@ -69,13 +69,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                  
+
                   return ListView.builder(
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
                       final doc = snapshot.data!.docs[index];
                       final data = doc.data() as Map<String, dynamic>;
-                      
+
                       return Card(
                         child: ListTile(
                           leading: CircleAvatar(
