@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+import '../providers/auth_provider.dart';
 
 class ScheduleManagementScreen extends StatefulWidget {
   const ScheduleManagementScreen({super.key});
 
   @override
-  State<ScheduleManagementScreen> createState() => _ScheduleManagementScreenState();
+  State<ScheduleManagementScreen> createState() =>
+      _ScheduleManagementScreenState();
 }
 
 class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
@@ -20,7 +21,7 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    
+
     return Scaffold(
       appBar: AppBar(title: const Text('Manage Schedule')),
       body: Column(
@@ -36,13 +37,16 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
                 _selectedDay = selectedDay;
                 _focusedDay = focusedDay;
               });
-              _showDayOptions(context, authProvider.user!.uid, selectedDay);
+              _showDayOptions(
+                  context, authProvider.user!.uid, selectedDay);
             },
-            onFormatChanged: (format) => setState(() => _calendarFormat = format),
+            onFormatChanged: (format) =>
+                setState(() => _calendarFormat = format),
             calendarBuilders: CalendarBuilders(
               defaultBuilder: (context, day, focusedDay) {
                 final dateStr = day.toIso8601String().split('T')[0];
-                final isOpen = _scheduleData[dateStr]?['isOpen'] ?? false;
+                final isOpen =
+                    _scheduleData[dateStr]?['isOpen'] ?? false;
                 return Container(
                   margin: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
@@ -59,7 +63,8 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
     );
   }
 
-  void _showDayOptions(BuildContext context, String doctorId, DateTime date) async {
+  void _showDayOptions(
+      BuildContext context, String doctorId, DateTime date) async {
     final dateStr = date.toIso8601String().split('T')[0];
     final doc = await FirebaseFirestore.instance
         .collection('doctors')
@@ -67,7 +72,7 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
         .collection('schedule')
         .doc(dateStr)
         .get();
-    
+
     final currentData = doc.data();
     bool isOpen = currentData?['isOpen'] ?? false;
     List<dynamic> slots = currentData?['slots'] ?? [];
@@ -82,7 +87,9 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Date: $dateStr', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('Date: $dateStr',
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
                 SwitchListTile(
                   title: const Text('Accepting Bookings'),
                   value: isOpen,
@@ -92,32 +99,38 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
                         .doc(doctorId)
                         .collection('schedule')
                         .doc(dateStr)
-                        .set({'isOpen': value, 'slots': slots}, SetOptions(merge: true));
+                        .set({'isOpen': value, 'slots': slots},
+                            SetOptions(merge: true));
                     setState(() => isOpen = value);
                   },
                 ),
                 if (isOpen) ...[
-                  const Text('Time Slots:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Time Slots:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   ...slots.map((slot) => ListTile(
-                    title: Text('${slot['start']} - ${slot['end']}'),
-                    trailing: slot['booked'] == true 
-                        ? const Chip(label: Text('Booked'), backgroundColor: Colors.red))
-                        : IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () async {
-                              slots.remove(slot);
-                              await FirebaseFirestore.instance
-                                  .collection('doctors')
-                                  .doc(doctorId)
-                                  .collection('schedule')
-                                  .doc(dateStr)
-                                  .update({'slots': slots});
-                              setState(() {});
-                            },
-                          ),
-                  )),
+                        title: Text('${slot['start']} - ${slot['end']}'),
+                        trailing: slot['booked'] == true
+                            ? Chip(
+                                label: const Text('Booked'),
+                                backgroundColor: Colors.red.shade100,
+                              )
+                            : IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () async {
+                                  slots.remove(slot);
+                                  await FirebaseFirestore.instance
+                                      .collection('doctors')
+                                      .doc(doctorId)
+                                      .collection('schedule')
+                                      .doc(dateStr)
+                                      .update({'slots': slots});
+                                  setState(() {});
+                                },
+                              ),
+                      )),
                   ElevatedButton.icon(
-                    onPressed: () => _addTimeSlot(context, doctorId, dateStr, slots),
+                    onPressed: () => _addTimeSlot(
+                        context, doctorId, dateStr, slots),
                     icon: const Icon(Icons.add),
                     label: const Text('Add Slot'),
                   ),
@@ -130,10 +143,11 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
     }
   }
 
-  void _addTimeSlot(BuildContext context, String doctorId, String dateStr, List<dynamic> currentSlots) {
+  void _addTimeSlot(BuildContext context, String doctorId, String dateStr,
+      List<dynamic> currentSlots) {
     final startController = TextEditingController();
     final endController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -143,11 +157,13 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
           children: [
             TextField(
               controller: startController,
-              decoration: const InputDecoration(labelText: 'Start Time (e.g., 10:00)'),
+              decoration: const InputDecoration(
+                  labelText: 'Start Time (e.g., 10:00)'),
             ),
             TextField(
               controller: endController,
-              decoration: const InputDecoration(labelText: 'End Time (e.g., 10:30)'),
+              decoration:
+                  const InputDecoration(labelText: 'End Time (e.g., 10:30)'),
             ),
           ],
         ),
