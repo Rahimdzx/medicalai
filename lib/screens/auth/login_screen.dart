@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/locale_provider.dart';
 import 'signup_screen.dart';
@@ -20,7 +19,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final authProvider = Provider.of<AuthProvider>(context);
     final localeProvider = Provider.of<LocaleProvider>(context);
 
@@ -50,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Icon(Icons.medical_services, size: 80, color: Colors.blue.shade700),
                         const SizedBox(height: 16),
                         Text(
-                          l10n.appName,
+                          'Medical App',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -62,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            labelText: l10n.email,
+                            labelText: 'Email',
                             prefixIcon: const Icon(Icons.email),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
@@ -73,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
-                            labelText: l10n.password,
+                            labelText: 'Password',
                             prefixIcon: const Icon(Icons.lock),
                             suffixIcon: IconButton(
                               icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
@@ -81,14 +79,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          validator: (value) => value?.length ?? 0 < 6 ? 'Password too short' : null,
+                          validator: (value) => (value?.length ?? 0) < 6 ? 'Password too short' : null, // <-- تم التصحيح هنا
                         ),
                         const SizedBox(height: 8),
                         Align(
                           alignment: localeProvider.isRTL ? Alignment.centerLeft : Alignment.centerRight,
                           child: TextButton(
-                            onPressed: () => _showForgotPasswordDialog(context, l10n),
-                            child: Text(l10n.forgotPassword),
+                            onPressed: () => _showForgotPasswordDialog(context),
+                            child: const Text('Forgot password?'),
                           ),
                         ),
                         if (authProvider.error != null)
@@ -108,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             child: authProvider.isLoading
                                 ? const CircularProgressIndicator(color: Colors.white)
-                                : Text(l10n.login, style: const TextStyle(fontSize: 18)),
+                                : const Text('Login', style: TextStyle(fontSize: 18)),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -117,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             context,
                             MaterialPageRoute(builder: (_) => const SignupScreen()),
                           ),
-                          child: Text(l10n.noAccount),
+                          child: const Text('Don\'t have an account?'),
                         ),
                       ],
                     ),
@@ -146,18 +144,19 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _showForgotPasswordDialog(BuildContext context, AppLocalizations l10n) {
+  // <-- تم إزالة AppLocalizations من هنا
+  void _showForgotPasswordDialog(BuildContext context) {
     final emailController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.forgotPassword),
+        title: const Text('Forgot Password'),
         content: TextField(
           controller: emailController,
-          decoration: InputDecoration(labelText: l10n.email),
+          decoration: const InputDecoration(labelText: 'Email'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
               await Provider.of<AuthProvider>(context, listen: false).forgotPassword(emailController.text);
@@ -166,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SnackBar(content: Text('Password reset email sent')),
               );
             },
-            child: Text(l10n.save),
+            child: const Text('Send'),
           ),
         ],
       ),
