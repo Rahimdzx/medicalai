@@ -1,14 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../data/models/user_model.dart';
+import 'package:flutter/material.dart';
+import '../models/user_model.dart';
 
-class AuthProvider with ChangeNotifier {
+class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   
-  User? _firebaseUser;
+  User? _user;
   UserModel? _userModel;
   bool _isLoading = true;
   String? _error;
@@ -19,7 +18,7 @@ class AuthProvider with ChangeNotifier {
 
   void _init() {
     _auth.authStateChanges().listen((User? user) async {
-      _firebaseUser = user;
+      _user = user;
       if (user != null) {
         await _fetchUserData(user.uid);
       } else {
@@ -41,13 +40,16 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  User? get firebaseUser => _firebaseUser;
+  // Getters
+  User? get user => _user;
   UserModel? get userModel => _userModel;
   bool get isLoading => _isLoading;
-  bool get isAuthenticated => _firebaseUser != null;
+  bool get isAuthenticated => _user != null;
   String? get error => _error;
-  String get currentLocale => _userModel?.locale ?? 'en';
+  String? get userRole => _userModel?.role;
+  String? get userName => _userModel?.name;
 
+  // Login
   Future<bool> signIn(String email, String password) async {
     try {
       _isLoading = true;
@@ -57,7 +59,7 @@ class AuthProvider with ChangeNotifier {
       _error = null;
       return true;
     } on FirebaseAuthException catch (e) {
-      _error = _getErrorMessage(e);
+      _error = _handleAuthError(e);
       return false;
     } finally {
       _isLoading = false;
@@ -65,12 +67,13 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // Register
   Future<bool> signUp({
     required String email,
     required String password,
     required String name,
     required String phone,
-    required String locale,
+    String role = 'patient',
   }) async {
     try {
       _isLoading = true;
@@ -86,19 +89,37 @@ class AuthProvider with ChangeNotifier {
         name: name,
         email: email,
         phone: phone,
-        role: 'patient',
-        locale: locale,
+        role: role,
         createdAt: DateTime.now(),
       );
 
       await _firestore.collection('users').doc(credential.user!.uid).set(
-        userModel.toFirestore(),
+        userModel.toMap(),
       );
+
+      // Create doctor profile if role is doctor
+      if (role == 'doctor') {
+        await _firestore.collection('doctors').doc(credential.user!.uid).set({
+          'userId': credential.user!.uid,
+          'name': name,
+          'nameEn': name,
+          'nameAr': name,
+          'specialty': 'General',
+          'specialtyEn': 'General',
+          'specialtyAr': 'عام',
+          'price': 50,
+          'currency': 'USD',
+          'rating': 5.0,
+          'doctorNumber': credential.user!.uid.substring(0, 8).toUpperCase(),
+          'isActive': true,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
 
       _error = null;
       return true;
     } on FirebaseAuthException catch (e) {
-      _error = _getErrorMessage(e);
+      _error = _handleAuthError(e);
       return false;
     } finally {
       _isLoading = false;
@@ -106,44 +127,47 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // Forgot Password
   Future<void> forgotPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
-      _error = _getErrorMessage(e);
+      _error = _handleAuthError(e);
       notifyListeners();
     }
   }
 
-  Future<void> updateLocale(String locale) async {
-    if (_firebaseUser != null) {
-      await _firestore.collection('users').doc(_firebaseUser!.uid).update({
-        'locale': locale,
-      });
-      if (_userModel != null) {
-        _userModel = UserModel(
-          uid: _userModel!.uid,
-          name: _userModel!.name,
-          email: _userModel!.email,
-          phone: _userModel!.phone,
-          role: _userModel!.role,
-          locale: locale,
-          photoUrl: _userModel!.photoUrl,
-          createdAt: _userModel!.createdAt,
-        );
-        notifyListeners();
-      }
-    }
+  // Update Profile
+  Future<void> updateProfile({String? name, String? phone, String? photoUrl}) async {
+    if (_user == null) return;
     
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('locale', locale);
+    final updates = <String, dynamic>{};
+    if (name != null) updates['name'] = name;
+    if (phone != null) updates['phone'] = phone;
+    if (photoUrl != null) updates['photoUrl'] = photoUrl;
+    
+    await _firestore.collection('users').doc(_user!.uid).update(updates);
+    
+    if (_userModel != null) {
+      _userModel = UserModel(
+        uid: _userModel!.uid,
+        name: name ?? _userModel!.name,
+        email: _userModel!.email,
+        phone: phone ?? _userModel!.phone,
+        role: _userModel!.role,
+        photoUrl: photoUrl ?? _userModel!.photoUrl,
+        createdAt: _userModel!.createdAt,
+      );
+      notifyListeners();
+    }
   }
 
+  // Sign Out
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  String _getErrorMessage(FirebaseAuthException e) {
+  String _handleAuthError(FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
         return 'No user found with this email';
