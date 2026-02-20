@@ -3,8 +3,9 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/doctor_service.dart';
-import 'doctor_profile_screen.dart';  // <-- تصحيح المسار
-import 'qr_scan_screen.dart';         // <-- تصحيح المسار
+import 'doctor_profile_screen.dart';
+import 'common/qr_share_scan_screen.dart';
+import 'specialist_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -169,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const QrScanScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const QrShareScanScreen()));
               },
               icon: const Icon(Icons.camera_alt),
               label: const Text('Scan QR'),
@@ -241,11 +242,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
-
-// placeholder للملفات المفقودة مؤقتاً
-class SpecialistListScreen extends StatelessWidget {
-  const SpecialistListScreen({super.key});
-  @override
-  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Specialists')));
 }
