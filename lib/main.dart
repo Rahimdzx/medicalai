@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 // Providers
 import 'providers/auth_provider.dart';
@@ -21,23 +22,25 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  // تهيئة التاريخ
+  // تهيئة تنسيق التاريخ للغات المختلفة
   await initializeDateFormatting('ru_RU', null);
   await initializeDateFormatting('ar', null);
   await initializeDateFormatting('en_US', null);
 
   final prefs = await SharedPreferences.getInstance();
 
+  // تثبيت الوضع العمودي فقط
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
+  // تهيئة Providers
   final localeProvider = LocaleProvider(prefs);
   await localeProvider.init();
   
   final themeProvider = ThemeProvider(prefs);
-  //themeProvider.init(); // <-- تم التعليق عليه إذا لم تكن موجودة
+  await themeProvider.init(); // يضمن التهيئة الكاملة قبل تشغيل التطبيق
 
   runApp(
     MultiProvider(
@@ -56,19 +59,19 @@ class MedicalApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Selector2<LocaleProvider, ThemeProvider, ({Locale locale, ThemeMode themeMode, bool isRTL})>(
-      selector: (_, locale, theme) => (
+    return Selector2<LocaleProvider, ThemeProvider, _AppConfig>(
+      selector: (_, locale, theme) => _AppConfig(
         locale: locale.locale, 
         themeMode: theme.themeMode,
         isRTL: locale.isRTL,
       ),
-      builder: (context, data, child) {
+      builder: (context, config, child) {
         return MaterialApp(
           title: AppConstants.appName,
           debugShowCheckedModeBanner: false,
           
           // Localization
-          locale: data.locale,
+          locale: config.locale,
           supportedLocales: const [
             Locale('en'),
             Locale('ar'),
@@ -83,12 +86,12 @@ class MedicalApp extends StatelessWidget {
           // Theme
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
-          themeMode: data.themeMode,
+          themeMode: config.themeMode,
 
           // RTL Support
           builder: (context, child) {
             return Directionality(
-              textDirection: data.isRTL ? TextDirection.rtl : TextDirection.ltr,
+              textDirection: config.isRTL ? TextDirection.rtl : TextDirection.ltr,
               child: child!,
             );
           },
@@ -98,4 +101,17 @@ class MedicalApp extends StatelessWidget {
       },
     );
   }
+}
+
+// كلاس مساعد لتنظيم بيانات Selector
+class _AppConfig {
+  final Locale locale;
+  final ThemeMode themeMode;
+  final bool isRTL;
+
+  const _AppConfig({
+    required this.locale,
+    required this.themeMode,
+    required this.isRTL,
+  });
 }
