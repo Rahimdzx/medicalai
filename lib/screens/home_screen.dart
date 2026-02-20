@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/locale_provider.dart';
-import '../../services/doctor_service.dart';
-import '../doctor/doctor_profile_screen.dart';
-import '../qr/qr_scan_screen.dart';
-import 'specialist_list_screen.dart';
+import '../providers/auth_provider.dart';
+import '../providers/locale_provider.dart';
+import '../services/doctor_service.dart';
+import 'doctor_profile_screen.dart';  // <-- تصحيح المسار
+import 'qr_scan_screen.dart';         // <-- تصحيح المسار
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,7 +18,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final authProvider = Provider.of<AuthProvider>(context);
     final localeProvider = Provider.of<LocaleProvider>(context);
 
@@ -60,9 +57,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         const Spacer(),
-                        Text(
-                          l10n.welcome,
-                          style: const TextStyle(color: Colors.white70, fontSize: 16),
+                        const Text(
+                          'Welcome',
+                          style: TextStyle(color: Colors.white70, fontSize: 16),
                         ),
                         Text(
                           authProvider.userName ?? 'Patient',
@@ -90,21 +87,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 delegate: SliverChildListDelegate([
                   _buildMenuCard(
                     icon: Icons.qr_code_scanner,
-                    title: l10n.scanQr,
+                    title: 'Scan QR',
                     color: Colors.blue,
                     onTap: () => _showQrOptions(context),
                   ),
                   _buildMenuCard(
                     icon: Icons.medical_services,
-                    title: l10n.myDoctors,
+                    title: 'My Doctors',
                     color: Colors.green,
-                    onTap: () {
-                      // Navigate to my consultations
-                    },
+                    onTap: () {},
                   ),
                   _buildMenuCard(
                     icon: Icons.search,
-                    title: l10n.findSpecialist,
+                    title: 'Find Specialist',
                     color: Colors.orange,
                     onTap: () => Navigator.push(
                       context,
@@ -113,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   _buildMenuCard(
                     icon: Icons.flight,
-                    title: l10n.medicalTourism,
+                    title: 'Medical Tourism',
                     color: Colors.purple,
                     onTap: () {},
                   ),
@@ -162,7 +157,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showQrOptions(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -170,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(l10n.scanQr, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text('Scan QR', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () {
@@ -178,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const QrScanScreen()));
               },
               icon: const Icon(Icons.camera_alt),
-              label: Text(l10n.scanQr),
+              label: const Text('Scan QR'),
               style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
             ),
             const SizedBox(height: 20),
@@ -186,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
             TextField(
               controller: _doctorIdController,
               decoration: InputDecoration(
-                labelText: l10n.enterDoctorId,
+                labelText: 'Enter Doctor ID',
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search),
                   onPressed: () async {
@@ -247,4 +241,11 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+// placeholder للملفات المفقودة مؤقتاً
+class SpecialistListScreen extends StatelessWidget {
+  const SpecialistListScreen({super.key});
+  @override
+  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Specialists')));
 }
