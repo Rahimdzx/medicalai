@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../providers/auth_provider.dart';
-import 'schedule_management_screen.dart';
+import '../schedule_management_screen.dart';
 
 class DoctorDashboard extends StatefulWidget {
   const DoctorDashboard({super.key});
@@ -16,7 +16,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Doctor Dashboard'),
@@ -56,7 +56,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
               },
             ),
             const SizedBox(height: 20),
-            
+
             // Actions
             Row(
               children: [
@@ -80,7 +80,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
             const Text('Recent Appointments', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Expanded(
@@ -93,7 +93,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                  
+
                   return ListView.builder(
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
