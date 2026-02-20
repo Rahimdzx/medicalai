@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -22,11 +21,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.signup), elevation: 0),
+      appBar: AppBar(title: const Text('Sign Up'), elevation: 0),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
@@ -36,7 +34,7 @@ class _SignupScreenState extends State<SignupScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: l10n.fullName,
+                  labelText: 'Full Name',
                   prefixIcon: const Icon(Icons.person),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -47,7 +45,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: l10n.email,
+                  labelText: 'Email',
                   prefixIcon: const Icon(Icons.email),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -58,7 +56,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
-                  labelText: l10n.phoneNumber,
+                  labelText: 'Phone Number',
                   prefixIcon: const Icon(Icons.phone),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -68,7 +66,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
-                  labelText: l10n.password,
+                  labelText: 'Password',
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
@@ -76,14 +74,14 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                validator: (value) => value?.length ?? 0 < 6 ? 'Password too short' : null,
+                validator: (value) => (value?.length ?? 0) < 6 ? 'Password too short' : null, // <-- تم التصحيح
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
                 decoration: InputDecoration(
-                  labelText: l10n.confirmPassword,
+                  labelText: 'Confirm Password',
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(_obscureConfirmPassword ? Icons.visibility_off : Icons.visibility),
@@ -106,7 +104,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   child: authProvider.isLoading
                       ? const CircularProgressIndicator()
-                      : Text(l10n.signup, style: const TextStyle(fontSize: 18)),
+                      : const Text('Sign Up', style: TextStyle(fontSize: 18)),
                 ),
               ),
             ],
