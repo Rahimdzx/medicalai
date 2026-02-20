@@ -1,275 +1,162 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-
-/// رسائل خطأ Firebase مترجمة (روسي، عربي، إنجليزي)
-class AuthErrorMessages {
-  static const Map<String, Map<String, String>> _messages = {
-    'user-not-found': {
-      'en': 'No account found with this email',
-      'ar': 'لا يوجد حساب بهذا البريد الإلكتروني',
-      'ru': 'Аккаунт с этим email не найден',
-    },
-    'wrong-password': {
-      'en': 'Incorrect password',
-      'ar': 'كلمة المرور غير صحيحة',
-      'ru': 'Неверный пароль',
-    },
-    'invalid-credential': {
-      'en': 'Invalid email or password',
-      'ar': 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
-      'ru': 'Неверный email или пароль',
-    },
-    'email-already-in-use': {
-      'en': 'This email is already registered',
-      'ar': 'هذا البريد الإلكتروني مسجل بالفعل',
-      'ru': 'Этот email уже зарегистрирован',
-    },
-    'weak-password': {
-      'en': 'Password is too weak',
-      'ar': 'كلمة المرور ضعيفة جداً',
-      'ru': 'Слишком слабый пароль',
-    },
-    'invalid-email': {
-      'en': 'Invalid email address',
-      'ar': 'عنوان البريد الإلكتروني غير صالح',
-      'ru': 'Недействительный email адрес',
-    },
-    'user-disabled': {
-      'en': 'This account has been disabled',
-      'ar': 'تم تعطيل هذا الحساب',
-      'ru': 'Этот аккаунт отключен',
-    },
-    'too-many-requests': {
-      'en': 'Too many attempts. Please try again later',
-      'ar': 'محاولات كثيرة جداً. حاول مرة أخرى لاحقاً',
-      'ru': 'Слишком много попыток. Попробуйте позже',
-    },
-    'network-request-failed': {
-      'en': 'Network error. Please check your connection',
-      'ar': 'خطأ في الشبكة. يرجى التحقق من اتصالك',
-      'ru': 'Ошибка сети. Проверьте подключение к интернету',
-    },
-  };
-
-  static const Map<String, String> _defaultError = {
-    'en': 'An error occurred. Please try again',
-    'ar': 'حدث خطأ. حاول مرة أخرى',
-    'ru': 'Произошла ошибка. Попробуйте снова',
-  };
-
-  static String getLocalizedMessage(String code, String locale) {
-    final messages = _messages[code];
-    if (messages != null) {
-      return messages[locale] ?? messages['en'] ?? _defaultError['en']!;
-    }
-    return _defaultError[locale] ?? _defaultError['en']!;
-  }
-}
+import 'package:shared_preferences/shared_preferences.dart';
+import '../data/models/user_model.dart';
 
 class AuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-
-  User? _user;
-  String? _userName;
-  String? _userRole;
-  String? _photoUrl;
-  String? _price;
-  bool _isLoading = false;
-
-  User? get user => _user;
-  String? get userName => _userName;
-  String? get userRole => _userRole;
-  String? get photoUrl => _photoUrl;
-  String? get price => _price;
-  bool get isLoading => _isLoading;
+  
+  User? _firebaseUser;
+  UserModel? _userModel;
+  bool _isLoading = true;
+  String? _error;
 
   AuthProvider() {
-    _auth.authStateChanges().listen((User? user) {
-      _user = user;
+    _init();
+  }
+
+  void _init() {
+    _auth.authStateChanges().listen((User? user) async {
+      _firebaseUser = user;
       if (user != null) {
-        fetchUserData();
+        await _fetchUserData(user.uid);
       } else {
-        // تصفية البيانات عند الخروج
-        _userName = null;
-        _userRole = null;
-        _photoUrl = null;
-        _price = null;
+        _userModel = null;
       }
+      _isLoading = false;
       notifyListeners();
     });
   }
 
-  Future<void> fetchUserData() async {
-    if (_user == null) return;
+  Future<void> _fetchUserData(String uid) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(_user!.uid).get();
+      final doc = await _firestore.collection('users').doc(uid).get();
       if (doc.exists) {
-        Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
-        if (data != null) {
-          _userRole = data['role'];
-          _userName = data['name'];
-          _photoUrl = data['photoUrl'] ?? "";
-          _price = data['price']?.toString() ?? "0";
-          notifyListeners();
-        }
+        _userModel = UserModel.fromFirestore(doc);
       }
     } catch (e) {
-      debugPrint("Error fetching user data: $e");
+      _error = e.toString();
     }
   }
 
-  // تسجيل الدخول العادي
-  Future<String?> signIn(String email, String password) async {
-    _isLoading = true;
-    notifyListeners();
+  User? get firebaseUser => _firebaseUser;
+  UserModel? get userModel => _userModel;
+  bool get isLoading => _isLoading;
+  bool get isAuthenticated => _firebaseUser != null;
+  String? get error => _error;
+  String get currentLocale => _userModel?.locale ?? 'en';
+
+  Future<bool> signIn(String email, String password) async {
     try {
+      _isLoading = true;
+      notifyListeners();
+      
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-      await fetchUserData();
-      return null;
+      _error = null;
+      return true;
     } on FirebaseAuthException catch (e) {
-      return e.message;
+      _error = _getErrorMessage(e);
+      return false;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // تسجيل الدخول مع رسائل مترجمة
-  Future<String?> signInWithLocale(String email, String password, String locale) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
-      await fetchUserData();
-      return null;
-    } on FirebaseAuthException catch (e) {
-      return AuthErrorMessages.getLocalizedMessage(e.code, locale);
-    } catch (e) {
-      return AuthErrorMessages.getLocalizedMessage('network-request-failed', locale);
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  // تسجيل الخروج
-  Future<void> signOut() async {
-    await _auth.signOut();
-    notifyListeners();
-  }
-
-  // إنشاء حساب جديد
-  Future<String?> signUpWithLocale({
+  Future<bool> signUp({
     required String email,
     required String password,
     required String name,
-    required String role,
     required String phone,
     required String locale,
-    String? specialization,
-    String? price,
-    File? imageFile,
   }) async {
-    _isLoading = true;
-    notifyListeners();
     try {
-      UserCredential credential = await _auth.createUserWithEmailAndPassword(
+      _isLoading = true;
+      notifyListeners();
+
+      final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      String uploadedPhotoUrl = "";
-      if (imageFile != null) {
-        try {
-          Reference ref = _storage.ref().child('user_photos').child('${credential.user!.uid}.jpg');
-          await ref.putFile(imageFile);
-          uploadedPhotoUrl = await ref.getDownloadURL();
-        } catch (e) {
-          debugPrint("Error uploading image: $e");
-        }
-      }
+      final userModel = UserModel(
+        uid: credential.user!.uid,
+        name: name,
+        email: email,
+        phone: phone,
+        role: 'patient',
+        locale: locale,
+        createdAt: DateTime.now(),
+      );
 
-      await credential.user!.updateDisplayName(name);
-      if (uploadedPhotoUrl.isNotEmpty) {
-        await credential.user!.updatePhotoURL(uploadedPhotoUrl);
-      }
+      await _firestore.collection('users').doc(credential.user!.uid).set(
+        userModel.toFirestore(),
+      );
 
-      await _firestore.collection('users').doc(credential.user!.uid).set({
-        'uid': credential.user!.uid,
-        'name': name,
-        'email': email,
-        'role': role,
-        'phone': phone,
-        'specialization': specialization ?? "",
-        'price': price ?? "0",
-        'photoUrl': uploadedPhotoUrl,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      await fetchUserData();
-      return null;
+      _error = null;
+      return true;
     } on FirebaseAuthException catch (e) {
-      return AuthErrorMessages.getLocalizedMessage(e.code, locale);
-    } catch (e) {
-      return AuthErrorMessages.getLocalizedMessage('network-request-failed', locale);
+      _error = _getErrorMessage(e);
+      return false;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // ==========================================================
-  // 👇 هذه هي الدالة التي كانت ناقصة وتسبب الخطأ، تمت إضافتها
-  // ==========================================================
-  Future<void> updateDoctorProfile({
-    required String name,
-    required String specialization,
-    required double fees,
-    File? imageFile,
-  }) async {
-    if (_user == null) return;
-    _isLoading = true;
-    notifyListeners();
-
+  Future<void> forgotPassword(String email) async {
     try {
-      String currentPhotoUrl = _photoUrl ?? "";
-
-      // 1. رفع الصورة الجديدة إذا وجدت
-      if (imageFile != null) {
-        Reference ref = _storage.ref().child('user_photos').child('${_user!.uid}.jpg');
-        await ref.putFile(imageFile);
-        currentPhotoUrl = await ref.getDownloadURL();
-      }
-
-      // 2. تحديث الاسم والصورة في Auth
-      await _user!.updateDisplayName(name);
-      if (currentPhotoUrl.isNotEmpty) {
-        await _user!.updatePhotoURL(currentPhotoUrl);
-      }
-
-      // 3. تحديث البيانات في Firestore
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'name': name,
-        'specialization': specialization,
-        'price': fees, // أو fees.toString() حسب نوع الحقل لديك
-        'photoUrl': currentPhotoUrl,
-      });
-
-      // 4. تحديث البيانات محلياً
-      await _user!.reload();
-      _user = FirebaseAuth.instance.currentUser;
-      await fetchUserData(); // إعادة جلب البيانات لتحديث الواجهة
-
-    } catch (e) {
-      throw e; // رمي الخطأ ليظهر في الواجهة
-    } finally {
-      _isLoading = false;
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      _error = _getErrorMessage(e);
       notifyListeners();
+    }
+  }
+
+  Future<void> updateLocale(String locale) async {
+    if (_firebaseUser != null) {
+      await _firestore.collection('users').doc(_firebaseUser!.uid).update({
+        'locale': locale,
+      });
+      if (_userModel != null) {
+        _userModel = UserModel(
+          uid: _userModel!.uid,
+          name: _userModel!.name,
+          email: _userModel!.email,
+          phone: _userModel!.phone,
+          role: _userModel!.role,
+          locale: locale,
+          photoUrl: _userModel!.photoUrl,
+          createdAt: _userModel!.createdAt,
+        );
+        notifyListeners();
+      }
+    }
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('locale', locale);
+  }
+
+  Future<void> signOut() async {
+    await _auth.signOut();
+  }
+
+  String _getErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'user-not-found':
+        return 'No user found with this email';
+      case 'wrong-password':
+        return 'Incorrect password';
+      case 'email-already-in-use':
+        return 'Email is already registered';
+      case 'invalid-email':
+        return 'Invalid email address';
+      case 'weak-password':
+        return 'Password is too weak';
+      default:
+        return e.message ?? 'An error occurred';
     }
   }
 }
