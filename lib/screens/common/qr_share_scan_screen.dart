@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../services/doctor_service.dart';
-import '../doctor/doctor_profile_screen.dart';
+import '../doctor_profile_screen.dart';
 
-class QrScanScreen extends StatefulWidget {
-  const QrScanScreen({super.key});
+class QrShareScanScreen extends StatefulWidget {
+  const QrShareScanScreen({super.key});
 
   @override
-  State<QrScanScreen> createState() => _QrScanScreenState();
+  State<QrShareScanScreen> createState() => _QrScanScreenState();
 }
 
-class _QrScanScreenState extends State<QrScanScreen> {
+class _QrScanScreenState extends State<QrShareScanScreen> {
   bool _isScanning = true;
 
   @override
@@ -32,13 +32,13 @@ class _QrScanScreenState extends State<QrScanScreen> {
 
   void _onDetect(BarcodeCapture capture) async {
     if (!_isScanning) return;
-    
+
     final barcode = capture.barcodes.first;
     final String? code = barcode.rawValue;
-    
+
     if (code != null) {
       setState(() => _isScanning = false);
-      
+
       final doctor = await DoctorService().getDoctorById(code);
       if (doctor != null && mounted) {
         Navigator.pushReplacement(
@@ -58,15 +58,22 @@ class _QrScanScreenState extends State<QrScanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Scan QR Code')),
-      body: MobileScanner(
-        onDetect: _onDetect,
-        overlay: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.white, width: 2),
-            borderRadius: BorderRadius.circular(12),
+      body: Stack(
+        children: [
+          MobileScanner(
+            onDetect: _onDetect,
           ),
-          margin: const EdgeInsets.all(50),
-        ),
+          Center(
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
