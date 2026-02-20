@@ -45,6 +45,20 @@ class BookingService {
       'lastMessageAt': FieldValue.serverTimestamp(),
     });
 
+    // Add system message
+    await _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .add({
+      'senderId': 'system',
+      'senderRole': 'system',
+      'text': 'Welcome! Please prepare your questions and medical reports.',
+      'type': 'system',
+      'timestamp': FieldValue.serverTimestamp(),
+      'read': false,
+    });
+
     // Mark slot as booked
     await _firestore
         .collection('doctors')
