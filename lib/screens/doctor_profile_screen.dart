@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../../models/doctor_model.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/locale_provider.dart';
-import '../../services/doctor_service.dart';
-import '../auth/login_screen.dart';
+import '../models/doctor_model.dart';
+import '../providers/auth_provider.dart';
+import '../providers/locale_provider.dart';
+import '../services/doctor_service.dart';
+import 'auth/login_screen.dart';
 import 'booking_screen.dart';
 
 class DoctorProfileScreen extends StatefulWidget {
@@ -25,13 +24,12 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final localeProvider = Provider.of<LocaleProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final locale = localeProvider.locale.languageCode;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.selectDate)),
+      appBar: AppBar(title: const Text('Select Date')),
       body: Column(
         children: [
           // Doctor Header
@@ -48,8 +46,12 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
               children: [
                 CircleAvatar(
                   radius: 40,
-                  backgroundImage: widget.doctor.photo != null ? NetworkImage(widget.doctor.photo!) : null,
-                  child: widget.doctor.photo == null ? const Icon(Icons.person, size: 40) : null,
+                  backgroundImage: widget.doctor.photo != null
+                      ? NetworkImage(widget.doctor.photo!)
+                      : null,
+                  child: widget.doctor.photo == null
+                      ? const Icon(Icons.person, size: 40)
+                      : null,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -58,7 +60,8 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                     children: [
                       Text(
                         'Dr. ${widget.doctor.getLocalizedName(locale)}',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       Text(
                         widget.doctor.getLocalizedSpecialty(locale),
@@ -105,7 +108,8 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
               });
               _showTimeSlots(selectedDay);
             },
-            onFormatChanged: (format) => setState(() => _calendarFormat = format),
+            onFormatChanged: (format) =>
+                setState(() => _calendarFormat = format),
             calendarStyle: CalendarStyle(
               selectedDecoration: BoxDecoration(
                 color: Colors.blue.shade700,
@@ -124,9 +128,9 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildLegalLink(l10n.serviceAgreement, 'offer'),
-                _buildLegalLink(l10n.privacyPolicy, 'privacy'),
-                _buildLegalLink(l10n.dataConsent, 'dataConsent'),
+                _buildLegalLink('Service Agreement', 'offer'),
+                _buildLegalLink('Privacy Policy', 'privacy'),
+                _buildLegalLink('Data Consent', 'dataConsent'),
               ],
             ),
           ),
@@ -138,7 +142,6 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   Widget _buildLegalLink(String text, String docType) {
     return TextButton(
       onPressed: () {
-        // Show legal document modal
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
@@ -149,12 +152,16 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  Text(text, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text(text,
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold)),
                   const Divider(),
                   Expanded(
                     child: ListView(
                       controller: controller,
-                      children: const [Text('Legal document content here...')],
+                      children: const [
+                        Text('Legal document content here...')
+                      ],
                     ),
                   ),
                   ElevatedButton(
@@ -167,28 +174,29 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
           ),
         );
       },
-      child: Text(text, style: const TextStyle(decoration: TextDecoration.underline)),
+      child: Text(text,
+          style: const TextStyle(decoration: TextDecoration.underline)),
     );
   }
 
   void _showAuthRequiredDialog(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.registrationRequired),
-        content: Text(l10n.loginRequiredMessage),
+        title: const Text('Registration Required'),
+        content: const Text('Please login to book an appointment.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()));
             },
-            child: Text(l10n.login),
+            child: const Text('Login'),
           ),
         ],
       ),
@@ -200,7 +208,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
       widget.doctor.id,
       date.toIso8601String().split('T')[0],
     );
-    
+
     if (mounted) {
       showModalBottomSheet(
         context: context,
