@@ -24,7 +24,6 @@ class AuthWrapper extends StatelessWidget {
       return const LoginScreen();
     }
 
-    // Check role from Firestore
     return FutureBuilder<DocumentSnapshot>(
       future: FirebaseFirestore.instance
           .collection('users')
@@ -53,5 +52,4 @@ class AuthWrapper extends StatelessWidget {
       },
     );
   }
-}
 }
