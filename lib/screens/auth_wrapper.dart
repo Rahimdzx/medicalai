@@ -5,7 +5,7 @@ import '../providers/auth_provider.dart';
 import 'auth/login_screen.dart';
 import 'home_screen.dart';
 import 'admin_dashboard.dart';
-import 'doctor_dashboard.dart';
+import 'dashboard/doctor_dashboard.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
