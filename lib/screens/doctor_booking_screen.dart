@@ -1,14 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../core/constants/colors.dart'; 
 import '../../providers/auth_provider.dart'; 
-import 'auth/login_screen.dart'; 
+import '../../providers/locale_provider.dart';
+import '../auth/login_screen.dart';
+import 'legal_document_screen.dart';
 
 class DoctorBookingScreen extends StatefulWidget {
   final String doctorId;
+  final String? doctorNumber; // For QR/manual entry flow
 
-  const DoctorBookingScreen({super.key, required this.doctorId});
+  const DoctorBookingScreen({
+    super.key, 
+    required this.doctorId,
+    this.doctorNumber,
+  });
 
   @override
   State<DoctorBookingScreen> createState() => _DoctorBookingScreenState();
@@ -18,6 +26,29 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
   String _selectedFormat = 'video';
   String _selectedTime = 'today';
   bool _isBooking = false;
+  bool _legalConsentChecked = false; // CRITICAL: Consent checkbox state
+  
+  // Legal document URLs/content from Firestore
+  Map<String, dynamic>? _legalDocuments;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLegalDocuments();
+  }
+
+  Future<void> _loadLegalDocuments() async {
+    final docs = await FirebaseFirestore.instance
+        .collection('legalDocuments')
+        .get();
+    if (docs.docs.isNotEmpty) {
+      setState(() {
+        _legalDocuments = {
+          for (var doc in docs.docs) doc.id: doc.data()
+        };
+      });
+    }
+  }
 
   IconData _getSpecialtyIcon(String? specialty) {
     if (specialty == null) return Icons.medical_services;
@@ -25,82 +56,157 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
     if (s.contains('dentist')) return Icons.favorite_border;
     if (s.contains('heart') || s.contains('cardio')) return Icons.favorite;
     if (s.contains('eye')) return Icons.remove_red_eye;
+    if (s.contains('radio') || s.contains('أشعة') || s.contains('рентген')) 
+      return Icons.image_search; // Radiology icon
     return Icons.person;
   }
 
-  // دالة تنفيذ الحجز الفعلي في Firebase
-  Future<void> _handleBooking(Map<String, dynamic> doctorData, double finalPrice) async {
+  Future<void> _handleBooking(Map<String, dynamic> doctorData, double finalPrice, String currency) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final l10n = AppLocalizations.of(context)!;
+
+    if (!_legalConsentChecked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please accept the terms and conditions')),
+      );
+      return;
+    }
 
     setState(() => _isBooking = true);
 
     try {
       final appointmentId = FirebaseFirestore.instance.collection('appointments').doc().id;
+      final chatId = FirebaseFirestore.instance.collection('chats').doc().id;
       
+      // Create appointment
       await FirebaseFirestore.instance.collection('appointments').doc(appointmentId).set({
         'appointmentId': appointmentId,
         'patientId': authProvider.user?.uid,
         'patientName': authProvider.userName,
         'doctorId': widget.doctorId,
         'doctorName': doctorData['name'],
-        'status': 'pending',
+        'status': 'confirmed',
         'format': _selectedFormat,
         'timeSlot': _selectedTime,
         'price': finalPrice,
-        'currency': 'RUB',
+        'currency': currency,
+        'paymentStatus': 'paid', // Assuming payment succeeds
+        'chatId': chatId,
+        'consentGiven': true,
+        'consentTimestamp': FieldValue.serverTimestamp(),
         'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // Create chat room
+      await FirebaseFirestore.instance.collection('chats').doc(chatId).set({
+        'patientId': authProvider.user?.uid,
+        'doctorId': widget.doctorId,
+        'appointmentId': appointmentId,
+        'status': 'active',
+        'createdAt': FieldValue.serverTimestamp(),
+        'lastMessage': null,
+        'lastMessageAt': FieldValue.serverTimestamp(),
+      });
+
+      // Add system message
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .add({
+        'senderId': 'system',
+        'senderRole': 'system',
+        'text': l10n.consultationSystemMessage, // Add to ARB files
+        'type': 'system',
+        'timestamp': FieldValue.serverTimestamp(),
+        'read': false,
       });
 
       if (!mounted) return;
       
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Booking Confirmed!"), backgroundColor: Colors.green),
+        SnackBar(
+          content: Text(l10n.bookingConfirmed), 
+          backgroundColor: Colors.green
+        ),
       );
       
-      // العودة للشاشة الرئيسية
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      // Navigate to chat
+      Navigator.pushReplacementNamed(
+        context, 
+        '/chat',
+        arguments: {
+          'chatId': chatId,
+          'receiverName': doctorData['name'],
+          'appointmentId': appointmentId,
+        },
+      );
 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text("${l10n.error}: $e"), 
+          backgroundColor: Colors.red
+        ),
       );
     } finally {
       if (mounted) setState(() => _isBooking = false);
     }
   }
 
+  void _showLegalDocument(String docType, String title) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LegalDocumentScreen(
+          documentType: docType,
+          title: title,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final authProvider = Provider.of<AuthProvider>(context);
+    final localeProvider = Provider.of<LocaleProvider>(context);
+    final isRTL = localeProvider.isRTL;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("Complete Booking", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: Text(l10n.completeBooking, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('users').doc(widget.doctorId).get(),
+        future: FirebaseFirestore.instance.collection('doctors').doc(widget.doctorId).get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text("Doctor info unavailable"));
+            return Center(child: Text(l10n.doctorNotFound));
           }
 
           var data = snapshot.data!.data() as Map<String, dynamic>;
           String name = data['name'] ?? 'Doctor';
           String specialization = data['specialization'] ?? 'Specialist';
-          double basePrice = double.tryParse(data['price']?.toString() ?? '3000') ?? 3000.0;
+          String currency = data['currency'] ?? 'USD';
+          double basePrice = (data['price'] ?? 0).toDouble();
 
-          // حساب السعر بالروبل بناءً على الخيار
+          // Localized price calculation
           double finalPrice = basePrice;
           if (_selectedFormat == 'chat') finalPrice = basePrice * 0.7;
           if (_selectedFormat == 'audio') finalPrice = basePrice * 0.9;
-          if (_selectedTime == 'tomorrow') finalPrice -= 500; // خصم بسيط للمواعيد الآجلة
+          if (_selectedTime == 'tomorrow') finalPrice -= (currency == 'RUB' ? 500 : 10);
+
+          // Format price based on locale
+          String priceText = currency == 'RUB' 
+              ? '${finalPrice.toStringAsFixed(0)} ₽'
+              : '\$${finalPrice.toStringAsFixed(0)}';
 
           return Column(
             children: [
@@ -110,7 +216,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // كارت الطبيب
+                      // Doctor Card
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -137,11 +243,11 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                                   const SizedBox(height: 5),
                                   Text(specialization, style: const TextStyle(color: Colors.grey, fontSize: 14)),
                                   const SizedBox(height: 5),
-                                  const Row(
+                                  Row(
                                     children: [
-                                      Icon(Icons.star, color: Colors.orange, size: 16),
-                                      SizedBox(width: 4),
-                                      Text("4.9 (Moscow Clinic)", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                      const Icon(Icons.star, color: Colors.orange, size: 16),
+                                      const SizedBox(width: 4),
+                                      Text("${data['rating'] ?? '4.9'}", style: const TextStyle(fontSize: 12, color: Colors.grey)),
                                     ],
                                   )
                                 ],
@@ -152,7 +258,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                       ),
 
                       const SizedBox(height: 25),
-                      const Text("Consultation Format", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(l10n.consultationFormat, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       Container(
                         decoration: BoxDecoration(
@@ -162,31 +268,99 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                         ),
                         child: Column(
                           children: [
-                            _buildFormatOption("Video Consultation", Icons.videocam, "video"),
+                            _buildFormatOption(l10n.videoConsultation, Icons.videocam, "video"),
                             const Divider(height: 1, indent: 50),
-                            _buildFormatOption("Audio Call", Icons.phone, "audio"),
+                            _buildFormatOption(l10n.audioConsultation, Icons.phone, "audio"),
                             const Divider(height: 1, indent: 50),
-                            _buildFormatOption("Chat & Messaging", Icons.chat_bubble, "chat"),
+                            _buildFormatOption(l10n.chatConsultation, Icons.chat_bubble, "chat"),
                           ],
                         ),
                       ),
 
                       const SizedBox(height: 25),
-                      const Text("Availability", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(l10n.availability, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          Expanded(child: _buildTimeOption("Today", "Urgent", "today", Icons.bolt)),
+                          Expanded(child: _buildTimeOption(l10n.today, l10n.urgent, "today", Icons.bolt)),
                           const SizedBox(width: 10),
-                          Expanded(child: _buildTimeOption("Tomorrow", "Scheduled", "tomorrow", Icons.calendar_month)),
+                          Expanded(child: _buildTimeOption(l10n.tomorrow, l10n.scheduled, "tomorrow", Icons.calendar_month)),
                         ],
+                      ),
+
+                      const SizedBox(height: 25),
+                      
+                      // LEGAL CONSENT SECTION (REQUIREMENT)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.blue.shade200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _legalConsentChecked,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _legalConsentChecked = value ?? false;
+                                    });
+                                  },
+                                ),
+                                Expanded(
+                                  child: Text.rich(
+                                    TextSpan(
+                                      text: l10n.paymentConsentPrefix,
+                                      style: const TextStyle(fontSize: 12),
+                                      children: [
+                                        TextSpan(
+                                          text: l10n.serviceAgreement,
+                                          style: const TextStyle(
+                                            color: Colors.blue,
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () => _showLegalDocument('offer', l10n.serviceAgreement),
+                                        ),
+                                        const TextSpan(text: ", "),
+                                        TextSpan(
+                                          text: l10n.privacyPolicy,
+                                          style: const TextStyle(
+                                            color: Colors.blue,
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () => _showLegalDocument('privacy', l10n.privacyPolicy),
+                                        ),
+                                        const TextSpan(text: " ${l10n.and} "),
+                                        TextSpan(
+                                          text: l10n.dataConsent,
+                                          style: const TextStyle(
+                                            color: Colors.blue,
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () => _showLegalDocument('dataConsent', l10n.dataConsent),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
 
-              // شريط الدفع السفلي بالروبل
+              // Payment Bar
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -201,10 +375,14 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("Total (Moscow Time)", style: TextStyle(color: Colors.grey)),
+                          Text(l10n.totalAmount, style: const TextStyle(color: Colors.grey)),
                           Text(
-                            "${finalPrice.toStringAsFixed(0)} ₽", 
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue)
+                            priceText, 
+                            style: const TextStyle(
+                              fontSize: 24, 
+                              fontWeight: FontWeight.bold, 
+                              color: Colors.blue
+                            )
                           ),
                         ],
                       ),
@@ -214,20 +392,29 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                         height: 55,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF4CAF50), // اللون الأخضر للتأكيد
+                            backgroundColor: _legalConsentChecked ? const Color(0xFF4CAF50) : Colors.grey,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                             elevation: 0,
                           ),
-                          onPressed: _isBooking ? null : () {
-                            if (authProvider.user == null) {
-                              _showLoginDialog(context);
-                            } else {
-                              _handleBooking(data, finalPrice);
-                            }
-                          },
+                          onPressed: (_isBooking || !_legalConsentChecked) 
+                              ? null 
+                              : () {
+                                  if (authProvider.user == null) {
+                                    _showLoginDialog(context, l10n);
+                                  } else {
+                                    _handleBooking(data, finalPrice, currency);
+                                  }
+                                },
                           child: _isBooking 
                             ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text("Confirm and Pay", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                            : Text(
+                                l10n.confirmAndPay, 
+                                style: const TextStyle(
+                                  fontSize: 18, 
+                                  fontWeight: FontWeight.bold, 
+                                  color: Colors.white
+                                )
+                              ),
                         ),
                       ),
                     ],
@@ -282,28 +469,46 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
           children: [
             Icon(icon, color: isSelected ? Colors.white : Colors.grey),
             const SizedBox(height: 5),
-            Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.black)),
-            Text(subtitle, style: TextStyle(fontSize: 11, color: isSelected ? Colors.white.withOpacity(0.8) : Colors.grey)),
+            Text(
+              title, 
+              style: TextStyle(
+                fontWeight: FontWeight.bold, 
+                color: isSelected ? Colors.white : Colors.black
+              )
+            ),
+            Text(
+              subtitle, 
+              style: TextStyle(
+                fontSize: 11, 
+                color: isSelected ? Colors.white.withOpacity(0.8) : Colors.grey
+              )
+            ),
           ],
         ),
       ),
     );
   }
 
-  void _showLoginDialog(BuildContext context) {
+  void _showLoginDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Authentication"),
-        content: const Text("Please login to proceed with the booking."),
+        title: Text(l10n.registrationRequired),
+        content: Text(l10n.loginRequiredMessage),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () => Navigator.pop(context), 
+            child: Text(l10n.cancel)
+          ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+              Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (_) => const LoginScreen())
+              );
             },
-            child: const Text("Login"),
+            child: Text(l10n.login),
           ),
         ],
       ),
