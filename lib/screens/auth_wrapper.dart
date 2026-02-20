@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../providers/auth_provider.dart';
 import 'auth/login_screen.dart';
+
+// <-- استيراد مؤقت للملفات الفارغة لتجاوز الخطأ
 import 'home/home_screen.dart';
 import 'doctor/doctor_dashboard.dart';
 import 'admin/admin_dashboard.dart';
