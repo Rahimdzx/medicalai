@@ -6,6 +6,8 @@ import '../services/doctor_service.dart';
 import 'doctor_profile_screen.dart';
 import 'common/qr_share_scan_screen.dart';
 import 'specialist_list_screen.dart';
+import 'my_doctors_screen.dart';
+import 'medical_tourism_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -96,7 +98,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.medical_services,
                     title: 'My Doctors',
                     color: Colors.green,
-                    onTap: () {},
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MyDoctorsScreen()),
+                    ),
                   ),
                   _buildMenuCard(
                     icon: Icons.search,
@@ -111,7 +116,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.flight,
                     title: 'Medical Tourism',
                     color: Colors.purple,
-                    onTap: () {},
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MedicalTourismScreen()),
+                    ),
                   ),
                 ]),
               ),

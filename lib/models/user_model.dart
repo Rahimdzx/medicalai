@@ -8,6 +8,8 @@ class UserModel {
   final String role;
   final String? photoUrl;
   final DateTime createdAt;
+  final bool isOnline;
+  final DateTime? lastSeen;
 
   UserModel({
     required this.uid,
@@ -17,6 +19,8 @@ class UserModel {
     required this.role,
     this.photoUrl,
     required this.createdAt,
+    this.isOnline = false,
+    this.lastSeen,
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
@@ -29,6 +33,8 @@ class UserModel {
       role: data['role'] ?? 'patient',
       photoUrl: data['photoUrl'],
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      isOnline: data['isOnline'] ?? false,
+      lastSeen: (data['lastSeen'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -40,6 +46,32 @@ class UserModel {
       'role': role,
       'photoUrl': photoUrl,
       'createdAt': Timestamp.fromDate(createdAt),
+      'isOnline': isOnline,
+      'lastSeen': lastSeen != null ? Timestamp.fromDate(lastSeen!) : null,
     };
+  }
+
+  UserModel copyWith({
+    String? uid,
+    String? name,
+    String? email,
+    String? phone,
+    String? role,
+    String? photoUrl,
+    DateTime? createdAt,
+    bool? isOnline,
+    DateTime? lastSeen,
+  }) {
+    return UserModel(
+      uid: uid ?? this.uid,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      role: role ?? this.role,
+      photoUrl: photoUrl ?? this.photoUrl,
+      createdAt: createdAt ?? this.createdAt,
+      isOnline: isOnline ?? this.isOnline,
+      lastSeen: lastSeen ?? this.lastSeen,
+    );
   }
 }

@@ -92,11 +92,11 @@ class PdfExportService {
                 ),
               ]),
               
-              if (record.notes.isNotEmpty) ...[
+              if (record.notes != null && record.notes!.isNotEmpty) ...[
                 pw.SizedBox(height: 20),
                 _buildSection('Notes', [
                   pw.Text(
-                    record.notes,
+                    record.notes!,
                     style: pw.TextStyle(
                       fontSize: 11,
                       color: PdfColors.grey700,
@@ -428,14 +428,14 @@ class PdfExportService {
             style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
           ),
           pw.Text(record.prescription, style: const pw.TextStyle(fontSize: 10)),
-          if (record.notes.isNotEmpty) ...[
+          if (record.notes != null && record.notes!.isNotEmpty) ...[
             pw.SizedBox(height: 8),
             pw.Text(
               'Notes:',
               style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
             ),
             pw.Text(
-              record.notes,
+              record.notes!,
               style: pw.TextStyle(
                 fontSize: 10,
                 fontStyle: pw.FontStyle.italic,

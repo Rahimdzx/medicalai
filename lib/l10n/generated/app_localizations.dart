@@ -607,7 +607,7 @@ abstract class AppLocalizations {
   /// No description provided for @chooseTime.
   ///
   /// In en, this message translates to:
-  /// **'Choose a time'**
+  /// **'Choose a convenient time'**
   String get chooseTime;
 
   /// No description provided for @onlineConsultation.
@@ -741,36 +741,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'System'**
   String get system;
-
-  /// No description provided for @all.
-  ///
-  /// In en, this message translates to:
-  /// **'All'**
-  String get all;
-
-  /// No description provided for @rememberMe.
-  ///
-  /// In en, this message translates to:
-  /// **'Remember me'**
-  String get rememberMe;
-
-  /// No description provided for @signInToContinue.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in to continue'**
-  String get signInToContinue;
-
-  /// No description provided for @enterCredentials.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter your credentials'**
-  String get enterCredentials;
-
-  /// No description provided for @secureLogin.
-  ///
-  /// In en, this message translates to:
-  /// **'Secure Login'**
-  String get secureLogin;
 }
 
 class _AppLocalizationsDelegate

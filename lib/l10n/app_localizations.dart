@@ -303,6 +303,17 @@ class AppLocalizations {
       // Currency
       'rubles': 'Rubles',
       'rub': 'RUB',
+      // Missing keys for Medical History & Reminders
+      'exportPdf': 'Export PDF',
+      'noMedicalHistory': 'No medical history available',
+      'noReminders': 'No medication reminders',
+      'addReminder': 'Add Reminder',
+      'medicationName': 'Medication Name',
+      'reminderTime': 'Reminder Time',
+      'repeatDays': 'Repeat Days',
+      'reminderAdded': 'Reminder added successfully',
+      'deleteReminder': 'Delete Reminder',
+      'deleteReminderConfirm': 'Are you sure you want to delete this reminder?',
     },
 
     // ---------------- Arabic ----------------
@@ -591,6 +602,17 @@ class AppLocalizations {
       // Currency
       'rubles': 'روبل',
       'rub': 'RUB',
+      // Missing keys for Medical History & Reminders
+      'exportPdf': 'تصدير PDF',
+      'noMedicalHistory': 'لا يوجد تاريخ طبي متاح',
+      'noReminders': 'لا توجد تذكيرات أدوية',
+      'addReminder': 'إضافة تذكير',
+      'medicationName': 'اسم الدواء',
+      'reminderTime': 'وقت التذكير',
+      'repeatDays': 'أيام التكرار',
+      'reminderAdded': 'تم إضافة التذكير بنجاح',
+      'deleteReminder': 'حذف التذكير',
+      'deleteReminderConfirm': 'هل أنت متأكد من حذف هذا التذكير؟',
     },
 
     // ---------------- Russian ----------------
@@ -879,6 +901,17 @@ class AppLocalizations {
       // Currency
       'rubles': 'Рублей',
       'rub': 'RUB',
+      // Missing keys for Medical History & Reminders
+      'exportPdf': 'Экспорт PDF',
+      'noMedicalHistory': 'Нет доступной медицинской истории',
+      'noReminders': 'Нет напоминаний о лекарствах',
+      'addReminder': 'Добавить напоминание',
+      'medicationName': 'Название лекарства',
+      'reminderTime': 'Время напоминания',
+      'repeatDays': 'Дни повторения',
+      'reminderAdded': 'Напоминание успешно добавлено',
+      'deleteReminder': 'Удалить напоминание',
+      'deleteReminderConfirm': 'Вы уверены, что хотите удалить это напоминание?',
     }
   };
 
@@ -1176,6 +1209,18 @@ class AppLocalizations {
   // Currency
   String get rubles => _get('rubles');
   String get rub => _get('rub');
+
+  // Missing keys for Medical History & Reminders
+  String get exportPdf => _get('exportPdf');
+  String get noMedicalHistory => _get('noMedicalHistory');
+  String get noReminders => _get('noReminders');
+  String get addReminder => _get('addReminder');
+  String get medicationName => _get('medicationName');
+  String get reminderTime => _get('reminderTime');
+  String get repeatDays => _get('repeatDays');
+  String get reminderAdded => _get('reminderAdded');
+  String get deleteReminder => _get('deleteReminder');
+  String get deleteReminderConfirm => _get('deleteReminderConfirm');
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

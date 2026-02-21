@@ -67,7 +67,74 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Register
+  // Register with locale and additional fields
+  Future<String?> signUpWithLocale({
+    required String email,
+    required String password,
+    required String name,
+    required String role,
+    required String phone,
+    required String locale,
+    required String specialization,
+    required String price,
+    dynamic imageFile,
+  }) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final userModel = UserModel(
+        uid: credential.user!.uid,
+        name: name,
+        email: email,
+        phone: phone,
+        role: role,
+        createdAt: DateTime.now(),
+      );
+
+      await _firestore.collection('users').doc(credential.user!.uid).set(
+        userModel.toMap(),
+      );
+
+      // Create doctor profile if role is doctor
+      if (role == 'doctor') {
+        await _firestore.collection('doctors').doc(credential.user!.uid).set({
+          'userId': credential.user!.uid,
+          'name': name,
+          'nameEn': name,
+          'nameAr': name,
+          'specialty': specialization,
+          'specialtyEn': specialization,
+          'specialtyAr': specialization,
+          'price': double.tryParse(price) ?? 50,
+          'currency': 'USD',
+          'rating': 5.0,
+          'doctorNumber': credential.user!.uid.substring(0, 8).toUpperCase(),
+          'isActive': true,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      _error = null;
+      return null; // Success - no error
+    } on FirebaseAuthException catch (e) {
+      _error = _handleAuthError(e);
+      return _error;
+    } catch (e) {
+      _error = e.toString();
+      return _error;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Register (legacy method)
   Future<bool> signUp({
     required String email,
     required String password,

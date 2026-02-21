@@ -8,7 +8,7 @@ import 'video_call_screen.dart';
 import 'upload_records_screen.dart';
 import 'chat_screen.dart';
 // 👇 التعديل الهام: استدعاء ملف QR المشترك الجديد
-import 'common/qr_share_scan_screen.dart';
+import 'general_qr_scanner.dart';
 
 class PatientDashboard extends StatelessWidget {
   const PatientDashboard({super.key});
@@ -154,6 +154,7 @@ class _PatientRecordCard extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) => ChatScreen(
+                        chatId: record.doctorId,
                         appointmentId: record.doctorId,
                         receiverName: record.doctorName
                       ),

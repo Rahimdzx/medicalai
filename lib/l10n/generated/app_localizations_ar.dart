@@ -264,7 +264,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get close => 'إغلاق';
 
   @override
-  String get chooseTime => 'اختر الوقت';
+  String get chooseTime => 'اختر الوقت المناسب';
 
   @override
   String get onlineConsultation => 'استشارة عبر الإنترنت';
@@ -331,19 +331,4 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get system => 'النظام';
-
-  @override
-  String get all => 'الكل';
-
-  @override
-  String get rememberMe => 'تذكرني';
-
-  @override
-  String get signInToContinue => 'سجل الدخول للمتابعة';
-
-  @override
-  String get enterCredentials => 'أدخل بيانات الاعتماد';
-
-  @override
-  String get secureLogin => 'تسجيل دخول آمن';
 }

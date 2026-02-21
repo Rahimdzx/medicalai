@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../screens/doctor_booking_screen.dart';
+import '../models/doctor_model.dart';
+import '../screens/doctor_profile_screen.dart';
 
 class DoctorCard extends StatelessWidget {
   final Map<String, dynamic> doctorData;
@@ -19,10 +20,28 @@ class DoctorCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          // الانتقال لشاشة الحجز عند الضغط
+          // Navigate to doctor profile
+          final doctor = DoctorModel(
+            id: doctorId,
+            userId: doctorData['userId'] ?? doctorId,
+            name: doctorData['name'] ?? 'Doctor',
+            nameEn: doctorData['nameEn'] ?? doctorData['name'] ?? 'Doctor',
+            nameAr: doctorData['nameAr'] ?? doctorData['name'] ?? 'Doctor',
+            specialty: doctorData['specialization'] ?? 'General',
+            specialtyEn: doctorData['specializationEn'] ?? doctorData['specialization'] ?? 'General',
+            specialtyAr: doctorData['specializationAr'] ?? doctorData['specialization'] ?? 'General',
+            price: (doctorData['price'] ?? 0).toDouble(),
+            currency: doctorData['currency'] ?? 'USD',
+            rating: (doctorData['rating'] ?? 0).toDouble(),
+            doctorNumber: doctorData['doctorNumber'] ?? '',
+            description: doctorData['description'] ?? '',
+            isActive: doctorData['isActive'] ?? true,
+            allowedFileTypes: List<String>.from(doctorData['allowedFileTypes'] ?? ['image', 'pdf']),
+            createdAt: doctorData['createdAt']?.toDate() ?? DateTime.now(),
+          );
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => DoctorBookingScreen(doctorId: doctorId)),
+            MaterialPageRoute(builder: (context) => DoctorProfileScreen(doctor: doctor)),
           );
         },
         child: Row(

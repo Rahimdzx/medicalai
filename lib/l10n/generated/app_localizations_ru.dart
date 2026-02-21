@@ -266,7 +266,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get close => 'Закрыть';
 
   @override
-  String get chooseTime => 'Выберите время';
+  String get chooseTime => 'Выберите удобное время';
 
   @override
   String get onlineConsultation => 'Онлайн-консультация';
@@ -333,19 +333,4 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get system => 'Система';
-
-  @override
-  String get all => 'Все';
-
-  @override
-  String get rememberMe => 'Запомнить меня';
-
-  @override
-  String get signInToContinue => 'Войдите для продолжения';
-
-  @override
-  String get enterCredentials => 'Введите данные для входа';
-
-  @override
-  String get secureLogin => 'Безопасный вход';
 }

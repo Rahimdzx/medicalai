@@ -66,8 +66,8 @@ Notes: ${record.notes}
                       _buildInfoRow(l10n.date, record.date),
                       _buildInfoRow(l10n.diagnosis, record.diagnosis),
                       _buildInfoRow(l10n.prescription, record.prescription),
-                      if (record.notes.isNotEmpty)
-                        _buildInfoRow(l10n.notes, record.notes),
+                      if (record.notes != null && record.notes!.isNotEmpty)
+                        _buildInfoRow(l10n.notes, record.notes!),
                     ],
                   ),
                 ),

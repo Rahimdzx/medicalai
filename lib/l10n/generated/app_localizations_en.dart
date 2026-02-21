@@ -264,7 +264,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get close => 'Close';
 
   @override
-  String get chooseTime => 'Choose a time';
+  String get chooseTime => 'Choose a convenient time';
 
   @override
   String get onlineConsultation => 'Online Consultation';
@@ -331,19 +331,4 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get system => 'System';
-
-  @override
-  String get all => 'All';
-
-  @override
-  String get rememberMe => 'Remember me';
-
-  @override
-  String get signInToContinue => 'Sign in to continue';
-
-  @override
-  String get enterCredentials => 'Enter your credentials';
-
-  @override
-  String get secureLogin => 'Secure Login';
 }

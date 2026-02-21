@@ -86,6 +86,7 @@ class PatientAppointmentsScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) => ChatScreen(
+                                chatId: docId,
                                 appointmentId: docId,
                                 receiverName: appointment['doctorName'] ?? 'Doctor',
                               ),
