@@ -2,19 +2,19 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
-    // id "com.google.gms.google-services"  // ← يظل معطل هنا
 }
 
 android {
     namespace "com.medicalns.app"
-    
-    // ✅ تغيير من 34 إلى 35
     compileSdk 35
 
     defaultConfig {
         applicationId "com.medicalns.app"
-        minSdkVersion flutter.minSdkVersion  // أو minSdk 21
-        targetSdk 35  // ← تغيير من 34 إلى 35
+        
+        // ✅ FIX: Firebase Auth يتطلب minSdk 23 (ليس 21)
+        minSdk 23
+        
+        targetSdk 35
         versionCode flutter.versionCode
         versionName flutter.versionName
         multiDexEnabled true
@@ -23,7 +23,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
-        coreLibraryDesugaringEnabled true  // ← إضافة مهمة جداً
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -41,10 +41,10 @@ flutter {
     source "../.."
 }
 
-// ✅ تفعيل خدمات Google (Firebase)
+// Firebase
 apply plugin: 'com.google.gms.google-services'
 
-// ✅ إضافة مكتبة Desugaring (مهمة للإشعارات)
+// Desugaring
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 }
