@@ -106,5 +106,17 @@
   "patient": "Пациент",
   "doctor": "Врач",
   "admin": "Администратор",
-  "system": "Система"
+  "system": "Система",
+  "all": "Все",
+  "doctorNotFound": "Врач не найден",
+  "chooseTime": "Выберите время",
+  "signup": "Регистрация",
+  "phoneNumber": "Номер телефона",
+  "confirmPassword": "Подтвердите пароль",
+  "availability": "Доступность",
+  "rememberMe": "Запомнить меня",
+  "signInToContinue": "Войдите для продолжения",
+  "enterCredentials": "Введите данные для входа",
+  "forgotPassword": "Забыли пароль?",
+  "secureLogin": "Безопасный вход"
 }

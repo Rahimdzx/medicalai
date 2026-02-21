@@ -106,5 +106,17 @@
   "patient": "Patient",
   "doctor": "Doctor",
   "admin": "Admin",
-  "system": "System"
+  "system": "System",
+  "all": "All",
+  "doctorNotFound": "Doctor not found",
+  "chooseTime": "Choose a time",
+  "signup": "Sign Up",
+  "phoneNumber": "Phone Number",
+  "confirmPassword": "Confirm Password",
+  "availability": "Availability",
+  "rememberMe": "Remember me",
+  "signInToContinue": "Sign in to continue",
+  "enterCredentials": "Enter your credentials",
+  "forgotPassword": "Forgot password?",
+  "secureLogin": "Secure Login"
 }

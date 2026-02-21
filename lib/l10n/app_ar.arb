@@ -106,5 +106,17 @@
   "patient": "مريض",
   "doctor": "طبيب",
   "admin": "مدير",
-  "system": "النظام"
+  "system": "النظام",
+  "all": "الكل",
+  "doctorNotFound": "الطبيب غير موجود",
+  "chooseTime": "اختر الوقت",
+  "signup": "إنشاء حساب",
+  "phoneNumber": "رقم الهاتف",
+  "confirmPassword": "تأكيد كلمة المرور",
+  "availability": "التوفر",
+  "rememberMe": "تذكرني",
+  "signInToContinue": "سجل الدخول للمتابعة",
+  "enterCredentials": "أدخل بيانات الاعتماد",
+  "forgotPassword": "نسيت كلمة المرور؟",
+  "secureLogin": "تسجيل دخول آمن"
 }
