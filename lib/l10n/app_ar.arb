@@ -118,5 +118,13 @@
   "signInToContinue": "سجل الدخول للمتابعة",
   "enterCredentials": "أدخل بيانات الاعتماد",
   "forgotPassword": "نسيت كلمة المرور؟",
-  "secureLogin": "تسجيل دخول آمن"
+  "secureLogin": "تسجيل دخول آمن",
+  "doctors": "الأطباء",
+  "allAppointments": "جميع المواعيد",
+  "registrationRequired": "التسجيل مطلوب للحجز",
+  "loginRequiredMessage": "يرجى تسجيل الدخول للمتابعة",
+  "myDoctors": "أطبائي / استشاراتي النشطة",
+  "schedule": "الجدول",
+  "acceptingBookings": "يقبل الحجوزات",
+  "booked": "محجوز"
 }

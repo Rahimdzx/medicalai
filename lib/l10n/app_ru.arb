@@ -118,5 +118,13 @@
   "signInToContinue": "Войдите для продолжения",
   "enterCredentials": "Введите данные для входа",
   "forgotPassword": "Забыли пароль?",
-  "secureLogin": "Безопасный вход"
+  "secureLogin": "Безопасный вход",
+  "doctors": "Врачи",
+  "allAppointments": "Все приёмы",
+  "registrationRequired": "Для записи необходима регистрация",
+  "loginRequiredMessage": "Войдите, чтобы продолжить",
+  "myDoctors": "Мои врачи / Активные консультации",
+  "schedule": "Расписание",
+  "acceptingBookings": "Принимаю бронирования",
+  "booked": "Забронировано"
 }

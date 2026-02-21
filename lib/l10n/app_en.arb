@@ -118,5 +118,13 @@
   "signInToContinue": "Sign in to continue",
   "enterCredentials": "Enter your credentials",
   "forgotPassword": "Forgot password?",
-  "secureLogin": "Secure Login"
+  "secureLogin": "Secure Login",
+  "doctors": "Doctors",
+  "allAppointments": "All Appointments",
+  "registrationRequired": "Registration is required for booking",
+  "loginRequiredMessage": "Please login to proceed with the booking",
+  "myDoctors": "My Doctors / Active Consultations",
+  "schedule": "Schedule",
+  "acceptingBookings": "Accepting Bookings",
+  "booked": "Booked"
 }
