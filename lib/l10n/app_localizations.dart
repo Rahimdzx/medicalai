@@ -1176,67 +1176,6 @@ class AppLocalizations {
   // Currency
   String get rubles => _get('rubles');
   String get rub => _get('rub');
-
-  // ARB File Additional Keys
-  String get completeBooking => _get('completeBooking');
-  String get consultationFormat => _get('consultationFormat');
-  String get audioConsultation => _get('audioConsultation');
-  String get today => _get('today');
-  String get tomorrow => _get('tomorrow');
-  String get urgent => _get('urgent');
-  String get scheduled => _get('scheduled');
-  String get confirmAndPay => _get('confirmAndPay');
-  String get pay => _get('pay');
-  String get bookingConfirmed => _get('bookingConfirmed');
-  String get paymentConfirmed => _get('paymentConfirmed');
-  String get paymentConsentPrefix => _get('paymentConsentPrefix');
-  String get dataConsent => _get('dataConsent');
-  String get and => _get('and');
-  String get patientManagement => _get('patientManagement');
-  String get manageDoctorsDesc => _get('manageDoctorsDesc');
-  String get managePatientsDesc => _get('managePatientsDesc');
-  String get legalDocuments => _get('legalDocuments');
-  String get editLegalDocs => _get('editLegalDocs');
-  String get overview => _get('overview');
-  String get totalUsers => _get('totalUsers');
-  String get myQrCode => _get('myQrCode');
-  String get mySchedule => _get('mySchedule');
-  String get consultationSystemMessage => _get('consultationSystemMessage');
-  String get radiologyInstructions => _get('radiologyInstructions');
-  String get enterDoctorId => _get('enterDoctorId');
-  String get scanQr => _get('scanQr');
-  String get noConsultationsYet => _get('noConsultationsYet');
-  String get onlineConsultation => _get('onlineConsultation');
-  String get paymentConsent => _get('paymentConsent');
-  String get uploadPhoto => _get('uploadPhoto');
-  String get addTimeSlot => _get('addTimeSlot');
-  String get all => _get('all');
-  String get chooseTime => _get('chooseTime');
-  String get signup => _get('signup');
-  String get phoneNumber => _get('phoneNumber');
-  String get confirmPassword => _get('confirmPassword');
-  String get availability => _get('availability');
-  String get appName => _get('appName');
-  String get doctors => _get('doctors');
-  String get allAppointments => _get('allAppointments');
-  String get registrationRequired => _get('registrationRequired');
-  String get loginRequiredMessage => _get('loginRequiredMessage');
-  String get myDoctors => _get('myDoctors');
-  String get schedule => _get('schedule');
-  String get acceptingBookings => _get('acceptingBookings');
-  String get booked => _get('booked');
-  String get serviceAgreement => _get('serviceAgreement');
-  String get doctorNotFound => _get('doctorNotFound');
-  String get exportPdf => _get('exportPdf');
-  String get noMedicalHistory => _get('noMedicalHistory');
-  String get noReminders => _get('noReminders');
-  String get addReminder => _get('addReminder');
-  String get medicationName => _get('medicationName');
-  String get reminderTime => _get('reminderTime');
-  String get repeatDays => _get('repeatDays');
-  String get reminderAdded => _get('reminderAdded');
-  String get deleteReminder => _get('deleteReminder');
-  String get deleteReminderConfirm => _get('deleteReminderConfirm');
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

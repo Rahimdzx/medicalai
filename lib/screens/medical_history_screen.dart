@@ -302,13 +302,13 @@ class _TimelineCard extends StatelessWidget {
             ),
 
             // Notes
-            if (record.notes?.isNotEmpty == true) ...[
+            if (record.notes.isNotEmpty) ...[
               const SizedBox(height: 12),
               _buildSection(
                 context,
                 icon: Icons.notes,
                 title: 'Notes',
-                content: record.notes ?? '',
+                content: record.notes,
                 color: Colors.orange,
               ),
             ],

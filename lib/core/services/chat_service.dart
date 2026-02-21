@@ -392,7 +392,7 @@ class ChatService {
     String status,
   ) async {
     try {
-      final Map<String, dynamic> updateData = {'status': status};
+      final updateData = {'status': status};
       if (status == AppConstants.messageStatusRead) {
         updateData['readAt'] = Timestamp.now();
       }

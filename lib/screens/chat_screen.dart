@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../l10n/app_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -139,7 +139,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final currentUserId = Provider.of<AuthProvider>(context).user?.uid;
 
     return Scaffold(
@@ -165,7 +165,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'For radiology consultations, please upload DICOM files or clear images of your scans.',
+                      l10n.radiologyInstructions,
                       style: const TextStyle(fontSize: 12),
                     ),
                   ),
