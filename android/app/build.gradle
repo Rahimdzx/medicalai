@@ -2,17 +2,19 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
-    // id "com.google.gms.google-services" <-- تحذف هذا من هنا
+    // id "com.google.gms.google-services"  // ← يظل معطل هنا
 }
 
 android {
     namespace "com.medicalns.app"
-    compileSdk 34
+    
+    // ✅ تغيير من 34 إلى 35
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.medicalns.app"
-        minSdkVersion flutter.minSdkVersion
-        targetSdk 34
+        minSdkVersion flutter.minSdkVersion  // أو minSdk 21
+        targetSdk 35  // ← تغيير من 34 إلى 35
         versionCode flutter.versionCode
         versionName flutter.versionName
         multiDexEnabled true
@@ -21,6 +23,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true  // ← إضافة مهمة جداً
     }
 
     kotlinOptions {
@@ -38,5 +41,10 @@ flutter {
     source "../.."
 }
 
-// ✅ أضف هذا في أسفل الملف
+// ✅ تفعيل خدمات Google (Firebase)
 apply plugin: 'com.google.gms.google-services'
+
+// ✅ إضافة مكتبة Desugaring (مهمة للإشعارات)
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+}
