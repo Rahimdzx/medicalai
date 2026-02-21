@@ -35,7 +35,7 @@ class DoctorQRGenerator extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text("Dr. ${authProvider.user?.email.split('@')[0]}", 
+            Text("Dr. ${authProvider.user?.email?.split('@')[0]}", 
               style: const TextStyle(fontSize: 18)),
           ],
         ),
