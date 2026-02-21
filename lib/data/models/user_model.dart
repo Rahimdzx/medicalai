@@ -8,6 +8,8 @@ class UserModel {
   final String role; // patient, doctor, admin
   final String locale;
   final String? photoUrl;
+  final bool isOnline;
+  final DateTime? lastSeen;
   final DateTime createdAt;
 
   UserModel({
@@ -16,8 +18,10 @@ class UserModel {
     required this.email,
     required this.phone,
     required this.role,
-    required this.locale,
+    this.locale = 'en',
     this.photoUrl,
+    this.isOnline = false,
+    this.lastSeen,
     required this.createdAt,
   });
 
@@ -31,7 +35,9 @@ class UserModel {
       role: data['role'] ?? 'patient',
       locale: data['locale'] ?? 'en',
       photoUrl: data['photoUrl'],
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      isOnline: data['isOnline'] ?? false,
+      lastSeen: (data['lastSeen'] as Timestamp?)?.toDate(),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
@@ -43,6 +49,8 @@ class UserModel {
       'role': role,
       'locale': locale,
       'photoUrl': photoUrl,
+      'isOnline': isOnline,
+      'lastSeen': lastSeen != null ? Timestamp.fromDate(lastSeen!) : null,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }

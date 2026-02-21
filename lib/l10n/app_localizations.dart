@@ -1227,6 +1227,16 @@ class AppLocalizations {
   String get booked => _get('booked');
   String get serviceAgreement => _get('serviceAgreement');
   String get doctorNotFound => _get('doctorNotFound');
+  String get exportPdf => _get('exportPdf');
+  String get noMedicalHistory => _get('noMedicalHistory');
+  String get noReminders => _get('noReminders');
+  String get addReminder => _get('addReminder');
+  String get medicationName => _get('medicationName');
+  String get reminderTime => _get('reminderTime');
+  String get repeatDays => _get('repeatDays');
+  String get reminderAdded => _get('reminderAdded');
+  String get deleteReminder => _get('deleteReminder');
+  String get deleteReminderConfirm => _get('deleteReminderConfirm');
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

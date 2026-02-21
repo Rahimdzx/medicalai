@@ -126,5 +126,15 @@
   "myDoctors": "Мои врачи / Активные консультации",
   "schedule": "Расписание",
   "acceptingBookings": "Принимаю бронирования",
-  "booked": "Забронировано"
+  "booked": "Забронировано",
+  "exportPdf": "Экспорт PDF",
+  "noMedicalHistory": "Нет медицинской истории",
+  "noReminders": "Нет напоминаний",
+  "addReminder": "Добавить напоминание",
+  "medicationName": "Название лекарства",
+  "reminderTime": "Время напоминания",
+  "repeatDays": "Дни повторения",
+  "reminderAdded": "Напоминание добавлено",
+  "deleteReminder": "Удалить напоминание",
+  "deleteReminderConfirm": "Вы уверены, что хотите удалить это напоминание?"
 }

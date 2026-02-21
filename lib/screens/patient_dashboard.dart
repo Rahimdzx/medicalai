@@ -69,10 +69,9 @@ class PatientDashboard extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.blue[800],
         onPressed: () async {
-          // 👇 التعديل الهام: استخدام الكلاس الجديد GeneralQRScanner
           await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const GeneralQRScanner(title: "Scan Doctor QR"))
+            MaterialPageRoute(builder: (_) => const QrShareScanScreen())
           );
         },
         label: Text(l10n.scanDoctorCode, style: const TextStyle(color: Colors.white)),
@@ -154,8 +153,10 @@ class _PatientRecordCard extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) => ChatScreen(
-                        appointmentId: record.doctorId,
-                        receiverName: record.doctorName
+                        chatId: '${record.patientEmail.hashCode}_${record.doctorId}',
+                        appointmentId: record.id,
+                        receiverName: record.doctorName,
+                        isRadiology: false,
                       ),
                     ),
                   ),

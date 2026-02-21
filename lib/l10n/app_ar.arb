@@ -126,5 +126,15 @@
   "myDoctors": "أطبائي / استشاراتي النشطة",
   "schedule": "الجدول",
   "acceptingBookings": "يقبل الحجوزات",
-  "booked": "محجوز"
+  "booked": "محجوز",
+  "exportPdf": "تصدير PDF",
+  "noMedicalHistory": "لا يوجد تاريخ طبي",
+  "noReminders": "لا توجد تذكيرات",
+  "addReminder": "إضافة تذكير",
+  "medicationName": "اسم الدواء",
+  "reminderTime": "وقت التذكير",
+  "repeatDays": "أيام التكرار",
+  "reminderAdded": "تم إضافة التذكير",
+  "deleteReminder": "حذف التذكير",
+  "deleteReminderConfirm": "هل أنت متأكد من حذف هذا التذكير؟"
 }

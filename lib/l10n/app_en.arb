@@ -126,5 +126,15 @@
   "myDoctors": "My Doctors / Active Consultations",
   "schedule": "Schedule",
   "acceptingBookings": "Accepting Bookings",
-  "booked": "Booked"
+  "booked": "Booked",
+  "exportPdf": "Export PDF",
+  "noMedicalHistory": "No medical history",
+  "noReminders": "No reminders",
+  "addReminder": "Add Reminder",
+  "medicationName": "Medication Name",
+  "reminderTime": "Reminder Time",
+  "repeatDays": "Repeat Days",
+  "reminderAdded": "Reminder added",
+  "deleteReminder": "Delete Reminder",
+  "deleteReminderConfirm": "Are you sure you want to delete this reminder?"
 }

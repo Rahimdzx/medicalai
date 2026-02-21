@@ -4,10 +4,11 @@ class PatientRecord {
   final String id;
   final String patientEmail;
   final String doctorId;
-  final String doctorName;     // التأكد من وجود هذا السطر
-  final String doctorPhotoUrl; // التأكد من وجود هذا السطر
+  final String doctorName;
+  final String doctorPhotoUrl;
   final String diagnosis;
   final String prescription;
+  final String? notes;
   final String date;
   final DateTime createdAt;
 
@@ -19,6 +20,7 @@ class PatientRecord {
     required this.doctorPhotoUrl,
     required this.diagnosis,
     required this.prescription,
+    this.notes,
     required this.date,
     required this.createdAt,
   });
@@ -33,6 +35,7 @@ class PatientRecord {
       doctorPhotoUrl: data['doctorPhotoUrl'] ?? '',
       diagnosis: data['diagnosis'] ?? '',
       prescription: data['prescription'] ?? '',
+      notes: data['notes'],
       date: data['date'] ?? '',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );

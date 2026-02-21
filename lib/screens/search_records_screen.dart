@@ -73,7 +73,7 @@ class _SearchRecordsScreenState extends State<SearchRecordsScreen> {
         return record.patientEmail.toLowerCase().contains(query) ||
             record.diagnosis.toLowerCase().contains(query) ||
             record.prescription.toLowerCase().contains(query) ||
-            record.notes.toLowerCase().contains(query);
+            (record.notes?.toLowerCase().contains(query) ?? false);
       }).toList();
     }
 
@@ -539,9 +539,9 @@ class _SearchResultCard extends StatelessWidget {
                 _buildDetailSection('Diagnosis', record.diagnosis, Icons.medical_services, Colors.red),
                 const SizedBox(height: 16),
                 _buildDetailSection('Prescription', record.prescription, Icons.medication, Colors.green),
-                if (record.notes.isNotEmpty) ...[
+                if (record.notes?.isNotEmpty == true) ...[
                   const SizedBox(height: 16),
-                  _buildDetailSection('Notes', record.notes, Icons.notes, Colors.orange),
+                  _buildDetailSection('Notes', record.notes ?? '', Icons.notes, Colors.orange),
                 ],
               ],
             ),

@@ -2,10 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../l10n/app_localizations.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/language_provider.dart'; 
-import '../../core/constants/colors.dart';
+import '../l10n/app_localizations.dart';
+import '../providers/auth_provider.dart';
+import '../core/constants/colors.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -26,7 +25,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? _selectedSpecialization;
   File? _imageFile;
 
-  // قائمة التخصصات الطبية
   final List<String> _medicalSpecialties = [
     "General / عام",
     "Cardiology / أمراض القلب",
@@ -74,26 +72,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
     
-    final error = await authProvider.signUpWithLocale(
+    final success = await authProvider.signUp(
       email: _emailController.text.trim(),
       password: _passwordController.text,
       name: _nameController.text.trim(),
       role: _role,
       phone: _phoneController.text.trim().isEmpty ? "0000000000" : _phoneController.text.trim(),
-      locale: languageProvider.languageCode,
-      specialization: _role == 'doctor' ? (_selectedSpecialization ?? "General") : "", 
-      price: _role == 'doctor' ? _priceController.text.trim() : "0",
-      imageFile: _imageFile,
     );
 
     if (!mounted) return;
 
-    if (error != null) {
+    if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error), 
+          content: Text(authProvider.error ?? 'Registration failed'), 
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -107,7 +100,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isLoading = context.watch<AuthProvider>().isLoading;
-    final langProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -117,20 +109,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimaryLight,
         elevation: 0,
-        // ✅ زر تغيير اللغة في الـ AppBar
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.language, color: AppColors.primary),
-            onSelected: (String code) {
-              langProvider.changeLanguage(code);
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(value: 'en', child: Text('🇺🇸 English')),
-              const PopupMenuItem<String>(value: 'ar', child: Text('🇸🇦 العربية')),
-              const PopupMenuItem<String>(value: 'ru', child: Text('🇷🇺 Русский')),
-            ],
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -138,7 +116,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           key: _formKey,
           child: Column(
             children: [
-              // اختيار الصورة الشخصية
+              // Profile Image
               Center(
                 child: GestureDetector(
                   onTap: isLoading ? null : _pickImage,
@@ -146,7 +124,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     children: [
                       CircleAvatar(
                         radius: 55,
-                        backgroundColor: AppColors.primary.withOpacity(0.1),
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                         backgroundImage: _imageFile != null ? FileImage(_imageFile!) : null,
                         child: _imageFile == null 
                             ? const Icon(Icons.person, size: 60, color: AppColors.primary) 
@@ -197,19 +175,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
               _buildTextField(
                 controller: _phoneController,
-                label: "Phone Number / رقم الهاتف", 
+                label: l10n.phoneNumber, 
                 icon: Icons.phone_android,
                 keyboardType: TextInputType.phone,
                 enabled: !isLoading,
               ),
               const SizedBox(height: 16),
 
-              // اختيار الدور
+              // Role Selection
               DropdownButtonFormField<String>(
                 value: _role,
                 items: [
-                  DropdownMenuItem(value: 'patient', child: Text(l10n.patient ?? "Patient")),
-                  DropdownMenuItem(value: 'doctor', child: Text(l10n.doctor ?? "Doctor")),
+                  DropdownMenuItem(value: 'patient', child: Text(l10n.patient)),
+                  DropdownMenuItem(value: 'doctor', child: Text(l10n.doctor)),
                 ],
                 onChanged: isLoading ? null : (v) {
                   setState(() {
@@ -218,19 +196,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   });
                 },
                 decoration: InputDecoration(
-                  labelText: "Role / الدور",
+                  labelText: "Role",
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   prefixIcon: const Icon(Icons.badge_outlined),
                 ),
               ),
               
-              // حقول إضافية للطبيب
+              // Doctor-specific fields
               if (_role == 'doctor') ...[
                 const SizedBox(height: 16),
-                // ✅ خانة اختيار التخصص
                 DropdownButtonFormField<String>(
                   value: _selectedSpecialization,
-                  hint: const Text("Select Specialization / اختر التخصص"),
+                  hint: const Text("Select Specialization"),
                   items: _medicalSpecialties.map((String specialty) {
                     return DropdownMenuItem(
                       value: specialty,
@@ -247,10 +224,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 
                 const SizedBox(height: 16),
-                // ✅ خانة السعر بالروبل
                 _buildTextField(
                   controller: _priceController,
-                  label: "Consultation Price (₽) / سعر الاستشارة",
+                  label: "Consultation Price (₽)",
                   icon: Icons.payments_outlined,
                   keyboardType: TextInputType.number,
                   enabled: !isLoading,
@@ -259,7 +235,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
               const SizedBox(height: 40),
               
-              // زر التسجيل
+              // Sign Up Button
               SizedBox(
                 width: double.infinity,
                 height: 56,
