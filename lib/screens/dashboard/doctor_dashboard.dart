@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../models/doctor_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/doctor_service.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../schedule_management_screen.dart';
 import '../doctor_appointments_screen.dart';
@@ -84,7 +86,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
           index: _selectedIndex,
           children: [
             _buildDashboardContent(context, authProvider),
-            const DoctorProfileScreen(),
+            _buildProfileScreen(authProvider),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(
@@ -323,6 +325,35 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProfileScreen(AuthProvider authProvider) {
+    final doctorId = authProvider.user?.uid;
+    
+    if (doctorId == null) {
+      return _buildEmptyState(
+        icon: Icons.error_outline,
+        message: 'User not authenticated',
+      );
+    }
+
+    return FutureBuilder<DoctorModel?>(
+      future: DoctorService().getDoctorById(doctorId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+          return _buildEmptyState(
+            icon: Icons.person_off,
+            message: 'Failed to load profile',
+          );
+        }
+
+        return DoctorProfileScreen(doctor: snapshot.data!);
+      },
     );
   }
 
