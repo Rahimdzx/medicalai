@@ -4,7 +4,6 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
-import 'package:flutter/services.dart';
 import '../models/patient_record.dart';
 
 class PdfExportService {
@@ -36,7 +35,7 @@ class PdfExportService {
               // Header
               _buildHeader(clinicName, clinicAddress, clinicPhone),
               pw.SizedBox(height: 30),
-              
+
               // Title
               pw.Center(
                 child: pw.Text(
@@ -49,7 +48,7 @@ class PdfExportService {
                 ),
               ),
               pw.SizedBox(height: 20),
-              
+
               // Divider
               pw.Divider(thickness: 2, color: PdfColors.blue800),
               pw.SizedBox(height: 20),
@@ -91,7 +90,7 @@ class PdfExportService {
                   ),
                 ),
               ]),
-              
+
               if (record.notes != null && record.notes!.isNotEmpty) ...[
                 pw.SizedBox(height: 20),
                 _buildSection('Notes', [
@@ -119,14 +118,14 @@ class PdfExportService {
     // حفظ الملف
     final outputDir = await getTemporaryDirectory();
     final outputFile = File(
-      '${outputDir.path}/prescription_${record.id}_${DateTime.now().millisecondsSinceEpoch}.pdf'
-    );
+        '${outputDir.path}/prescription_${record.id}_${DateTime.now().millisecondsSinceEpoch}.pdf');
     await outputFile.writeAsBytes(await pdf.save());
 
     return outputFile;
   }
 
-  pw.Widget _buildHeader(String? clinicName, String? clinicAddress, String? clinicPhone) {
+  pw.Widget _buildHeader(
+      String? clinicName, String? clinicAddress, String? clinicPhone) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(15),
       decoration: pw.BoxDecoration(
@@ -170,12 +169,14 @@ class PdfExportService {
                 if (clinicAddress != null)
                   pw.Text(
                     clinicAddress,
-                    style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+                    style: const pw.TextStyle(
+                        fontSize: 10, color: PdfColors.grey700),
                   ),
                 if (clinicPhone != null)
                   pw.Text(
                     'Tel: $clinicPhone',
-                    style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+                    style: const pw.TextStyle(
+                        fontSize: 10, color: PdfColors.grey700),
                   ),
               ],
             ),
@@ -365,7 +366,8 @@ class PdfExportService {
             pw.Center(
               child: pw.Text(
                 'Generated on: ${DateTime.now().toString().split(' ')[0]}',
-                style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+                style:
+                    const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
               ),
             ),
             pw.SizedBox(height: 30),
@@ -381,8 +383,7 @@ class PdfExportService {
 
     final outputDir = await getTemporaryDirectory();
     final outputFile = File(
-      '${outputDir.path}/medical_report_${DateTime.now().millisecondsSinceEpoch}.pdf'
-    );
+        '${outputDir.path}/medical_report_${DateTime.now().millisecondsSinceEpoch}.pdf');
     await outputFile.writeAsBytes(await pdf.save());
 
     return outputFile;
@@ -412,7 +413,8 @@ class PdfExportService {
               ),
               pw.Text(
                 'ID: ${record.id.substring(0, 8)}...',
-                style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
+                style:
+                    const pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
               ),
             ],
           ),

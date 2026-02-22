@@ -3,8 +3,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../schedule_management_screen.dart';
+import '../doctor_appointments_screen.dart';
+import '../doctor_profile_screen.dart';
+import '../auth/login_screen.dart';
 
+/// Doctor Dashboard with professional UI and navigation
+/// 
+/// Features:
+/// - Back button navigation
+/// - Statistics cards
+/// - Quick actions
+/// - Recent appointments list
+/// - Profile and settings access
 class DoctorDashboard extends StatefulWidget {
   const DoctorDashboard({super.key});
 
@@ -13,107 +25,299 @@ class DoctorDashboard extends StatefulWidget {
 }
 
 class _DoctorDashboardState extends State<DoctorDashboard> {
+  int _selectedIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final userName = authProvider.userName ?? 'Doctor';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Doctor Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => authProvider.signOut(),
+    return WillPopScope(
+      onWillPop: () async {
+        // Show confirmation before exiting
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Exit App'),
+            content: const Text('Are you sure you want to exit?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Exit'),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Stats
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('appointments')
-                  .where('doctorId', isEqualTo: authProvider.user?.uid)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                final count = snapshot.data?.docs.length ?? 0;
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _StatItem('Appointments', count.toString()),
-                        const _StatItem('Rating', '4.9'),
-                        const _StatItem('Patients', '12'),
-                      ],
-                    ),
-                  ),
-                );
+        );
+        return shouldExit ?? false;
+      },
+      child: Scaffold(
+        appBar: CustomAppBar(
+          title: _selectedIndex == 0 ? 'Dashboard' : 'Profile',
+          subtitle: _selectedIndex == 0 ? 'Welcome back, Dr. $userName' : null,
+          showBackButton: false,
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade800, Colors.blue.shade600],
+          ),
+          foregroundColor: Colors.white,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.notifications_outlined),
+              onPressed: () {
+                // TODO: Show notifications
               },
             ),
-            const SizedBox(height: 20),
-
-            // Actions
-            Row(
-              children: [
-                Expanded(
-                  child: _ActionButton(
-                    icon: Icons.qr_code,
-                    label: 'My QR',
-                    onTap: () => _showQRCode(context, authProvider.user!.uid),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _ActionButton(
-                    icon: Icons.calendar_today,
-                    label: 'Schedule',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ScheduleManagementScreen()),
-                    ),
-                  ),
-                ),
-              ],
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () => _showSignOutConfirmation(context),
             ),
+          ],
+        ),
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: [
+            _buildDashboardContent(context, authProvider),
+            const DoctorProfileScreen(),
+          ],
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) => setState(() => _selectedIndex = index),
+          selectedItemColor: Colors.blue.shade700,
+          unselectedItemColor: Colors.grey.shade600,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard_outlined),
+              activeIcon: Icon(Icons.dashboard),
+              label: 'Dashboard',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-            const SizedBox(height: 20),
-            const Text('Recent Appointments', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+  Widget _buildDashboardContent(BuildContext context, AuthProvider authProvider) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Statistics Cards
+          _buildStatsSection(authProvider),
+          const SizedBox(height: 24),
+
+          // Quick Actions
+          _buildSectionTitle('Quick Actions'),
+          const SizedBox(height: 12),
+          _buildQuickActions(context),
+          const SizedBox(height: 24),
+
+          // Today's Appointments
+          _buildSectionTitle("Today's Appointments"),
+          const SizedBox(height: 12),
+          _buildAppointmentsList(authProvider),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsSection(AuthProvider authProvider) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('appointments')
+          .where('doctorId', isEqualTo: authProvider.user?.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        final totalAppointments = snapshot.data?.docs.length ?? 0;
+        final todayAppointments = snapshot.data?.docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final date = data['date'] as String?;
+          if (date == null) return false;
+          final now = DateTime.now();
+          final today = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+          return date == today;
+        }).length ?? 0;
+
+        return Row(
+          children: [
             Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('appointments')
-                    .where('doctorId', isEqualTo: authProvider.user?.uid)
-                    .orderBy('createdAt', descending: true)
-                    .limit(10)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+              child: _StatCard(
+                icon: Icons.calendar_today,
+                title: 'Today',
+                value: todayAppointments.toString(),
+                color: Colors.blue,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _StatCard(
+                icon: Icons.event_available,
+                title: 'Total',
+                value: totalAppointments.toString(),
+                color: Colors.green,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _StatCard(
+                icon: Icons.star,
+                title: 'Rating',
+                value: '4.9',
+                color: Colors.orange,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-                  return ListView.builder(
-                    itemCount: snapshot.data!.docs.length,
-                    itemBuilder: (context, index) {
-                      final data = snapshot.data!.docs[index].data() as Map<String, dynamic>;
-                      return ListTile(
-                        leading: const CircleAvatar(child: Icon(Icons.person)),
-                        title: Text(data['patientName'] ?? 'Patient'),
-                        subtitle: Text('${data['date']} • ${data['timeSlot']}'),
-                        trailing: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(data['status'] ?? 'confirmed', style: TextStyle(color: Colors.green.shade800)),
-                        ),
-                      );
-                    },
-                  );
+  Widget _buildQuickActions(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _ActionCard(
+                icon: Icons.qr_code,
+                title: 'My QR Code',
+                subtitle: 'Share with patients',
+                color: Colors.purple,
+                onTap: () => _showQRCode(context),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _ActionCard(
+                icon: Icons.calendar_today,
+                title: 'Schedule',
+                subtitle: 'Manage availability',
+                color: Colors.blue,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ScheduleManagementScreen(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _ActionCard(
+                icon: Icons.people,
+                title: 'Appointments',
+                subtitle: 'View all bookings',
+                color: Colors.green,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const DoctorAppointmentsScreen(),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _ActionCard(
+                icon: Icons.chat,
+                title: 'Messages',
+                subtitle: 'Patient chats',
+                color: Colors.orange,
+                onTap: () {
+                  // TODO: Navigate to messages
                 },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAppointmentsList(AuthProvider authProvider) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('appointments')
+          .where('doctorId', isEqualTo: authProvider.user?.uid)
+          .orderBy('createdAt', descending: true)
+          .limit(5)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return _buildEmptyState(
+            icon: Icons.calendar_today,
+            message: 'No appointments yet',
+          );
+        }
+
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: snapshot.data!.docs.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (context, index) {
+            final data = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+            return _AppointmentCard(
+              patientName: data['patientName'] ?? 'Unknown Patient',
+              date: data['date'] ?? 'No date',
+              time: data['timeSlot'] ?? 'No time',
+              status: data['status'] ?? 'pending',
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  Widget _buildEmptyState({required IconData icon, required String message}) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          children: [
+            Icon(icon, size: 48, color: Colors.grey.shade400),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 14,
               ),
             ),
           ],
@@ -122,18 +326,44 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
     );
   }
 
-  void _showQRCode(BuildContext context, String doctorId) {
+  void _showQRCode(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final doctorId = authProvider.user?.uid ?? '';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Your QR Code'),
-        content: SizedBox(
-          width: 200,
-          height: 220,
-          child: QrImageView(
-            data: doctorId,
-            size: 200,
-          ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.qr_code, color: Colors.blue),
+            SizedBox(width: 8),
+            Text('Your QR Code'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: QrImageView(
+                data: doctorId,
+                size: 200,
+                backgroundColor: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Share this QR code with your patients\nto connect instantly',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -144,48 +374,221 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
       ),
     );
   }
-}
 
-class _StatItem extends StatelessWidget {
-  final String label;
-  final String value;
-  const _StatItem(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        Text(label, style: TextStyle(color: Colors.grey.shade600)),
-      ],
+  Future<void> _showSignOutConfirmation(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.logout, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Sign Out'),
+          ],
+        ),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
     );
+
+    if (confirmed == true && context.mounted) {
+      await Provider.of<AuthProvider>(context, listen: false).signOut();
+    }
   }
 }
 
-class _ActionButton extends StatelessWidget {
+/// Stat Card Widget
+class _StatCard extends StatelessWidget {
   final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  const _ActionButton({required this.icon, required this.label, required this.onTap});
+  final String title;
+  final String value;
+  final Color color;
+
+  const _StatCard({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.blue.shade50,
-          borderRadius: BorderRadius.circular(12),
-        ),
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Icon(icon, size: 40, color: Colors.blue),
+            Icon(icon, color: color, size: 28),
             const SizedBox(height: 8),
-            Text(label),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+}
+
+/// Action Card Widget
+class _ActionCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Appointment Card Widget
+class _AppointmentCard extends StatelessWidget {
+  final String patientName;
+  final String date;
+  final String time;
+  final String status;
+
+  const _AppointmentCard({
+    required this.patientName,
+    required this.date,
+    required this.time,
+    required this.status,
+  });
+
+  Color _getStatusColor() {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'cancelled':
+        return Colors.red;
+      case 'completed':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: CircleAvatar(
+          backgroundColor: Colors.blue.shade100,
+          child: const Icon(Icons.person, color: Colors.blue),
+        ),
+        title: Text(
+          patientName,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          '$date • $time',
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: _getStatusColor().withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            status.capitalize(),
+            style: TextStyle(
+              color: _getStatusColor(),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// String extension for capitalize
+extension StringExtension on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }

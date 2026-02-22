@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 
 class AppLocalizations {
   final Locale locale;
@@ -11,7 +10,8 @@ class AppLocalizations {
         AppLocalizations(const Locale('en'));
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   // Check if current locale is RTL
   bool get isRTL => locale.languageCode == 'ar';
@@ -837,7 +837,8 @@ class AppLocalizations {
       'allergies': 'Аллергии',
       'chronicDiseases': 'Хронические заболевания',
       'russiaPrograms': 'Медицинские программы России',
-      'medicalTourismDesc': 'Откройте для себя лучшие медицинские центры России',
+      'medicalTourismDesc':
+          'Откройте для себя лучшие медицинские центры России',
       'viewPrograms': 'Посмотреть программы',
       'bookNow': 'Забронировать',
       'doctorManagement': 'Управление врачами',
@@ -911,11 +912,15 @@ class AppLocalizations {
       'repeatDays': 'Дни повторения',
       'reminderAdded': 'Напоминание успешно добавлено',
       'deleteReminder': 'Удалить напоминание',
-      'deleteReminderConfirm': 'Вы уверены, что хотите удалить это напоминание?',
+      'deleteReminderConfirm':
+          'Вы уверены, что хотите удалить это напоминание?',
     }
   };
 
-  String _get(String key) => _localizedValues[locale.languageCode]?[key] ?? _localizedValues['en']![key] ?? key;
+  String _get(String key) =>
+      _localizedValues[locale.languageCode]?[key] ??
+      _localizedValues['en']![key] ??
+      key;
 
   // --- Original Getters ---
   String get appTitle => _get('appTitle');
@@ -1223,14 +1228,17 @@ class AppLocalizations {
   String get deleteReminderConfirm => _get('deleteReminderConfirm');
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) => ['en', 'ar', 'ru'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      ['en', 'ar', 'ru'].contains(locale.languageCode);
 
   @override
-  Future<AppLocalizations> load(Locale locale) async => AppLocalizations(locale);
+  Future<AppLocalizations> load(Locale locale) async =>
+      AppLocalizations(locale);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;

@@ -50,7 +50,7 @@ class _ChatScreenState extends State<ChatScreen> {
         .where('senderId', isNotEqualTo: userId)
         .where('read', isEqualTo: false)
         .get();
-    
+
     for (var msg in messages.docs) {
       await msg.reference.update({'read': true});
     }
@@ -76,7 +76,10 @@ class _ChatScreenState extends State<ChatScreen> {
       'read': false,
     });
 
-    await FirebaseFirestore.instance.collection('chats').doc(widget.chatId).update({
+    await FirebaseFirestore.instance
+        .collection('chats')
+        .doc(widget.chatId)
+        .update({
       'lastMessage': text,
       'lastMessageAt': FieldValue.serverTimestamp(),
     });
@@ -125,12 +128,16 @@ class _ChatScreenState extends State<ChatScreen> {
           'read': false,
         });
 
-        await FirebaseFirestore.instance.collection('chats').doc(widget.chatId).update({
+        await FirebaseFirestore.instance
+            .collection('chats')
+            .doc(widget.chatId)
+            .update({
           'lastMessage': '📎 File',
           'lastMessageAt': FieldValue.serverTimestamp(),
         });
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Upload failed: $e')));
       } finally {
         setState(() => _isUploading = false);
       }
@@ -139,7 +146,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final currentUserId = Provider.of<AuthProvider>(context).user?.uid;
 
     return Scaffold(
@@ -148,7 +155,8 @@ class _ChatScreenState extends State<ChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.receiverName),
-            const Text('Online', style: TextStyle(fontSize: 12, color: Colors.green)),
+            const Text('Online',
+                style: TextStyle(fontSize: 12, color: Colors.green)),
           ],
         ),
       ),
@@ -176,10 +184,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 ],
               ),
             ),
-          
+
           // Upload Progress
-          if (_isUploading)
-            LinearProgressIndicator(value: _uploadProgress),
+          if (_isUploading) LinearProgressIndicator(value: _uploadProgress),
 
           // Messages
           Expanded(
@@ -191,8 +198,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   .orderBy('timestamp', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                
+                if (!snapshot.hasData)
+                  return const Center(child: CircularProgressIndicator());
+
                 final docs = snapshot.data!.docs;
                 return ListView.builder(
                   reverse: true,
@@ -214,19 +222,24 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           child: Text(
                             data['text'] ?? '',
-                            style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                            style: const TextStyle(
+                                fontSize: 12, fontStyle: FontStyle.italic),
                           ),
                         ),
                       );
                     }
 
                     return Align(
-                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      alignment:
+                          isMe ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: isMe ? Colors.blue.shade700 : Colors.grey.shade300,
+                          color: isMe
+                              ? Colors.blue.shade700
+                              : Colors.grey.shade300,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: data['type'] == 'file'
@@ -245,7 +258,9 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4)],
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4)
+              ],
             ),
             child: SafeArea(
               child: Row(
@@ -259,8 +274,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       controller: _messageController,
                       decoration: InputDecoration(
                         hintText: l10n.typeMessage,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24)),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                       ),
                     ),
                   ),
@@ -283,7 +300,8 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.insert_drive_file, color: isMe ? Colors.white : Colors.black),
+          Icon(Icons.insert_drive_file,
+              color: isMe ? Colors.white : Colors.black),
           const SizedBox(width: 8),
           Text(
             data['fileName'] ?? 'File',
@@ -297,9 +315,10 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildTextWithLinks(String text, bool isMe) {
     final urlRegExp = RegExp(r'https?://[^\s]+');
     final matches = urlRegExp.allMatches(text);
-    
+
     if (matches.isEmpty) {
-      return Text(text, style: TextStyle(color: isMe ? Colors.white : Colors.black));
+      return Text(text,
+          style: TextStyle(color: isMe ? Colors.white : Colors.black));
     }
 
     List<TextSpan> spans = [];
@@ -312,7 +331,7 @@ class _ChatScreenState extends State<ChatScreen> {
           style: TextStyle(color: isMe ? Colors.white : Colors.black),
         ));
       }
-      
+
       final url = text.substring(match.start, match.end);
       spans.add(TextSpan(
         text: url,
@@ -320,9 +339,10 @@ class _ChatScreenState extends State<ChatScreen> {
           color: isMe ? Colors.lightBlueAccent : Colors.blue,
           decoration: TextDecoration.underline,
         ),
-        recognizer: TapGestureRecognizer()..onTap = () => launchUrl(Uri.parse(url)),
+        recognizer: TapGestureRecognizer()
+          ..onTap = () => launchUrl(Uri.parse(url)),
       ));
-      
+
       lastMatchEnd = match.end;
     }
 

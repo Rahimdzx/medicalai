@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/language_provider.dart'; 
+import '../../providers/language_provider.dart';
 import '../../core/constants/colors.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -21,7 +21,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _priceController = TextEditingController();
-  
+
   String _role = 'patient';
   String? _selectedSpecialization;
   File? _imageFile;
@@ -51,10 +51,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     try {
-      final pickedFile = await picker.pickImage(
-        source: ImageSource.gallery, 
-        imageQuality: 50
-      );
+      final pickedFile =
+          await picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
       if (pickedFile != null) {
         setState(() => _imageFile = File(pickedFile.path));
       }
@@ -74,16 +72,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
-    
+    final languageProvider =
+        Provider.of<LanguageProvider>(context, listen: false);
+
     final error = await authProvider.signUpWithLocale(
       email: _emailController.text.trim(),
       password: _passwordController.text,
       name: _nameController.text.trim(),
       role: _role,
-      phone: _phoneController.text.trim().isEmpty ? "0000000000" : _phoneController.text.trim(),
+      phone: _phoneController.text.trim().isEmpty
+          ? "0000000000"
+          : _phoneController.text.trim(),
       locale: languageProvider.languageCode,
-      specialization: _role == 'doctor' ? (_selectedSpecialization ?? "General") : "", 
+      specialization:
+          _role == 'doctor' ? (_selectedSpecialization ?? "General") : "",
       price: _role == 'doctor' ? _priceController.text.trim() : "0",
       imageFile: _imageFile,
     );
@@ -93,13 +95,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error), 
+          content: Text(error),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
       );
     } else {
-      Navigator.of(context).pop(); 
+      Navigator.of(context).pop();
     }
   }
 
@@ -125,9 +127,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
               langProvider.changeLanguage(code);
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(value: 'en', child: Text('🇺🇸 English')),
-              const PopupMenuItem<String>(value: 'ar', child: Text('🇸🇦 العربية')),
-              const PopupMenuItem<String>(value: 'ru', child: Text('🇷🇺 Русский')),
+              const PopupMenuItem<String>(
+                  value: 'en', child: Text('🇺🇸 English')),
+              const PopupMenuItem<String>(
+                  value: 'ar', child: Text('🇸🇦 العربية')),
+              const PopupMenuItem<String>(
+                  value: 'ru', child: Text('🇷🇺 Русский')),
             ],
           ),
         ],
@@ -147,9 +152,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       CircleAvatar(
                         radius: 55,
                         backgroundColor: AppColors.primary.withOpacity(0.1),
-                        backgroundImage: _imageFile != null ? FileImage(_imageFile!) : null,
-                        child: _imageFile == null 
-                            ? const Icon(Icons.person, size: 60, color: AppColors.primary) 
+                        backgroundImage:
+                            _imageFile != null ? FileImage(_imageFile!) : null,
+                        child: _imageFile == null
+                            ? const Icon(Icons.person,
+                                size: 60, color: AppColors.primary)
                             : null,
                       ),
                       Positioned(
@@ -158,7 +165,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         child: CircleAvatar(
                           radius: 18,
                           backgroundColor: AppColors.primary,
-                          child: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
+                          child: const Icon(Icons.camera_alt,
+                              size: 18, color: Colors.white),
                         ),
                       ),
                     ],
@@ -166,7 +174,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              
+
               _buildTextField(
                 controller: _nameController,
                 label: l10n.fullName,
@@ -174,7 +182,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 enabled: !isLoading,
               ),
               const SizedBox(height: 16),
-              
+
               _buildTextField(
                 controller: _emailController,
                 label: l10n.email,
@@ -197,7 +205,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
               _buildTextField(
                 controller: _phoneController,
-                label: "Phone Number / رقم الهاتف", 
+                label: "Phone Number / رقم الهاتف",
                 icon: Icons.phone_android,
                 keyboardType: TextInputType.phone,
                 enabled: !isLoading,
@@ -206,30 +214,36 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
               // اختيار الدور
               DropdownButtonFormField<String>(
-                value: _role,
+                initialValue: _role,
                 items: [
-                  DropdownMenuItem(value: 'patient', child: Text(l10n.patient ?? "Patient")),
-                  DropdownMenuItem(value: 'doctor', child: Text(l10n.doctor ?? "Doctor")),
+                  DropdownMenuItem(
+                      value: 'patient', child: Text(l10n.patient ?? "Patient")),
+                  DropdownMenuItem(
+                      value: 'doctor', child: Text(l10n.doctor ?? "Doctor")),
                 ],
-                onChanged: isLoading ? null : (v) {
-                  setState(() {
-                    _role = v!;
-                    if (_role == 'patient') _selectedSpecialization = null;
-                  });
-                },
+                onChanged: isLoading
+                    ? null
+                    : (v) {
+                        setState(() {
+                          _role = v!;
+                          if (_role == 'patient')
+                            _selectedSpecialization = null;
+                        });
+                      },
                 decoration: InputDecoration(
                   labelText: "Role / الدور",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                   prefixIcon: const Icon(Icons.badge_outlined),
                 ),
               ),
-              
+
               // حقول إضافية للطبيب
               if (_role == 'doctor') ...[
                 const SizedBox(height: 16),
                 // ✅ خانة اختيار التخصص
                 DropdownButtonFormField<String>(
-                  value: _selectedSpecialization,
+                  initialValue: _selectedSpecialization,
                   hint: const Text("Select Specialization / اختر التخصص"),
                   items: _medicalSpecialties.map((String specialty) {
                     return DropdownMenuItem(
@@ -237,15 +251,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       child: Text(specialty),
                     );
                   }).toList(),
-                  onChanged: isLoading ? null : (v) => setState(() => _selectedSpecialization = v),
+                  onChanged: isLoading
+                      ? null
+                      : (v) => setState(() => _selectedSpecialization = v),
                   decoration: InputDecoration(
                     labelText: "Medical Specialization",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     prefixIcon: const Icon(Icons.medical_services_outlined),
                   ),
                   validator: (v) => v == null ? "Required" : null,
                 ),
-                
+
                 const SizedBox(height: 16),
                 // ✅ خانة السعر بالروبل
                 _buildTextField(
@@ -258,7 +275,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ],
 
               const SizedBox(height: 40),
-              
+
               // زر التسجيل
               SizedBox(
                 width: double.infinity,
@@ -268,12 +285,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
                     elevation: 0,
                   ),
-                  child: isLoading 
-                    ? const CircularProgressIndicator(color: Colors.white) 
-                    : Text(l10n.signUp, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text(l10n.signUp,
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

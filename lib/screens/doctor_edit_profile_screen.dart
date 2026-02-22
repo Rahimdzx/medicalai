@@ -11,18 +11,19 @@ class DoctorEditProfileScreen extends StatefulWidget {
   const DoctorEditProfileScreen({super.key});
 
   @override
-  State<DoctorEditProfileScreen> createState() => _DoctorEditProfileScreenState();
+  State<DoctorEditProfileScreen> createState() =>
+      _DoctorEditProfileScreenState();
 }
 
 class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  
+
   // وحدات التحكم بالنصوص
   late TextEditingController _nameController;
   late TextEditingController _priceController;
   late TextEditingController _scheduleController;
   String? _selectedSpecialty;
-  
+
   File? _imageFile;
   bool _isLoading = false;
   String? _currentPhotoUrl;
@@ -41,7 +42,7 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
   void initState() {
     super.initState();
     final user = Provider.of<AuthProvider>(context, listen: false).user;
-    
+
     // تحميل البيانات الحالية من Firestore
     _nameController = TextEditingController();
     _priceController = TextEditingController();
@@ -50,7 +51,8 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
   }
 
   void _loadCurrentData(String uid) async {
-    var doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    var doc =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
     if (doc.exists) {
       setState(() {
         _nameController.text = doc['name'] ?? '';
@@ -64,7 +66,8 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
 
   // اختيار صورة من الهاتف
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -84,7 +87,10 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
 
       // 1. رفع الصورة إلى Firebase Storage إذا تم اختيار صورة جديدة
       if (_imageFile != null) {
-        final ref = FirebaseStorage.instance.ref().child('doctor_photos').child('$uid.jpg');
+        final ref = FirebaseStorage.instance
+            .ref()
+            .child('doctor_photos')
+            .child('$uid.jpg');
         await ref.putFile(_imageFile!);
         photoUrl = await ref.getDownloadURL();
       }
@@ -98,10 +104,12 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
         'photoUrl': photoUrl,
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Success / Успешно")));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Success / Успешно")));
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Error: $e")));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -111,69 +119,80 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Edit Profile / Редактировать")),
-      body: _isLoading 
-        ? const Center(child: CircularProgressIndicator())
-        : SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  // اختيار الصورة
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: CircleAvatar(
-                      radius: 60,
-                      backgroundImage: _imageFile != null 
-                        ? FileImage(_imageFile!) as ImageProvider
-                        : (_currentPhotoUrl != null ? NetworkImage(_currentPhotoUrl!) : null),
-                      child: (_imageFile == null && _currentPhotoUrl == null)
-                        ? const Icon(Icons.camera_alt, size: 40)
-                        : null,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    // اختيار الصورة
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundImage: _imageFile != null
+                            ? FileImage(_imageFile!) as ImageProvider
+                            : (_currentPhotoUrl != null
+                                ? NetworkImage(_currentPhotoUrl!)
+                                : null),
+                        child: (_imageFile == null && _currentPhotoUrl == null)
+                            ? const Icon(Icons.camera_alt, size: 40)
+                            : null,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 30),
-                  
-                  // الاسم
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(labelText: "Full Name / Полное имя"),
-                  ),
-                  const SizedBox(height: 15),
+                    const SizedBox(height: 30),
 
-                  // قائمة التخصصات
-                  DropdownButtonFormField<String>(
-                    value: _selectedSpecialty,
-                    decoration: const InputDecoration(labelText: "Specialty / Специальность"),
-                    items: _specialties.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                    onChanged: (val) => setState(() => _selectedSpecialty = val),
-                  ),
-                  const SizedBox(height: 15),
+                    // الاسم
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                          labelText: "Full Name / Полное имя"),
+                    ),
+                    const SizedBox(height: 15),
 
-                  // السعر
-                  TextFormField(
-                    controller: _priceController,
-                    decoration: const InputDecoration(labelText: "Consultation Fee / Цена (USD)"),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 15),
+                    // قائمة التخصصات
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedSpecialty,
+                      decoration: const InputDecoration(
+                          labelText: "Specialty / Специальность"),
+                      items: _specialties
+                          .map(
+                              (s) => DropdownMenuItem(value: s, child: Text(s)))
+                          .toList(),
+                      onChanged: (val) =>
+                          setState(() => _selectedSpecialty = val),
+                    ),
+                    const SizedBox(height: 15),
 
-                  // المواعيد
-                  TextFormField(
-                    controller: _scheduleController,
-                    decoration: const InputDecoration(labelText: "Schedule / График (ex: Mon-Fri 9-5)"),
-                  ),
-                  
-                  const SizedBox(height: 40),
-                  ElevatedButton(
-                    onPressed: _saveProfile,
-                    style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-                    child: const Text("Save Changes / Сохранить"),
-                  )
-                ],
+                    // السعر
+                    TextFormField(
+                      controller: _priceController,
+                      decoration: const InputDecoration(
+                          labelText: "Consultation Fee / Цена (USD)"),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 15),
+
+                    // المواعيد
+                    TextFormField(
+                      controller: _scheduleController,
+                      decoration: const InputDecoration(
+                          labelText: "Schedule / График (ex: Mon-Fri 9-5)"),
+                    ),
+
+                    const SizedBox(height: 40),
+                    ElevatedButton(
+                      onPressed: _saveProfile,
+                      style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 50)),
+                      child: const Text("Save Changes / Сохранить"),
+                    )
+                  ],
+                ),
               ),
             ),
-          ),
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import '../models/chat_model.dart';
 
 class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -85,7 +84,7 @@ class ChatService {
         .where('senderId', isNotEqualTo: userId)
         .where('read', isEqualTo: false)
         .get();
-    
+
     for (var msg in messages.docs) {
       await msg.reference.update({'read': true});
     }
