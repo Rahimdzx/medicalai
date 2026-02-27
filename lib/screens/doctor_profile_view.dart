@@ -66,7 +66,7 @@ class DoctorProfileView extends StatelessWidget {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
-                        _infoTile(Icons.payments_outlined, "سعر الكشف", "${doctorData['price'] ?? '50'} DA"),
+                        _infoTile(Icons.payments_outlined, "سعر الكشف", "₽${doctorData['price'] ?? '50'}"),
                         const Divider(height: 30),
                         _infoTile(Icons.event_available_outlined, "المواعيد المتاحة", doctorData['schedule'] ?? "الأحد - الخميس"),
                       ],

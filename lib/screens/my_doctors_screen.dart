@@ -6,6 +6,7 @@ import '../models/doctor_model.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/loading_widgets.dart';
 import 'doctor_profile_screen.dart';
+import 'specialist_list_screen.dart';
 
 /// My Doctors Screen with professional UI and back button
 /// 
@@ -99,7 +100,10 @@ class _MyDoctorsScreenState extends State<MyDoctorsScreen> {
             title: 'No doctors yet',
             message: 'Book an appointment to see your doctors here',
             actionLabel: 'Find Doctors',
-            onAction: () => Navigator.pop(context),
+            onAction: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SpecialistListScreen()),
+            ),
           );
         }
 
@@ -212,9 +216,8 @@ class _MyDoctorsScreenState extends State<MyDoctorsScreen> {
                                         ),
                                       ),
                                       const SizedBox(width: 16),
-                                      Icon(Icons.attach_money, size: 16, color: Colors.green.shade700),
                                       Text(
-                                        '${doctor.price}',
+                                        '₽${doctor.price}',
                                         style: TextStyle(
                                           color: Colors.green.shade700,
                                           fontWeight: FontWeight.w600,

@@ -76,7 +76,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                           Text(' ${widget.doctor.rating}'),
                           const SizedBox(width: 16),
                           Text(
-                            '\$${widget.doctor.price}',
+                            '₽${widget.doctor.price}',
                             style: const TextStyle(
                               color: Colors.blue,
                               fontWeight: FontWeight.bold,
@@ -123,6 +123,45 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
               ),
             ),
           ),
+
+          // Book Appointment Button
+          if (_selectedDay != null)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _showTimeSlots(_selectedDay!),
+                  icon: const Icon(Icons.calendar_today),
+                  label: Text(l10n.scheduleAppointment),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade700,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Select a date to book appointment',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
+              ),
+            ),
 
           // Legal Links
           Padding(

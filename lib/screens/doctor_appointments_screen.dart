@@ -72,7 +72,7 @@ class DoctorAppointmentsScreen extends StatelessWidget {
                     children: [
                       const SizedBox(height: 5),
                       Text("Status: ${appointment['status']}"),
-                      Text("Price: ${appointment['price'] ?? '50'} USD"),
+                      Text("Price: ₽${appointment['price'] ?? '50'}"),
                     ],
                   ),
                   // قسم الأزرار الجانبية

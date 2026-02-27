@@ -321,13 +321,8 @@ class _DoctorCard extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                Icons.attach_money,
-                                size: 14,
-                                color: Colors.green.shade700,
-                              ),
                               Text(
-                                '${doctor.price}',
+                                '₽${doctor.price}',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
