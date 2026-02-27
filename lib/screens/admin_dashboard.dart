@@ -42,7 +42,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
                 if (snapshot.hasData) {
                   for (var doc in snapshot.data!.docs) {
-                    final role = doc['role'] ?? 'patient';
+                    final data = doc.data() as Map<String, dynamic>? ?? {};
+                    final role = data['role'] as String? ?? 'patient';
                     if (role == 'doctor') doctors++;
                     if (role == 'patient') patients++;
                   }
@@ -68,13 +69,49 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     .where('role', isEqualTo: 'doctor')
                     .snapshots(),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error loading doctors:\n${snapshot.error}',
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () => setState(() {}),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.people_outline, size: 48, color: Colors.grey),
+                          SizedBox(height: 16),
+                          Text('No doctors found'),
+                        ],
+                      ),
+                    );
+                  }
 
                   return ListView.builder(
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
                       final doc = snapshot.data!.docs[index];
-                      final data = doc.data() as Map<String, dynamic>;
+                      final data = doc.data() as Map<String, dynamic>? ?? {};
 
                       return Card(
                         child: ListTile(
@@ -89,7 +126,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.qr_code, color: Colors.blue),
-                                onPressed: () => _showQRCode(context, doc.id, data['name']),
+                                onPressed: () => _showQRCode(context, doc.id, data['name'] ?? 'Doctor'),
                               ),
                               IconButton(
                                 icon: const Icon(Icons.delete, color: Colors.red),
@@ -123,7 +160,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         child: Column(
           children: [
             Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color)),
-            Text(title, style: TextStyle(color: color)),
+            Text(title, style: TextStyle(color: color), textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -139,6 +176,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           width: 200,
           height: 220,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               QrImageView(data: doctorId, size: 200),
               const Text('Scan to book', style: TextStyle(fontSize: 12)),
@@ -170,8 +208,21 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
 
     if (confirm == true) {
-      await FirebaseFirestore.instance.collection('users').doc(doctorId).delete();
-      await FirebaseFirestore.instance.collection('doctors').doc(doctorId).delete();
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(doctorId).delete();
+        await FirebaseFirestore.instance.collection('doctors').doc(doctorId).delete();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Doctor deleted successfully')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error deleting doctor: $e')),
+          );
+        }
+      }
     }
   }
 
@@ -180,67 +231,165 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
     final specialtyController = TextEditingController();
+    final phoneController = TextEditingController();
+    bool isLoading = false;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add New Doctor'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Full Name')),
-              TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
-              TextField(
-                controller: passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-              ),
-              TextField(controller: specialtyController, decoration: const InputDecoration(labelText: 'Specialty')),
-            ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Add New Doctor'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Full Name',
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: passwordController,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: Icon(Icons.lock),
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: specialtyController,
+                  decoration: const InputDecoration(
+                    labelText: 'Specialty',
+                    prefixIcon: Icon(Icons.medical_services),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: phoneController,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone (optional)',
+                    prefixIcon: Icon(Icons.phone),
+                  ),
+                  keyboardType: TextInputType.phone,
+                ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: isLoading
+                  ? null
+                  : () async {
+                      // Validate inputs
+                      if (nameController.text.trim().isEmpty ||
+                          emailController.text.trim().isEmpty ||
+                          passwordController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please fill in all required fields')),
+                        );
+                        return;
+                      }
+
+                      if (passwordController.text.length < 6) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Password must be at least 6 characters')),
+                        );
+                        return;
+                      }
+
+                      setDialogState(() => isLoading = true);
+
+                      try {
+                        final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                          email: emailController.text.trim(),
+                          password: passwordController.text.trim(),
+                        );
+
+                        await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
+                          'name': nameController.text.trim(),
+                          'email': emailController.text.trim(),
+                          'phone': phoneController.text.trim(),
+                          'role': 'doctor',
+                          'createdAt': FieldValue.serverTimestamp(),
+                          'isOnline': false,
+                        });
+
+                        await FirebaseFirestore.instance.collection('doctors').doc(cred.user!.uid).set({
+                          'userId': cred.user!.uid,
+                          'name': nameController.text.trim(),
+                          'nameEn': nameController.text.trim(),
+                          'nameAr': nameController.text.trim(),
+                          'specialty': specialtyController.text.trim().isNotEmpty
+                              ? specialtyController.text.trim()
+                              : 'General',
+                          'specialtyEn': specialtyController.text.trim().isNotEmpty
+                              ? specialtyController.text.trim()
+                              : 'General',
+                          'specialtyAr': specialtyController.text.trim().isNotEmpty
+                              ? specialtyController.text.trim()
+                              : 'عام',
+                          'price': 50,
+                          'currency': 'RUB',
+                          'rating': 5.0,
+                          'doctorNumber': cred.user!.uid.substring(0, 8).toUpperCase(),
+                          'isActive': true,
+                          'createdAt': FieldValue.serverTimestamp(),
+                          'updatedAt': FieldValue.serverTimestamp(),
+                        });
+
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Doctor added successfully')),
+                          );
+                        }
+                      } on FirebaseAuthException catch (e) {
+                        setDialogState(() => isLoading = false);
+                        String errorMsg = 'Error creating doctor';
+                        if (e.code == 'email-already-in-use') {
+                          errorMsg = 'Email is already registered';
+                        } else if (e.code == 'invalid-email') {
+                          errorMsg = 'Invalid email address';
+                        } else if (e.code == 'weak-password') {
+                          errorMsg = 'Password is too weak';
+                        }
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(errorMsg)),
+                        );
+                      } catch (e) {
+                        setDialogState(() => isLoading = false);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: $e')),
+                        );
+                      }
+                    },
+              child: isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Add'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-                  email: emailController.text.trim(),
-                  password: passwordController.text.trim(),
-                );
-
-                await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
-                  'name': nameController.text.trim(),
-                  'email': emailController.text.trim(),
-                  'role': 'doctor',
-                  'createdAt': FieldValue.serverTimestamp(),
-                });
-
-                await FirebaseFirestore.instance.collection('doctors').doc(cred.user!.uid).set({
-                  'userId': cred.user!.uid,
-                  'name': nameController.text.trim(),
-                  'nameEn': nameController.text.trim(),
-                  'nameAr': nameController.text.trim(),
-                  'specialty': specialtyController.text.trim(),
-                  'specialtyEn': specialtyController.text.trim(),
-                  'specialtyAr': specialtyController.text.trim(),
-                  'price': 50,
-                  'currency': 'RUB',
-                  'rating': 5.0,
-                  'doctorNumber': cred.user!.uid.substring(0, 8).toUpperCase(),
-                  'isActive': true,
-                  'createdAt': FieldValue.serverTimestamp(),
-                });
-
-                Navigator.pop(context);
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
       ),
     );
   }

@@ -314,6 +314,22 @@ class AppLocalizations {
       'reminderAdded': 'Reminder added successfully',
       'deleteReminder': 'Delete Reminder',
       'deleteReminderConfirm': 'Are you sure you want to delete this reminder?',
+      // Profile & Settings
+      'myMedicalRecords': 'My Medical Records & Lab Results',
+      'changePassword': 'Change Password',
+      'currentPassword': 'Current Password',
+      'newPassword': 'New Password',
+      'confirmNewPassword': 'Confirm New Password',
+      'passwordChanged': 'Password changed successfully',
+      'passwordChangeFailed': 'Failed to change password',
+      'wrongCurrentPassword': 'Current password is incorrect',
+      'passwordsDoNotMatch': 'Passwords do not match',
+      'passwordTooWeak': 'Password is too weak (minimum 8 characters)',
+      'profileUpdated': 'Profile updated successfully',
+      'updateFailed': 'Update failed',
+      'dateOfBirth': 'Date of Birth',
+      'address': 'Address',
+      'phone': 'Phone',
     },
 
     // ---------------- Arabic ----------------
@@ -613,6 +629,22 @@ class AppLocalizations {
       'reminderAdded': 'تم إضافة التذكير بنجاح',
       'deleteReminder': 'حذف التذكير',
       'deleteReminderConfirm': 'هل أنت متأكد من حذف هذا التذكير؟',
+      // Profile & Settings
+      'myMedicalRecords': 'سجلاتي الطبية والتحاليل',
+      'changePassword': 'تغيير كلمة المرور',
+      'currentPassword': 'كلمة المرور الحالية',
+      'newPassword': 'كلمة المرور الجديدة',
+      'confirmNewPassword': 'تأكيد كلمة المرور الجديدة',
+      'passwordChanged': 'تم تغيير كلمة المرور بنجاح',
+      'passwordChangeFailed': 'فشل تغيير كلمة المرور',
+      'wrongCurrentPassword': 'كلمة المرور الحالية غير صحيحة',
+      'passwordsDoNotMatch': 'كلمات المرور غير متطابقة',
+      'passwordTooWeak': 'كلمة المرور ضعيفة جداً (8 أحرف على الأقل)',
+      'profileUpdated': 'تم تحديث الملف الشخصي',
+      'updateFailed': 'فشل التحديث',
+      'dateOfBirth': 'تاريخ الميلاد',
+      'address': 'العنوان',
+      'phone': 'الهاتف',
     },
 
     // ---------------- Russian ----------------
@@ -914,6 +946,22 @@ class AppLocalizations {
       'deleteReminder': 'Удалить напоминание',
       'deleteReminderConfirm':
           'Вы уверены, что хотите удалить это напоминание?',
+      // Profile & Settings
+      'myMedicalRecords': 'Мои медицинские записи и анализы',
+      'changePassword': 'Изменить пароль',
+      'currentPassword': 'Текущий пароль',
+      'newPassword': 'Новый пароль',
+      'confirmNewPassword': 'Подтвердите новый пароль',
+      'passwordChanged': 'Пароль успешно изменен',
+      'passwordChangeFailed': 'Не удалось изменить пароль',
+      'wrongCurrentPassword': 'Неверный текущий пароль',
+      'passwordsDoNotMatch': 'Пароли не совпадают',
+      'passwordTooWeak': 'Пароль слишком слабый (минимум 8 символов)',
+      'profileUpdated': 'Профиль обновлен',
+      'updateFailed': 'Не удалось обновить',
+      'dateOfBirth': 'Дата рождения',
+      'address': 'Адрес',
+      'phone': 'Телефон',
     }
   };
 
@@ -1226,6 +1274,23 @@ class AppLocalizations {
   String get reminderAdded => _get('reminderAdded');
   String get deleteReminder => _get('deleteReminder');
   String get deleteReminderConfirm => _get('deleteReminderConfirm');
+
+  // Profile & Settings
+  String get myMedicalRecords => _get('myMedicalRecords');
+  String get changePassword => _get('changePassword');
+  String get currentPassword => _get('currentPassword');
+  String get newPassword => _get('newPassword');
+  String get confirmNewPassword => _get('confirmNewPassword');
+  String get passwordChanged => _get('passwordChanged');
+  String get passwordChangeFailed => _get('passwordChangeFailed');
+  String get wrongCurrentPassword => _get('wrongCurrentPassword');
+  String get passwordsDoNotMatch => _get('passwordsDoNotMatch');
+  String get passwordTooWeak => _get('passwordTooWeak');
+  String get profileUpdated => _get('profileUpdated');
+  String get updateFailed => _get('updateFailed');
+  String get dateOfBirth => _get('dateOfBirth');
+  String get address => _get('address');
+  String get phone => _get('phone');
 }
 
 class _AppLocalizationsDelegate
