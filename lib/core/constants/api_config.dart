@@ -3,8 +3,12 @@ class ApiConfig {
   ApiConfig._();
 
   // Agora Video Call Configuration
-  // Note: In production, these should be loaded from environment variables
-  static const String agoraAppId = '068164ddaed64ec482c4dcbb6329786e';
+  // ⚠️ IMPORTANT: Replace with your own App ID from https://console.agora.io/
+  // To get your App ID:
+  // 1. Sign up at https://console.agora.io/
+  // 2. Create a new project
+  // 3. Copy the App ID and paste it below
+  static const String agoraAppId = '068164ddaed64ec482c4dcbb6329786e';  // ← Replace this!
 
   // Video Call Settings
   static const int videoWidth = 1280;

@@ -31,12 +31,14 @@ class _BookingScreenState extends State<BookingScreen> {
     final l10n = AppLocalizations.of(context);
     final dateStr = widget.date.toIso8601String().split('T')[0];
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Text(
             '${l10n.scheduleAppointment} - $dateStr',
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -50,7 +52,30 @@ class _BookingScreenState extends State<BookingScreen> {
           if (widget.availableSlots.isEmpty)
             Padding(
               padding: const EdgeInsets.all(20),
-              child: Center(child: Text(l10n.noAppointments)),
+              child: Column(
+                children: [
+                  Icon(Icons.event_busy, size: 64, color: Colors.grey.shade400),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No available slots for this date',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Please select another date',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             )
           else ...[
             Text(l10n.selectTime,
@@ -90,6 +115,7 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
           ],
         ],
+      ),
       ),
     );
   }

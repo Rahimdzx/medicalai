@@ -1,6 +1,8 @@
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../core/constants/api_config.dart';
+import 'agora_settings_screen.dart';
 
 class VideoCallScreen extends StatefulWidget {
   final String channelName;
@@ -32,13 +34,25 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
     // طلب الأذونات
     await [Permission.microphone, Permission.camera].request();
 
-    // إنشاء المحرك
-    _engine = createAgoraRtcEngine();
-    await _engine.initialize(const RtcEngineContext(
-      appId: "068164ddaed64ec482c4dcbb6329786e",
-      // التعديل هنا: استخدام Communication للمكالمات المباشرة
-      channelProfile: ChannelProfileType.channelProfileCommunication,
-    ));
+    try {
+      // Check if using default App ID
+      if (ApiConfig.agoraAppId == '068164ddaed64ec482c4dcbb6329786e') {
+        debugPrint('⚠️ WARNING: Using default Agora App ID. Video calls may not work in production.');
+      }
+      
+      // إنشاء المحرك
+      _engine = createAgoraRtcEngine();
+      await _engine.initialize(RtcEngineContext(
+        appId: ApiConfig.agoraAppId,
+        channelProfile: ChannelProfileType.channelProfileCommunication,
+      ));
+    } catch (e) {
+      debugPrint('❌ Error initializing Agora: $e');
+      if (mounted) {
+        _showErrorDialog('Failed to initialize video call. Please check your Agora settings.');
+      }
+      return;
+    }
 
     _engine.registerEventHandler(
       RtcEngineEventHandler(
@@ -55,19 +69,26 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
       ),
     );
 
-    await _engine.enableVideo();
-    await _engine.startPreview();
+    try {
+      await _engine.enableVideo();
+      await _engine.startPreview();
 
-    await _engine.joinChannel(
-      token: widget.token,
-      channelId: widget.channelName,
-      uid: 0,
-      options: const ChannelMediaOptions(
-        clientRoleType: ClientRoleType.clientRoleBroadcaster,
-        publishCameraTrack: true,
-        publishMicrophoneTrack: true,
-      ),
-    );
+      await _engine.joinChannel(
+        token: widget.token,
+        channelId: widget.channelName,
+        uid: 0,
+        options: const ChannelMediaOptions(
+          clientRoleType: ClientRoleType.clientRoleBroadcaster,
+          publishCameraTrack: true,
+          publishMicrophoneTrack: true,
+        ),
+      );
+    } catch (e) {
+      debugPrint('❌ Error joining channel: $e');
+      if (mounted) {
+        _showErrorDialog('Failed to join video call. Error: $e');
+      }
+    }
   }
 
   @override
@@ -75,6 +96,42 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
     _engine.leaveChannel();
     _engine.release();
     super.dispose();
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.error, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Video Call Error'),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text('Go Back'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AgoraSettingsScreen()),
+              );
+            },
+            child: const Text('Settings'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

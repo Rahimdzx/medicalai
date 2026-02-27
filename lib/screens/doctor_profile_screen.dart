@@ -108,7 +108,8 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                 _selectedDay = selectedDay;
                 _focusedDay = focusedDay;
               });
-              _showTimeSlots(selectedDay);
+              // Call after setState completes
+              Future.microtask(() => _showTimeSlots(selectedDay));
             },
             onFormatChanged: (format) =>
                 setState(() => _calendarFormat = format),
@@ -131,7 +132,10 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => _showTimeSlots(_selectedDay!),
+                  onPressed: () {
+                    debugPrint('Book button pressed! Date: $_selectedDay');
+                    _showTimeSlots(_selectedDay!);
+                  },
                   icon: const Icon(Icons.calendar_today),
                   label: Text(l10n.scheduleAppointment),
                   style: ElevatedButton.styleFrom(
@@ -249,21 +253,52 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   }
 
   void _showTimeSlots(DateTime date) async {
-    final slots = await DoctorService().getAvailableSlots(
-      widget.doctor.id,
-      date.toIso8601String().split('T')[0],
-    );
-
-    if (mounted) {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (context) => BookingScreen(
-          doctor: widget.doctor,
-          date: date,
-          availableSlots: slots,
-        ),
+    debugPrint('Loading slots for doctor: ${widget.doctor.id}, date: $date');
+    
+    try {
+      final slots = await DoctorService().getAvailableSlots(
+        widget.doctor.id,
+        date.toIso8601String().split('T')[0],
       );
+      
+      debugPrint('Found ${slots.length} slots');
+
+      if (mounted) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.white,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          builder: (BuildContext ctx) {
+            return SafeArea(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(ctx).viewInsets.bottom,
+                ),
+                child: BookingScreen(
+                  doctor: widget.doctor,
+                  date: date,
+                  availableSlots: slots,
+                ),
+              ),
+            );
+          },
+        );
+      }
+    } catch (e, stackTrace) {
+      debugPrint('Error loading slots: $e');
+      debugPrint(stackTrace.toString());
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading time slots. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }

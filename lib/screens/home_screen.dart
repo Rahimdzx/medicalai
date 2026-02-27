@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/doctor_service.dart';
 import '../widgets/custom_app_bar.dart';
+import 'agora_settings_screen.dart';
 import 'doctor_profile_screen.dart';
 import 'common/qr_share_scan_screen.dart';
 import 'specialist_list_screen.dart';
@@ -619,6 +620,16 @@ class _ProfileContent extends StatelessWidget {
                   trailing: Text(l10n.english),
                   onTap: () {
                     // TODO: Show language selector
+                  },
+                ),
+                _SettingsItem(
+                  icon: Icons.videocam_outlined,
+                  title: 'Video Call Settings',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AgoraSettingsScreen()),
+                    );
                   },
                 ),
               ],
