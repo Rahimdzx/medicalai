@@ -306,6 +306,19 @@ class AppLocalizations {
       // Missing keys for Medical History & Reminders
       'exportPdf': 'Export PDF',
       'noMedicalHistory': 'No medical history available',
+      'noRecentActivity': 'No recent activity',
+      'recentActivity': 'Recent Activity',
+      'viewAll': 'View All',
+      'scanQrOrEnterId': 'Scan QR code or enter doctor ID',
+      'enterDoctorId': 'Enter Doctor ID',
+      'doctorIdHint': 'e.g., ABC12345',
+      'doctorNotFound': 'Doctor not found',
+      'user': 'User',
+      'account': 'Account',
+      'preferences': 'Preferences',
+      'helpCenter': 'Help Center',
+      'signOut': 'Sign Out',
+      'signOutConfirmation': 'Are you sure you want to sign out?',
       'noReminders': 'No medication reminders',
       'addReminder': 'Add Reminder',
       'medicationName': 'Medication Name',
@@ -330,6 +343,30 @@ class AppLocalizations {
       'dateOfBirth': 'Date of Birth',
       'address': 'Address',
       'phone': 'Phone',
+      // Home Screen Additional Keys
+      'noRecentActivity': 'No recent activity',
+      'recentActivity': 'Recent Activity',
+      'viewAll': 'View All',
+      'viewYourDoctors': 'View your doctors',
+      'scanQrOrEnterId': 'Scan QR code or enter doctor ID',
+      'enterDoctorId': 'Enter Doctor ID',
+      'doctorIdHint': 'e.g., ABC12345',
+      'doctorNotFound': 'Doctor not found',
+      'user': 'User',
+      'account': 'Account',
+      'preferences': 'Preferences',
+      'helpCenter': 'Help Center',
+      'signOut': 'Sign Out',
+      'signOutConfirmation': 'Are you sure you want to sign out?',
+      // Doctor Profile Keys
+      'registrationRequired': 'Registration Required',
+      'pleaseLoginToBook': 'Please login to book an appointment.',
+      'serviceAgreement': 'Service Agreement',
+      'dataConsent': 'Data Consent',
+      // Missing keys for home screen actions
+      'connectWithDoctor': 'Connect with doctor',
+      'viewYourDoctors': 'View your doctors',
+      'myDoctors': 'My Doctors',
     },
 
     // ---------------- Arabic ----------------
@@ -621,6 +658,19 @@ class AppLocalizations {
       // Missing keys for Medical History & Reminders
       'exportPdf': 'تصدير PDF',
       'noMedicalHistory': 'لا يوجد تاريخ طبي متاح',
+      'noRecentActivity': 'لا توجد نشاطات حديثة',
+      'recentActivity': 'النشاط الحديث',
+      'viewAll': 'عرض الكل',
+      'scanQrOrEnterId': 'امسح رمز QR أو أدخل معرف الطبيب',
+      'enterDoctorId': 'أدخل معرف الطبيب',
+      'doctorIdHint': 'مثال: ABC12345',
+      'doctorNotFound': 'الطبيب غير موجود',
+      'user': 'المستخدم',
+      'account': 'الحساب',
+      'preferences': 'التفضيلات',
+      'helpCenter': 'مركز المساعدة',
+      'signOut': 'تسجيل الخروج',
+      'signOutConfirmation': 'هل أنت متأكد أنك تريد تسجيل الخروج؟',
       'noReminders': 'لا توجد تذكيرات أدوية',
       'addReminder': 'إضافة تذكير',
       'medicationName': 'اسم الدواء',
@@ -645,6 +695,30 @@ class AppLocalizations {
       'dateOfBirth': 'تاريخ الميلاد',
       'address': 'العنوان',
       'phone': 'الهاتف',
+      // Home Screen Additional Keys
+      'noRecentActivity': 'لا توجد نشاطات حديثة',
+      'recentActivity': 'النشاطات الحديثة',
+      'viewAll': 'عرض الكل',
+      'viewYourDoctors': 'عرض أطبائك',
+      'scanQrOrEnterId': 'امسح رمز QR أو أدخل معرف الطبيب',
+      'enterDoctorId': 'أدخل معرف الطبيب',
+      'doctorIdHint': 'مثال: ABC12345',
+      'doctorNotFound': 'الطبيب غير موجود',
+      'user': 'مستخدم',
+      'account': 'الحساب',
+      'preferences': 'التفضيلات',
+      'helpCenter': 'مركز المساعدة',
+      'signOut': 'تسجيل الخروج',
+      'signOutConfirmation': 'هل أنت متأكد من تسجيل الخروج؟',
+      // Doctor Profile Keys
+      'registrationRequired': 'التسجيل مطلوب',
+      'pleaseLoginToBook': 'يرجى تسجيل الدخول لحجز موعد.',
+      'serviceAgreement': 'اتفاقية الخدمة',
+      'dataConsent': 'موافقة البيانات',
+      // Missing keys for home screen actions
+      'connectWithDoctor': 'التواصل مع الطبيب',
+      'viewYourDoctors': 'عرض أطبائك',
+      'myDoctors': 'أطبائي',
     },
 
     // ---------------- Russian ----------------
@@ -937,6 +1011,19 @@ class AppLocalizations {
       // Missing keys for Medical History & Reminders
       'exportPdf': 'Экспорт PDF',
       'noMedicalHistory': 'Нет доступной медицинской истории',
+      'noRecentActivity': 'Нет недавней активности',
+      'recentActivity': 'Недавняя активность',
+      'viewAll': 'Смотреть все',
+      'scanQrOrEnterId': 'Отсканируйте QR-код или введите ID врача',
+      'enterDoctorId': 'Введите ID врача',
+      'doctorIdHint': 'например, ABC12345',
+      'doctorNotFound': 'Врач не найден',
+      'user': 'Пользователь',
+      'account': 'Аккаунт',
+      'preferences': 'Настройки',
+      'helpCenter': 'Центр помощи',
+      'signOut': 'Выйти',
+      'signOutConfirmation': 'Вы уверены, что хотите выйти?',
       'noReminders': 'Нет напоминаний о лекарствах',
       'addReminder': 'Добавить напоминание',
       'medicationName': 'Название лекарства',
@@ -962,6 +1049,30 @@ class AppLocalizations {
       'dateOfBirth': 'Дата рождения',
       'address': 'Адрес',
       'phone': 'Телефон',
+      // Home Screen Additional Keys
+      'noRecentActivity': 'Нет недавней активности',
+      'recentActivity': 'Недавняя активность',
+      'viewAll': 'Смотреть все',
+      'viewYourDoctors': 'Ваши врачи',
+      'scanQrOrEnterId': 'Отсканируйте QR-код или введите ID врача',
+      'enterDoctorId': 'Введите ID врача',
+      'doctorIdHint': 'например, ABC12345',
+      'doctorNotFound': 'Врач не найден',
+      'user': 'Пользователь',
+      'account': 'Аккаунт',
+      'preferences': 'Настройки',
+      'helpCenter': 'Центр помощи',
+      'signOut': 'Выйти',
+      'signOutConfirmation': 'Вы уверены, что хотите выйти?',
+      // Doctor Profile Keys
+      'registrationRequired': 'Требуется регистрация',
+      'pleaseLoginToBook': 'Войдите, чтобы записаться на прием.',
+      'serviceAgreement': 'Соглашение об услугах',
+      'dataConsent': 'Согласие на обработку данных',
+      // Missing keys for home screen actions
+      'connectWithDoctor': 'Связаться с врачом',
+      'viewYourDoctors': 'Ваши врачи',
+      'myDoctors': 'Мои врачи',
     }
   };
 
@@ -1274,6 +1385,23 @@ class AppLocalizations {
   String get reminderAdded => _get('reminderAdded');
   String get deleteReminder => _get('deleteReminder');
   String get deleteReminderConfirm => _get('deleteReminderConfirm');
+
+  // Home Screen Additional Keys
+  String get noRecentActivity => _get('noRecentActivity');
+  String get recentActivity => _get('recentActivity');
+  String get viewAll => _get('viewAll');
+  String get viewYourDoctors => _get('viewYourDoctors');
+  String get scanQrOrEnterId => _get('scanQrOrEnterId');
+  String get enterDoctorId => _get('enterDoctorId');
+  String get doctorIdHint => _get('doctorIdHint');
+  String get doctorNotFound => _get('doctorNotFound');
+  String get user => _get('user');
+  String get account => _get('account');
+  String get preferences => _get('preferences');
+  String get helpCenter => _get('helpCenter');
+  String get signOut => _get('signOut');
+  String get signOutConfirmation => _get('signOutConfirmation');
+  String get connectWithDoctor => _get('connectWithDoctor');
 
   // Profile & Settings
   String get myMedicalRecords => _get('myMedicalRecords');

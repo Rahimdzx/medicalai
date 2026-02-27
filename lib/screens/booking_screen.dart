@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../models/doctor_model.dart';
 import '../providers/auth_provider.dart';
 
@@ -27,6 +28,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final l10n = AppLocalizations.of(context);
     final dateStr = widget.date.toIso8601String().split('T')[0];
 
     return Container(
@@ -36,7 +38,7 @@ class _BookingScreenState extends State<BookingScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Book Appointment - $dateStr',
+            '${l10n.scheduleAppointment} - $dateStr',
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -46,13 +48,13 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
           const SizedBox(height: 16),
           if (widget.availableSlots.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(20),
-              child: Center(child: Text('No available slots for this date')),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Center(child: Text(l10n.noAppointments)),
             )
           else ...[
-            const Text('Available Time Slots:',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(l10n.selectTime,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -83,7 +85,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Confirm Booking'),
+                    : Text(l10n.confirmAppointment),
               ),
             ),
           ],
@@ -98,22 +100,36 @@ class _BookingScreenState extends State<BookingScreen> {
     try {
       final dateStr = widget.date.toIso8601String().split('T')[0];
 
-      await FirebaseFirestore.instance.collection('appointments').add({
+      // إنشاء الموعد في Firestore
+      final appointmentRef = await FirebaseFirestore.instance.collection('appointments').add({
         'doctorId': widget.doctor.id,
         'doctorName': widget.doctor.name,
         'patientId': authProvider.user!.uid,
         'patientName': authProvider.userName ?? 'Patient',
-        'date': dateStr,
+        'appointmentDate': dateStr,
         'timeSlot': _selectedSlot,
-        'status': 'confirmed',
+        'status': 'pending',  // يبدأ معلقاً حتى يؤكده الطبيب
+        'price': widget.doctor.price,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // إنشاء محادثة مرتبطة بالموعد
+      await FirebaseFirestore.instance.collection('chats').doc(appointmentRef.id).set({
+        'doctorId': widget.doctor.id,
+        'patientId': authProvider.user!.uid,
+        'doctorName': widget.doctor.name,
+        'patientName': authProvider.userName ?? 'Patient',
+        'appointmentId': appointmentRef.id,
+        'lastMessage': 'Appointment requested',
+        'lastMessageAt': FieldValue.serverTimestamp(),
         'createdAt': FieldValue.serverTimestamp(),
       });
 
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Appointment booked successfully!'),
+          SnackBar(
+            content: Text(l10n.appointmentConfirmed),
             backgroundColor: Colors.green,
           ),
         );
@@ -121,7 +137,7 @@ class _BookingScreenState extends State<BookingScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Booking failed: $e')),
+          SnackBar(content: Text('${l10n.failed}: $e')),
         );
       }
     } finally {

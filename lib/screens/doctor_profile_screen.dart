@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../models/doctor_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/locale_provider.dart';
@@ -26,10 +27,11 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   Widget build(BuildContext context) {
     final localeProvider = Provider.of<LocaleProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
+    final l10n = AppLocalizations.of(context);
     final locale = localeProvider.locale.languageCode;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Select Date')),
+      appBar: AppBar(title: Text(l10n.selectDate)),
       body: Column(
         children: [
           // Doctor Header
@@ -125,12 +127,14 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
           // Legal Links
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                _buildLegalLink('Service Agreement', 'offer'),
-                _buildLegalLink('Privacy Policy', 'privacy'),
-                _buildLegalLink('Data Consent', 'dataConsent'),
+                _buildLegalLink(l10n.serviceAgreement, 'offer'),
+                _buildLegalLink(l10n.privacyPolicy, 'privacy'),
+                _buildLegalLink(l10n.dataConsent, 'dataConsent'),
               ],
             ),
           ),
@@ -166,7 +170,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                   ),
                   ElevatedButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Close'),
+                    child: Text(l10n.close),
                   ),
                 ],
               ),
@@ -180,15 +184,16 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   }
 
   void _showAuthRequiredDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Registration Required'),
-        content: const Text('Please login to book an appointment.'),
+        title: Text(l10n.registrationRequired),
+        content: Text(l10n.pleaseLoginToBook),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -196,7 +201,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
               Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const LoginScreen()));
             },
-            child: const Text('Login'),
+            child: Text(l10n.login),
           ),
         ],
       ),

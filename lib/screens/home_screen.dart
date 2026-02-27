@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/doctor_service.dart';
@@ -47,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final l10n = AppLocalizations.of(context);
 
     return WillPopScope(
       onWillPop: () async {
@@ -58,12 +60,12 @@ class _HomeScreenState extends State<HomeScreen> {
         final shouldExit = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Exit App'),
-            content: const Text('Are you sure you want to exit MedicalAI?'),
+            title: Text(l10n.logout),
+            content: Text('${l10n.logout} MedicalAI?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: Text(l10n.cancel),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
@@ -71,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Exit'),
+                child: Text(l10n.yes),
               ),
             ],
           ),
@@ -86,26 +88,26 @@ class _HomeScreenState extends State<HomeScreen> {
           selectedItemColor: Colors.blue.shade700,
           unselectedItemColor: Colors.grey.shade600,
           type: BottomNavigationBarType.fixed,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Home',
+              icon: const Icon(Icons.home_outlined),
+              activeIcon: const Icon(Icons.home),
+              label: l10n.patientDashboard,
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.folder_outlined),
-              activeIcon: Icon(Icons.folder),
-              label: 'Records',
+              icon: const Icon(Icons.folder_outlined),
+              activeIcon: const Icon(Icons.folder),
+              label: l10n.myRecords,
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.people_outlined),
-              activeIcon: Icon(Icons.people),
-              label: 'My Doctors',
+              icon: const Icon(Icons.people_outlined),
+              activeIcon: const Icon(Icons.people),
+              label: l10n.myDoctors,
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
+              icon: const Icon(Icons.person_outline),
+              activeIcon: const Icon(Icons.person),
+              label: l10n.profile,
             ),
           ],
         ),
@@ -122,7 +124,8 @@ class _HomeContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final localeProvider = Provider.of<LocaleProvider>(context);
-    final userName = authProvider.userName ?? 'Patient';
+    final l10n = AppLocalizations.of(context);
+    final userName = authProvider.userName ?? l10n.patient;
 
     return CustomScrollView(
       slivers: [
@@ -159,9 +162,9 @@ class _HomeContent extends StatelessWidget {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'Welcome back,',
-                                    style: TextStyle(
+                                  Text(
+                                    l10n.welcomeBack,
+                                    style: const TextStyle(
                                       color: Colors.white70,
                                       fontSize: 14,
                                     ),
@@ -209,9 +212,9 @@ class _HomeContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Quick Actions',
-                  style: TextStyle(
+                Text(
+                  l10n.quickActions,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -227,15 +230,15 @@ class _HomeContent extends StatelessWidget {
                   children: [
                     _ActionCard(
                       icon: Icons.qr_code_scanner,
-                      title: 'Scan QR',
-                      subtitle: 'Connect with doctor',
+                      title: l10n.scanQR,
+                      subtitle: l10n.connectWithDoctor,
                       color: Colors.blue,
                       onTap: () => _showQrOptions(context),
                     ),
                     _ActionCard(
                       icon: Icons.search,
-                      title: 'Find Doctor',
-                      subtitle: 'Browse specialists',
+                      title: l10n.findDoctor,
+                      subtitle: l10n.findSpecialist,
                       color: Colors.green,
                       onTap: () => Navigator.push(
                         context,
@@ -244,8 +247,8 @@ class _HomeContent extends StatelessWidget {
                     ),
                     _ActionCard(
                       icon: Icons.medical_services,
-                      title: 'My Doctors',
-                      subtitle: 'View your doctors',
+                      title: l10n.myDoctors,
+                      subtitle: l10n.viewYourDoctors,
                       color: Colors.orange,
                       onTap: () => Navigator.push(
                         context,
@@ -254,8 +257,8 @@ class _HomeContent extends StatelessWidget {
                     ),
                     _ActionCard(
                       icon: Icons.flight,
-                      title: 'Medical Tourism',
-                      subtitle: 'Treatment abroad',
+                      title: l10n.medicalTourism,
+                      subtitle: l10n.medicalTourismDesc,
                       color: Colors.purple,
                       onTap: () => Navigator.push(
                         context,
@@ -280,9 +283,9 @@ class _HomeContent extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Recent Activity',
-                      style: TextStyle(
+                    Text(
+                      l10n.recentActivity,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -291,12 +294,12 @@ class _HomeContent extends StatelessWidget {
                       onPressed: () {
                         // TODO: View all activity
                       },
-                      child: const Text('View All'),
+                      child: Text(l10n.viewAll),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                _buildRecentActivityPlaceholder(),
+                _buildRecentActivityPlaceholder(context),
               ],
             ),
           ),
@@ -308,20 +311,21 @@ class _HomeContent extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentActivityPlaceholder() {
+  Widget _buildRecentActivityPlaceholder(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: const Padding(
-        padding: EdgeInsets.all(24),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
         child: Center(
           child: Column(
             children: [
-              Icon(Icons.history, size: 48, color: Colors.grey),
-              SizedBox(height: 12),
+              const Icon(Icons.history, size: 48, color: Colors.grey),
+              const SizedBox(height: 12),
               Text(
-                'No recent activity',
-                style: TextStyle(color: Colors.grey),
+                l10n.noRecentActivity,
+                style: const TextStyle(color: Colors.grey),
               ),
             ],
           ),
@@ -332,6 +336,7 @@ class _HomeContent extends StatelessWidget {
 
   void _showQrOptions(BuildContext context) {
     final doctorIdController = TextEditingController();
+    final l10n = AppLocalizations.of(context);
     
     showModalBottomSheet(
       context: context,
@@ -357,13 +362,13 @@ class _HomeContent extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
-                'Connect with Doctor',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                l10n.connectWithDoctor,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
-                'Scan QR code or enter doctor ID',
+                l10n.scanQrOrEnterId,
                 style: TextStyle(color: Colors.grey.shade600),
               ),
               const SizedBox(height: 24),
@@ -376,7 +381,7 @@ class _HomeContent extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.camera_alt),
-                label: const Text('Scan QR Code'),
+                label: Text(l10n.scanQR),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
                   backgroundColor: Colors.blue.shade700,
@@ -392,8 +397,8 @@ class _HomeContent extends StatelessWidget {
               TextField(
                 controller: doctorIdController,
                 decoration: InputDecoration(
-                  labelText: 'Enter Doctor ID',
-                  hintText: 'e.g., ABC12345',
+                  labelText: l10n.enterDoctorId,
+                  hintText: l10n.doctorIdHint,
                   prefixIcon: const Icon(Icons.person_search),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.arrow_forward),
@@ -411,8 +416,8 @@ class _HomeContent extends StatelessWidget {
                           );
                         } else if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Doctor not found'),
+                            SnackBar(
+                              content: Text(l10n.doctorNotFound),
                               backgroundColor: Colors.red,
                             ),
                           );
@@ -434,6 +439,7 @@ class _HomeContent extends StatelessWidget {
   }
 
   void _showLanguageSelector(BuildContext context, LocaleProvider provider) {
+    final l10n = AppLocalizations.of(context);
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -452,16 +458,16 @@ class _HomeContent extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.all(16),
               child: Text(
-                'Select Language',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                l10n.selectLanguage,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
             ListTile(
               leading: const Text('🇺🇸', style: TextStyle(fontSize: 24)),
-              title: const Text('English'),
+              title: Text(l10n.english),
               trailing: provider.locale.languageCode == 'en'
                   ? Icon(Icons.check, color: Colors.blue.shade700)
                   : null,
@@ -507,10 +513,11 @@ class _ProfileContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: 'Profile',
+      appBar: CustomAppBar(
+        title: l10n.profile,
         showBackButton: false,
       ),
       body: SingleChildScrollView(
@@ -532,7 +539,7 @@ class _ProfileContent extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      authProvider.userName ?? 'User',
+                      authProvider.userName ?? l10n.user,
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -554,7 +561,7 @@ class _ProfileContent extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        (authProvider.userRole ?? 'Patient').toUpperCase(),
+                        (authProvider.userRole ?? l10n.patient).toUpperCase(),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -570,11 +577,11 @@ class _ProfileContent extends StatelessWidget {
 
             // Settings List
             _SettingsSection(
-              title: 'Account',
+              title: l10n.account,
               items: [
                 _SettingsItem(
                   icon: Icons.person_outline,
-                  title: 'Edit Profile',
+                  title: l10n.editProfile,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -584,7 +591,7 @@ class _ProfileContent extends StatelessWidget {
                 ),
                 _SettingsItem(
                   icon: Icons.lock_outline,
-                  title: 'Change Password',
+                  title: l10n.changePassword,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -597,19 +604,19 @@ class _ProfileContent extends StatelessWidget {
             const SizedBox(height: 16),
 
             _SettingsSection(
-              title: 'Preferences',
+              title: l10n.preferences,
               items: [
                 _SettingsItem(
                   icon: Icons.notifications_outlined,
-                  title: 'Notifications',
+                  title: l10n.notifications,
                   onTap: () {
                     // TODO: Navigate to notifications settings
                   },
                 ),
                 _SettingsItem(
                   icon: Icons.language,
-                  title: 'Language',
-                  trailing: const Text('English'),
+                  title: l10n.language,
+                  trailing: Text(l10n.english),
                   onTap: () {
                     // TODO: Show language selector
                   },
@@ -619,18 +626,18 @@ class _ProfileContent extends StatelessWidget {
             const SizedBox(height: 16),
 
             _SettingsSection(
-              title: 'Support',
+              title: l10n.support,
               items: [
                 _SettingsItem(
                   icon: Icons.help_outline,
-                  title: 'Help Center',
+                  title: l10n.helpCenter,
                   onTap: () {
                     // TODO: Navigate to help
                   },
                 ),
                 _SettingsItem(
                   icon: Icons.info_outline,
-                  title: 'About',
+                  title: l10n.about,
                   onTap: () {
                     // TODO: Show about dialog
                   },
@@ -645,7 +652,7 @@ class _ProfileContent extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: () => _showSignOutConfirmation(context),
                 icon: const Icon(Icons.logout),
-                label: const Text('Sign Out'),
+                label: Text(l10n.signOut),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red.shade50,
                   foregroundColor: Colors.red.shade700,
@@ -664,21 +671,22 @@ class _ProfileContent extends StatelessWidget {
   }
 
   Future<void> _showSignOutConfirmation(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.logout, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Sign Out'),
+            const Icon(Icons.logout, color: Colors.red),
+            const SizedBox(width: 8),
+            Text(l10n.signOut),
           ],
         ),
-        content: const Text('Are you sure you want to sign out?'),
+        content: Text(l10n.signOutConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -686,7 +694,7 @@ class _ProfileContent extends StatelessWidget {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Sign Out'),
+            child: Text(l10n.signOut),
           ),
         ],
       ),

@@ -10,6 +10,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'providers/auth_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
+import 'l10n/app_localizations.dart';
 
 // Theme & Constants
 import 'core/theme/app_theme.dart';
@@ -78,6 +79,7 @@ class MedicalApp extends StatelessWidget {
             Locale('ru'),
           ],
           localizationsDelegates: const [
+            AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
