@@ -38,20 +38,53 @@ class DoctorService {
   }
 
   Future<List<Map<String, dynamic>>> getAvailableSlots(String doctorId, String date) async {
-    final doc = await _firestore
-        .collection('doctors')
-        .doc(doctorId)
-        .collection('schedule')
-        .doc(date)
-        .get();
-    
-    if (!doc.exists) return [];
-    
-    final data = doc.data() as Map<String, dynamic>;
-    if (data['isOpen'] != true) return [];
-    
-    final slots = data['slots'] as List<dynamic>? ?? [];
-    return slots.where((slot) => slot['booked'] != true).toList().cast<Map<String, dynamic>>();
+    try {
+      final doc = await _firestore
+          .collection('doctors')
+          .doc(doctorId)
+          .collection('schedule')
+          .doc(date)
+          .get();
+      
+      // If no schedule exists, return default slots
+      if (!doc.exists) {
+        return _getDefaultSlots();
+      }
+      
+      final data = doc.data() as Map<String, dynamic>?;
+      if (data == null) return _getDefaultSlots();
+      
+      if (data['isOpen'] != true) return [];
+      
+      final slots = data['slots'] as List<dynamic>?;
+      if (slots == null || slots.isEmpty) {
+        return _getDefaultSlots();
+      }
+      
+      return slots.where((slot) => slot['booked'] != true).toList().cast<Map<String, dynamic>>();
+    } catch (e) {
+      print('Error getting slots: $e');
+      // Return default slots on error
+      return _getDefaultSlots();
+    }
+  }
+  
+  // Default time slots if no schedule is set in Firestore
+  List<Map<String, dynamic>> _getDefaultSlots() {
+    return [
+      {'start': '09:00', 'end': '09:30', 'booked': false},
+      {'start': '09:30', 'end': '10:00', 'booked': false},
+      {'start': '10:00', 'end': '10:30', 'booked': false},
+      {'start': '10:30', 'end': '11:00', 'booked': false},
+      {'start': '11:00', 'end': '11:30', 'booked': false},
+      {'start': '11:30', 'end': '12:00', 'booked': false},
+      {'start': '14:00', 'end': '14:30', 'booked': false},
+      {'start': '14:30', 'end': '15:00', 'booked': false},
+      {'start': '15:00', 'end': '15:30', 'booked': false},
+      {'start': '15:30', 'end': '16:00', 'booked': false},
+      {'start': '16:00', 'end': '16:30', 'booked': false},
+      {'start': '16:30', 'end': '17:00', 'booked': false},
+    ];
   }
 
   Future<void> updateSchedule(String doctorId, String date, List<Map<String, dynamic>> slots, bool isOpen) async {
