@@ -38,7 +38,11 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue.shade50,
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade700, Colors.blue.shade500],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(20),
                 bottomRight: Radius.circular(20),
@@ -48,11 +52,12 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
               children: [
                 CircleAvatar(
                   radius: 40,
+                  backgroundColor: Colors.white,
                   backgroundImage: widget.doctor.photo != null
                       ? NetworkImage(widget.doctor.photo!)
                       : null,
                   child: widget.doctor.photo == null
-                      ? const Icon(Icons.person, size: 40)
+                      ? Icon(Icons.person, size: 40, color: Colors.blue.shade700)
                       : null,
                 ),
                 const SizedBox(width: 16),
@@ -63,24 +68,32 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                       Text(
                         'Dr. ${widget.doctor.getLocalizedName(locale)}',
                         style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
+                            fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                       Text(
                         widget.doctor.getLocalizedSpecialty(locale),
-                        style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                        style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 16),
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
                           const Icon(Icons.star, color: Colors.amber, size: 20),
-                          Text(' ${widget.doctor.rating}'),
+                          Text(' ${widget.doctor.rating}', 
+                              style: const TextStyle(color: Colors.white)),
                           const SizedBox(width: 16),
-                          Text(
-                            '₽${widget.doctor.price}',
-                            style: const TextStyle(
-                              color: Colors.blue,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '₽${widget.doctor.price}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                         ],

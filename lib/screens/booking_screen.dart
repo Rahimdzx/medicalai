@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/doctor_model.dart';
@@ -34,15 +35,36 @@ class _BookingScreenState extends State<BookingScreen> {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.all(20),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-          Text(
-            '${l10n.scheduleAppointment} - $dateStr',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with close button
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${l10n.scheduleAppointment}',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      dateStr,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
+              ),
+            ],
           ),
+          const Divider(),
           const SizedBox(height: 8),
           Text(
             'Dr. ${widget.doctor.name}',
@@ -78,24 +100,84 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             )
           else ...[
-            Text(l10n.selectTime,
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: widget.availableSlots.map((slot) {
-                final slotStr = '${slot['start']} - ${slot['end']}';
-                final isSelected = _selectedSlot == slotStr;
-                return ChoiceChip(
-                  label: Text(slotStr),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setState(() => _selectedSlot = selected ? slotStr : null);
-                  },
-                  selectedColor: Colors.blue.shade200,
-                );
-              }).toList(),
+            Row(
+              children: [
+                Text(l10n.selectTime,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                const Spacer(),
+                Text(
+                  '₽${widget.doctor.price}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green.shade700,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 3,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: widget.availableSlots.length,
+                itemBuilder: (context, index) {
+                  final slot = widget.availableSlots[index];
+                  final slotStr = '${slot['start']} - ${slot['end']}';
+                  final isSelected = _selectedSlot == slotStr;
+                  final isBooked = slot['booked'] == true;
+                  
+                  return Material(
+                    color: isBooked 
+                        ? Colors.grey.shade200 
+                        : isSelected 
+                            ? Colors.blue.shade700 
+                            : Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: isBooked 
+                          ? null 
+                          : () => setState(() => _selectedSlot = isSelected ? null : slotStr),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: isBooked 
+                                ? Colors.grey.shade300 
+                                : isSelected 
+                                    ? Colors.blue.shade700 
+                                    : Colors.grey.shade400,
+                            width: isSelected ? 2 : 1,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            slotStr,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isBooked 
+                                  ? Colors.grey.shade500 
+                                  : isSelected 
+                                      ? Colors.white 
+                                      : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -115,7 +197,6 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
           ],
         ],
-      ),
       ),
     );
   }
@@ -161,11 +242,39 @@ class _BookingScreenState extends State<BookingScreen> {
           backgroundColor: Colors.green,
         ),
       );
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      
+      String errorMessage;
+      switch (e.code) {
+        case 'permission-denied':
+          errorMessage = 'Permission denied. Please check your Firebase security rules or contact support.';
+          break;
+        case 'unauthenticated':
+          errorMessage = 'Please login again to book an appointment.';
+          break;
+        case 'unavailable':
+          errorMessage = 'Network error. Please check your internet connection.';
+          break;
+        default:
+          errorMessage = 'Error: ${e.message}';
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${l10n.failed}: $e')),
+        SnackBar(
+          content: Text('${l10n.failed}: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isBooking = false);
