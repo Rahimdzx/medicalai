@@ -346,7 +346,6 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
           );
         },
       );
-      }
     }
   }
 }
