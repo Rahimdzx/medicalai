@@ -1402,6 +1402,11 @@ class AppLocalizations {
   String get signOut => _get('signOut');
   String get signOutConfirmation => _get('signOutConfirmation');
   String get connectWithDoctor => _get('connectWithDoctor');
+  String get myDoctors => _get('myDoctors');
+  String get serviceAgreement => _get('serviceAgreement');
+  String get dataConsent => _get('dataConsent');
+  String get registrationRequired => _get('registrationRequired');
+  String get pleaseLoginToBook => _get('pleaseLoginToBook');
 
   // Profile & Settings
   String get myMedicalRecords => _get('myMedicalRecords');

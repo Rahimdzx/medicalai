@@ -95,6 +95,7 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Future<void> _bookAppointment(AuthProvider authProvider) async {
+    final l10n = AppLocalizations.of(context);
     setState(() => _isBooking = true);
 
     try {

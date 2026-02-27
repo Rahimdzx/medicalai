@@ -146,6 +146,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   Widget _buildLegalLink(String text, String docType) {
     return TextButton(
       onPressed: () {
+        final l10n = AppLocalizations.of(context);
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
