@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/auth_provider.dart' as app_auth;
 import '../../services/doctor_service.dart';
 import '../doctor_profile_screen.dart';
 
@@ -80,7 +80,7 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
       }
 
       // Get current user
-      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final auth = Provider.of<app_auth.AuthProvider>(context, listen: false);
       final patientId = auth.user?.uid;
 
       if (patientId == null) {
