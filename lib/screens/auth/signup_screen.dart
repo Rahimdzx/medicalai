@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../core/utils/error_handler.dart';
+import '../home_screen.dart';
+import '../admin_dashboard.dart';
+import '../dashboard/doctor_dashboard.dart';
 import 'login_screen.dart';
 
 /// Enhanced Signup Screen with Role Selection
@@ -582,16 +585,49 @@ class _SignupScreenState extends State<SignupScreen> {
     );
 
     // Handle result
-    if (error != null && mounted) {
+    if (error != null) {
+      if (!mounted) return;
       ErrorHandler.showErrorSnackBar(context, error);
-    } else if (mounted) {
-      // Success - show welcome message
-      ErrorHandler.showSuccessSnackBar(
-        context,
-        _selectedRole == 'doctor'
-            ? 'Doctor account created successfully! Welcome to MedicalAI.'
-            : 'Account created successfully! Welcome to MedicalAI.',
-      );
+      return;
+    }
+    
+    if (!mounted) return;
+    
+    // Success - show welcome message and navigate based on role
+    ErrorHandler.showSuccessSnackBar(
+      context,
+      _selectedRole == 'doctor'
+          ? 'Doctor account created successfully! Welcome to MedicalAI.'
+          : 'Account created successfully! Welcome to MedicalAI.',
+    );
+    
+    // Navigate to appropriate screen based on role
+    await Future.delayed(const Duration(seconds: 1));
+    
+    if (!mounted) return;
+    
+    switch (_selectedRole) {
+      case 'doctor':
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const DoctorDashboard()),
+          (route) => false,
+        );
+        break;
+      case 'admin':
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboard()),
+          (route) => false,
+        );
+        break;
+      default:
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (route) => false,
+        );
+        break;
     }
   }
 }

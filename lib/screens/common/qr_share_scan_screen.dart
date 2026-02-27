@@ -25,21 +25,48 @@ class QrShareScanScreen extends StatefulWidget {
 class _QrScanScreenState extends State<QrShareScanScreen> {
   bool _isScanning = true;
   bool _isProcessing = false;
+  bool _cameraReady = false;
+  MobileScannerController? _cameraController;
 
   @override
   void initState() {
     super.initState();
-    _checkPermission();
+    _initializeCamera();
   }
 
-  Future<void> _checkPermission() async {
+  Future<void> _initializeCamera() async {
+    // Check and request permission
     final status = await Permission.camera.request();
-    if (!status.isGranted && mounted) {
+    
+    if (!status.isGranted) {
+      if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Camera permission is required to scan QR codes')),
       );
       Navigator.pop(context);
+      return;
     }
+
+    // Initialize camera controller
+    _cameraController = MobileScannerController(
+      detectionSpeed: DetectionSpeed.normal,
+      facing: CameraFacing.back,
+      torchEnabled: false,
+    );
+
+    // Small delay to ensure camera is ready
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (mounted) {
+      setState(() => _cameraReady = true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _cameraController?.dispose();
+    super.dispose();
   }
 
   void _onDetect(BarcodeCapture capture) async {
@@ -234,10 +261,22 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
+      body: !_cameraReady
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Initializing camera...'),
+                ],
+              ),
+            )
+          : Stack(
+              children: [
           // Camera Preview
           MobileScanner(
+            controller: _cameraController,
             onDetect: _onDetect,
           ),
           
@@ -345,8 +384,8 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
                 ),
               ),
             ),
-        ],
-      ),
+          ],
+        ),
     );
   }
 

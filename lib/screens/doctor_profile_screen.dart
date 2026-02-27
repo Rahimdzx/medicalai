@@ -255,6 +255,13 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   void _showTimeSlots(DateTime date) async {
     debugPrint('Loading slots for doctor: ${widget.doctor.id}, date: $date');
     
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+    
     try {
       final slots = await DoctorService().getAvailableSlots(
         widget.doctor.id,
@@ -262,17 +269,24 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
       );
       
       debugPrint('Found ${slots.length} slots');
+      
+      // Close loading dialog
+      if (!mounted) return;
+      Navigator.pop(context);
 
-      if (mounted) {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.white,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          builder: (BuildContext ctx) {
-            return SafeArea(
+      if (!mounted) return;
+      
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (BuildContext ctx) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SafeArea(
               child: SingleChildScrollView(
                 padding: EdgeInsets.only(
                   bottom: MediaQuery.of(ctx).viewInsets.bottom,
@@ -283,13 +297,17 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                   availableSlots: slots,
                 ),
               ),
-            );
-          },
-        );
-      }
+            ),
+          );
+        },
+      );
     } catch (e, stackTrace) {
       debugPrint('Error loading slots: $e');
       debugPrint(stackTrace.toString());
+      
+      // Close loading dialog
+      if (!mounted) return;
+      Navigator.pop(context);
       
       // Even on error, show default slots
       final defaultSlots = [
@@ -301,16 +319,19 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
         {'start': '16:00', 'end': '16:30', 'booked': false},
       ];
       
-      if (mounted) {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.white,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          builder: (BuildContext ctx) {
-            return SafeArea(
+      if (!mounted) return;
+      
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (BuildContext ctx) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SafeArea(
               child: SingleChildScrollView(
                 padding: EdgeInsets.only(
                   bottom: MediaQuery.of(ctx).viewInsets.bottom,
@@ -321,9 +342,10 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                   availableSlots: defaultSlots,
                 ),
               ),
-            );
-          },
-        );
+            ),
+          );
+        },
+      );
       }
     }
   }

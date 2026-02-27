@@ -31,10 +31,10 @@ class _BookingScreenState extends State<BookingScreen> {
     final l10n = AppLocalizations.of(context);
     final dateStr = widget.date.toIso8601String().split('T')[0];
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Container(
-        padding: const EdgeInsets.all(20),
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(20),
+      child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,7 +116,6 @@ class _BookingScreenState extends State<BookingScreen> {
           ],
         ],
       ),
-      ),
     );
   }
 
@@ -152,21 +151,21 @@ class _BookingScreenState extends State<BookingScreen> {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.appointmentConfirmed),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      if (!mounted) return;
+      
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.appointmentConfirmed),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${l10n.failed}: $e')),
-        );
-      }
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${l10n.failed}: $e')),
+      );
     } finally {
       if (mounted) setState(() => _isBooking = false);
     }

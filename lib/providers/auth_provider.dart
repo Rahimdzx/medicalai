@@ -204,9 +204,11 @@ class AuthProvider extends ChangeNotifier {
         );
       }
 
-      // Update local state
+      // Update local state - IMPORTANT: Also update _user
+      _user = credential.user;
       _userModel = userModel;
       _isLoading = false;
+      _isInitializing = false;
       notifyListeners();
 
       return null; // Success - no error
