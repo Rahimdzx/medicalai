@@ -37,10 +37,17 @@ class PatientAppointmentsScreen extends StatelessWidget {
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(
-              child: Text(
-                "You haven't booked any appointments\nУ вас нет записей\nلم تقم بحجز أي مواعيد بعد",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey, fontSize: 16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.calendar_today, size: 80, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    "You haven't booked any appointments\nУ вас нет записей\nلم تقم بحجز أي مواعيد بعد",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                ],
               ),
             );
           }
@@ -52,67 +59,162 @@ class PatientAppointmentsScreen extends StatelessWidget {
               var appointmentDoc = snapshot.data!.docs[index];
               var appointment = appointmentDoc.data() as Map<String, dynamic>;
               var docId = appointmentDoc.id; // نفس الـ ID المستخدم عند الطبيب
+              var status = appointment['status'] ?? 'pending';
 
               return Card(
                 elevation: 3,
                 margin: const EdgeInsets.only(bottom: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(15),
-                  leading: CircleAvatar(
-                    backgroundColor: _getStatusColor(appointment['status']).withOpacity(0.2),
-                    child: Icon(Icons.medical_services, color: _getStatusColor(appointment['status'])),
-                  ),
-                  title: Text(
-                    "Doctor: ${appointment['doctorName'] ?? 'General Doctor'}",
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 5),
-                      Text("Status: ${appointment['status']}"),
-                      Text("Date: ${appointment['appointmentDate'] ?? 'Not set'}"),
-                    ],
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // زر الدردشة لإرسال التقارير (متاح دائماً للمريض)
-                      IconButton(
-                        icon: const Icon(Icons.chat_outlined, color: Colors.orange, size: 28),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ChatScreen(
-                                chatId: docId,
-                                appointmentId: docId,
-                                receiverName: appointment['doctorName'] ?? 'Doctor',
+                child: Column(
+                  children: [
+                    // Status Banner
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(status),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(15),
+                          topRight: Radius.circular(15),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _getStatusIcon(status),
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _getStatusText(status),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ListTile(
+                      contentPadding: const EdgeInsets.all(15),
+                      leading: CircleAvatar(
+                        backgroundColor: _getStatusColor(status).withOpacity(0.2),
+                        child: Icon(Icons.medical_services, color: _getStatusColor(status)),
+                      ),
+                      title: Text(
+                        "Doctor: ${appointment['doctorName'] ?? 'General Doctor'}",
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 5),
+                          Text("Date: ${appointment['date'] ?? 'Not set'}"),
+                          Text("Time: ${appointment['timeSlot'] ?? 'Not set'}"),
+                          if (status == 'pending') ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.orange.shade200),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 12,
+                                    height: 12,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Waiting for doctor approval',
+                                    style: TextStyle(fontSize: 12, color: Colors.orange),
+                                  ),
+                                ],
                               ),
                             ),
-                          );
-                        },
-                      ),
-
-                      // زر الفيديو يظهر للمريض فقط إذا وافق الطبيب (confirmed)
-                      if (appointment['status'] == 'confirmed')
-                        IconButton(
-                          icon: const Icon(Icons.videocam, color: Colors.blue, size: 30),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => VideoCallScreen(
-                                  channelName: docId, // نفس الغرفة
-                                  token: "",
-                                ),
+                          ],
+                          if (status == 'confirmed') ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.green.shade200),
                               ),
-                            );
-                          },
-                        ),
-                    ],
-                  ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.check_circle, size: 14, color: Colors.green),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'You can now chat with doctor',
+                                    style: TextStyle(fontSize: 12, color: Colors.green),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // زر الدردشة - متاح دائماً لكن يُفضل استخدامه بعد التأكيد
+                          IconButton(
+                            icon: Icon(
+                              Icons.chat_outlined,
+                              color: status == 'confirmed' ? Colors.green : Colors.orange,
+                              size: 28,
+                            ),
+                            tooltip: status == 'confirmed' 
+                                ? 'Chat with doctor' 
+                                : 'Chat (waiting for approval)',
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChatScreen(
+                                    chatId: docId,
+                                    appointmentId: docId,
+                                    receiverName: appointment['doctorName'] ?? 'Doctor',
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+
+                          // زر الفيديو يظهر فقط بعد تأكيد الموعد
+                          if (status == 'confirmed')
+                            IconButton(
+                              icon: const Icon(Icons.videocam, color: Colors.blue, size: 30),
+                              tooltip: 'Start video call',
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => VideoCallScreen(
+                                      channelName: docId,
+                                      token: "",
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               );
             },
@@ -123,8 +225,47 @@ class PatientAppointmentsScreen extends StatelessWidget {
   }
 
   Color _getStatusColor(String? status) {
-    if (status == 'pending') return Colors.orange;
-    if (status == 'confirmed') return Colors.green;
-    return Colors.grey;
+    switch (status) {
+      case 'pending':
+        return Colors.orange;
+      case 'confirmed':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      case 'completed':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getStatusIcon(String? status) {
+    switch (status) {
+      case 'pending':
+        return Icons.access_time;
+      case 'confirmed':
+        return Icons.check_circle;
+      case 'rejected':
+        return Icons.cancel;
+      case 'completed':
+        return Icons.done_all;
+      default:
+        return Icons.help;
+    }
+  }
+
+  String _getStatusText(String? status) {
+    switch (status) {
+      case 'pending':
+        return 'Pending Approval / В ожидании / في انتظار الموافقة';
+      case 'confirmed':
+        return 'Confirmed / Подтверждено / تم التأكيد';
+      case 'rejected':
+        return 'Rejected / Отклонено / مرفوض';
+      case 'completed':
+        return 'Completed / Завершено / مكتمل';
+      default:
+        return 'Unknown / Неизвестно / غير معروف';
+    }
   }
 }

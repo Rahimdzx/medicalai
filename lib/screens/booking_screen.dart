@@ -297,9 +297,11 @@ class _BookingScreenState extends State<BookingScreen> {
         'doctorName': widget.doctor.name,
         'patientName': authProvider.userName ?? 'Patient',
         'appointmentId': appointmentRef.id,
-        'lastMessage': 'Appointment requested',
+        'participants': [authProvider.user!.uid, widget.doctor.id], // مهم لصلاحيات Firestore
+        'lastMessage': 'Appointment requested - Waiting for doctor approval',
         'lastMessageAt': FieldValue.serverTimestamp(),
         'createdAt': FieldValue.serverTimestamp(),
+        'status': 'pending', // pending حتى يوافق الطبيب
       });
 
       // Add system message to the chat
@@ -308,12 +310,23 @@ class _BookingScreenState extends State<BookingScreen> {
           .doc(appointmentRef.id)
           .collection('messages')
           .add({
-        'text': 'Appointment requested for $dateStr at $_selectedSlot',
+        'text': 'Appointment requested for $dateStr at $_selectedSlot. Waiting for doctor approval.',
         'senderId': 'system',
         'senderRole': 'system',
-        'type': 'text',
+        'type': 'system',
         'timestamp': FieldValue.serverTimestamp(),
         'read': false,
+      });
+
+      // إنشاء إشعار للطبيب
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'userId': widget.doctor.id,
+        'title': 'New Appointment Request',
+        'body': '${authProvider.userName ?? 'A patient'} requested an appointment on $dateStr at $_selectedSlot',
+        'type': 'appointment_request',
+        'appointmentId': appointmentRef.id,
+        'read': false,
+        'createdAt': FieldValue.serverTimestamp(),
       });
 
       if (!mounted) return;

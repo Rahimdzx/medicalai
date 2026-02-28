@@ -140,9 +140,50 @@ class DoctorAppointmentsScreen extends StatelessWidget {
   // دالة تحديث حالة الموعد في Firestore
   Future<void> _confirmAppointment(BuildContext context, String id) async {
     try {
+      // الحصول على بيانات الموعد أولاً
+      final appointmentDoc = await FirebaseFirestore.instance.collection('appointments').doc(id).get();
+      final appointmentData = appointmentDoc.data();
+      
+      // تحديث حالة الموعد
       await FirebaseFirestore.instance.collection('appointments').doc(id).update({
-        'status': 'confirmed'
+        'status': 'confirmed',
+        'confirmedAt': FieldValue.serverTimestamp(),
       });
+      
+      // تحديث حالة المحادثة إلى active
+      await FirebaseFirestore.instance.collection('chats').doc(id).update({
+        'status': 'active',
+        'lastMessage': 'Appointment confirmed by doctor. You can now start chatting.',
+        'lastMessageAt': FieldValue.serverTimestamp(),
+      });
+      
+      // إضافة رسالة نظام للمحادثة
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(id)
+          .collection('messages')
+          .add({
+        'text': 'Appointment confirmed! You can now start the consultation.',
+        'senderId': 'system',
+        'senderRole': 'system',
+        'type': 'system',
+        'timestamp': FieldValue.serverTimestamp(),
+        'read': false,
+      });
+      
+      // إنشاء إشعار للمريض
+      if (appointmentData != null) {
+        await FirebaseFirestore.instance.collection('notifications').add({
+          'userId': appointmentData['patientId'],
+          'title': 'Appointment Confirmed',
+          'body': 'Dr. ${appointmentData['doctorName'] ?? 'Your doctor'} has confirmed your appointment. You can now start chatting.',
+          'type': 'appointment_confirmed',
+          'appointmentId': id,
+          'read': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+      
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Confirmed / Подтверждено / تم التأكيد")),
@@ -150,6 +191,11 @@ class DoctorAppointmentsScreen extends StatelessWidget {
       }
     } catch (e) {
       debugPrint("Error updating appointment: $e");
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 }
