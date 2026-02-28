@@ -2,13 +2,11 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/gestures.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../l10n/generated/app_localizations.dart';
+import '../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -16,6 +14,7 @@ class ChatScreen extends StatefulWidget {
   final String receiverName;
   final String appointmentId;
   final bool isRadiology;
+  final String? receiverId;
 
   const ChatScreen({
     super.key,
@@ -23,6 +22,7 @@ class ChatScreen extends StatefulWidget {
     required this.receiverName,
     required this.appointmentId,
     this.isRadiology = false,
+    this.receiverId,
   });
 
   @override
@@ -35,25 +35,91 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isUploading = false;
   double _uploadProgress = 0.0;
   bool _showInstructions = true;
+  bool _isInitializing = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _markMessagesAsRead();
+    _initializeChat();
+  }
+
+  /// Initialize chat by ensuring the chat document exists
+  Future<void> _initializeChat() async {
+    try {
+      setState(() {
+        _isInitializing = true;
+        _error = null;
+      });
+
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final currentUserId = authProvider.user?.uid;
+
+      if (currentUserId == null) {
+        setState(() {
+          _error = 'Not authenticated';
+          _isInitializing = false;
+        });
+        return;
+      }
+
+      // Check if chat document exists
+      final chatDoc = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(widget.chatId)
+          .get();
+
+      if (!chatDoc.exists) {
+        // Create the chat document
+        final receiverId = widget.receiverId ?? widget.appointmentId;
+        final participants = [currentUserId, receiverId]..sort();
+
+        await FirebaseFirestore.instance
+            .collection('chats')
+            .doc(widget.chatId)
+            .set({
+          'participants': participants,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'lastMessage': '',
+          'lastMessageAt': FieldValue.serverTimestamp(),
+          'patientId': authProvider.userRole == 'patient' ? currentUserId : receiverId,
+          'doctorId': authProvider.userRole == 'doctor' ? currentUserId : receiverId,
+        });
+      }
+
+      // Mark messages as read
+      _markMessagesAsRead();
+
+      setState(() {
+        _isInitializing = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to initialize chat: $e';
+        _isInitializing = false;
+      });
+    }
   }
 
   void _markMessagesAsRead() async {
-    final userId = Provider.of<AuthProvider>(context, listen: false).user?.uid;
-    final messages = await FirebaseFirestore.instance
-        .collection('chats')
-        .doc(widget.chatId)
-        .collection('messages')
-        .where('senderId', isNotEqualTo: userId)
-        .where('read', isEqualTo: false)
-        .get();
+    try {
+      final userId = Provider.of<AuthProvider>(context, listen: false).user?.uid;
+      if (userId == null) return;
 
-    for (var msg in messages.docs) {
-      await msg.reference.update({'read': true});
+      final messages = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .where('senderId', isNotEqualTo: userId)
+          .where('read', isEqualTo: false)
+          .get();
+
+      for (var msg in messages.docs) {
+        await msg.reference.update({'read': true});
+      }
+    } catch (e) {
+      debugPrint('Error marking messages as read: $e');
     }
   }
 
@@ -64,28 +130,66 @@ class _ChatScreenState extends State<ChatScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final user = authProvider.user;
     final userRole = authProvider.userRole ?? 'patient';
+    
     _messageController.clear();
 
-    await FirebaseFirestore.instance
-        .collection('chats')
-        .doc(widget.chatId)
-        .collection('messages')
-        .add({
-      'text': text,
-      'senderId': user?.uid,
-      'senderRole': userRole,
-      'type': 'text',
-      'timestamp': FieldValue.serverTimestamp(),
-      'read': false,
-    });
+    try {
+      // Ensure chat document exists before sending
+      final chatDoc = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(widget.chatId)
+          .get();
 
-    await FirebaseFirestore.instance
-        .collection('chats')
-        .doc(widget.chatId)
-        .update({
-      'lastMessage': text,
-      'lastMessageAt': FieldValue.serverTimestamp(),
-    });
+      if (!chatDoc.exists) {
+        // Create chat document
+        final receiverId = widget.receiverId ?? widget.appointmentId;
+        final participants = [user?.uid, receiverId]..sort();
+
+        await FirebaseFirestore.instance
+            .collection('chats')
+            .doc(widget.chatId)
+            .set({
+          'participants': participants,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'lastMessage': text,
+          'lastMessageAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      // Send the message
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .add({
+        'text': text,
+        'senderId': user?.uid,
+        'senderRole': userRole,
+        'type': 'text',
+        'timestamp': FieldValue.serverTimestamp(),
+        'read': false,
+      });
+
+      // Update chat metadata
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(widget.chatId)
+          .update({
+        'lastMessage': text,
+        'lastMessageAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send message: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _uploadFile() async {
@@ -231,6 +335,50 @@ class _ChatScreenState extends State<ChatScreen> {
     final l10n = AppLocalizations.of(context);
     final currentUserId = Provider.of<AuthProvider>(context).user?.uid;
 
+    // Show initialization loading
+    if (_isInitializing) {
+      return Scaffold(
+        appBar: AppBar(title: Text(widget.receiverName)),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Initializing chat...'),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Show error state
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(widget.receiverName)),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+              const SizedBox(height: 16),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _initializeChat,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -255,7 +403,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      l10n.radiologyInstructions,
+                      l10n.radiologyInstructions ?? 'Share your medical images and reports with the doctor',
                       style: const TextStyle(fontSize: 12),
                     ),
                   ),
@@ -298,6 +446,12 @@ class _ChatScreenState extends State<ChatScreen> {
                           style: TextStyle(color: Colors.grey.shade600),
                         ),
                         const SizedBox(height: 8),
+                        Text(
+                          '${snapshot.error}',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                        ),
+                        const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () => setState(() {}),
                           child: const Text('Retry'),
@@ -417,12 +571,13 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: TextField(
                       controller: _messageController,
                       decoration: InputDecoration(
-                        hintText: l10n.typeMessage,
+                        hintText: l10n.typeMessage ?? 'Type a message...',
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(24)),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
                       ),
+                      onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
                   IconButton(
@@ -440,16 +595,27 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildFileWidget(Map<String, dynamic> data, bool isMe) {
     return InkWell(
-      onTap: () => launchUrl(Uri.parse(data['fileUrl'])),
+      onTap: () async {
+        final url = data['fileUrl'];
+        if (url != null) {
+          final uri = Uri.parse(url);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+        }
+      },
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.insert_drive_file,
               color: isMe ? Colors.white : Colors.black),
           const SizedBox(width: 8),
-          Text(
-            data['fileName'] ?? 'File',
-            style: TextStyle(color: isMe ? Colors.white : Colors.black),
+          Flexible(
+            child: Text(
+              data['fileName'] ?? 'File',
+              style: TextStyle(color: isMe ? Colors.white : Colors.black),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -484,7 +650,12 @@ class _ChatScreenState extends State<ChatScreen> {
           decoration: TextDecoration.underline,
         ),
         recognizer: TapGestureRecognizer()
-          ..onTap = () => launchUrl(Uri.parse(url)),
+          ..onTap = () async {
+            final uri = Uri.parse(url);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          },
       ));
 
       lastMatchEnd = match.end;

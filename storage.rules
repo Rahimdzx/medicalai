@@ -1,0 +1,104 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ==================== HELPER FUNCTIONS ====================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function getUserRole() {
+      return request.auth.token.role;
+    }
+
+    // ==================== MEDICAL RECORDS ====================
+    
+    match /medical_records/{userId}/{fileName} {
+      allow read: if isAuthenticated() 
+        && (isOwner(userId) || getUserRole() == 'doctor' || getUserRole() == 'admin');
+      
+      allow write: if isAuthenticated() 
+        && isOwner(userId)
+        && request.resource.size < 100 * 1024 * 1024 // 100MB max
+        && (
+          request.resource.contentType.matches('image/.*') ||
+          request.resource.contentType.matches('application/pdf') ||
+          request.resource.contentType.matches('text/.*')
+        );
+    }
+
+    // ==================== PROFILE PICTURES ====================
+    
+    match /profile_pictures/{userId} {
+      allow read: if isAuthenticated();
+      
+      allow write: if isAuthenticated() 
+        && isOwner(userId)
+        && request.resource.size < 5 * 1024 * 1024 // 5MB max
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // ==================== CHAT ATTACHMENTS ====================
+    
+    match /chats/{chatId}/{fileName} {
+      allow read: if isAuthenticated();
+      
+      allow write: if isAuthenticated() 
+        && request.resource.size < 50 * 1024 * 1024 // 50MB max
+        && (
+          request.resource.contentType.matches('image/.*') ||
+          request.resource.contentType.matches('application/pdf') ||
+          request.resource.contentType.matches('text/.*') ||
+          request.resource.contentType.matches('application/msword') ||
+          request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        );
+    }
+
+    // ==================== RECORDS UPLOADS ====================
+    
+    match /records/{userId}/{recordId}/{fileName} {
+      allow read: if isAuthenticated()
+        && (isOwner(userId) || getUserRole() == 'doctor' || getUserRole() == 'admin');
+      
+      allow write: if isAuthenticated()
+        && isOwner(userId)
+        && request.resource.size < 100 * 1024 * 1024; // 100MB max
+    }
+
+    // ==================== TEMP UPLOADS ====================
+    
+    match /uploads/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() 
+        && isOwner(userId)
+        && request.resource.size < 50 * 1024 * 1024; // 50MB max
+    }
+
+    // ==================== RADIOLOGY IMAGES ====================
+    
+    match /radiology/{patientId}/{fileName} {
+      allow read: if isAuthenticated() 
+        && (isOwner(patientId) || getUserRole() == 'doctor' || getUserRole() == 'admin');
+      
+      allow write: if isAuthenticated() 
+        && (isOwner(patientId) || getUserRole() == 'doctor')
+        && request.resource.size < 50 * 1024 * 1024 // 50MB max
+        && (
+          request.resource.contentType.matches('image/.*') ||
+          request.resource.contentType.matches('application/dicom') ||
+          request.resource.contentType.matches('application/octet-stream')
+        );
+    }
+
+    // ==================== DEFAULT DENY ====================
+    
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

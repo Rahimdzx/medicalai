@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+/// Comprehensive App Localizations
+/// 
+/// Supports: English, Arabic, Russian
+/// All text in the app should use this class for proper localization
 class AppLocalizations {
   final Locale locale;
   AppLocalizations(this.locale);
@@ -19,6 +23,7 @@ class AppLocalizations {
   static final Map<String, Map<String, String>> _localizedValues = {
     // ---------------- English ----------------
     'en': {
+      // Core
       'appTitle': 'Medical App',
       'login': 'Login',
       'signUp': 'Sign Up',
@@ -63,7 +68,7 @@ class AppLocalizations {
       'searchHint': 'Search records...',
       'dateRange': 'Date Range',
       'results': 'Results',
-      'pointCameraToQR': 'Point camera to QR',
+      'pointCameraToQR': 'Point camera at doctor\'s QR code',
       'scannedSuccessfully': 'Scanned successfully',
       'scanAgain': 'Scan again',
       'checkUp': 'Check-up',
@@ -74,7 +79,7 @@ class AppLocalizations {
       'cancel': 'Cancel',
       'scanQR': 'Scan QR Code',
       'specialistConsultations': 'Specialist Consultations',
-      'myRecords': 'My Records',
+      'myRecords': 'My Medical Records',
       'medicalTourism': 'Medical Tourism in Russia',
       'yearsExperience': 'Years Experience',
       'rating': 'Rating',
@@ -93,7 +98,8 @@ class AppLocalizations {
       'typeMessage': 'Type a message...',
       'consultationPrice': 'Consultation Price',
       'uploading': 'Uploading...',
-      // New extended keys
+      
+      // Navigation & Common
       'welcome': 'Welcome',
       'welcomeBack': 'Welcome Back',
       'settings': 'Settings',
@@ -248,7 +254,6 @@ class AppLocalizations {
       'verifyDoctor': 'Verify Doctor',
       'doctorVerified': 'Doctor Verified',
       'pendingVerification': 'Pending Verification',
-      // Login & Auth Extended
       'welcomeToMedical': 'Welcome to Medical Portal',
       'signInToContinue': 'Sign in to continue',
       'forgotPassword': 'Forgot Password?',
@@ -256,7 +261,6 @@ class AppLocalizations {
       'orSignInWith': 'Or sign in with',
       'secureLogin': 'Secure Login',
       'enterCredentials': 'Enter your credentials',
-      // Doctor Dashboard Extended
       'dailyPatients': 'Daily Patients',
       'pendingConsultations': 'Pending Consultations',
       'completedToday': 'Completed Today',
@@ -274,7 +278,6 @@ class AppLocalizations {
       'videoConsultation': 'Video Consultation',
       'inPersonVisit': 'In-person Visit',
       'chatConsultation': 'Chat Consultation',
-      // Payment Extended
       'paymentProcessing': 'Processing Payment',
       'paymentAmount': 'Payment Amount',
       'consultationFee': 'Consultation Fee',
@@ -292,7 +295,6 @@ class AppLocalizations {
       'backToConsultation': 'Back to Consultation',
       'receiptSent': 'Receipt sent to your email',
       'transactionId': 'Transaction ID',
-      // Time & Scheduling
       'moscowTime': 'Moscow Time (MSK)',
       'localTime': 'Local Time',
       'selectTime': 'Select Time',
@@ -300,10 +302,8 @@ class AppLocalizations {
       'timeSlot': 'Time Slot',
       'duration': 'Duration',
       'minutes': 'minutes',
-      // Currency
       'rubles': 'Rubles',
       'rub': 'RUB',
-      // Missing keys for Medical History & Reminders
       'exportPdf': 'Export PDF',
       'noMedicalHistory': 'No medical history available',
       'noRecentActivity': 'No recent activity',
@@ -327,7 +327,6 @@ class AppLocalizations {
       'reminderAdded': 'Reminder added successfully',
       'deleteReminder': 'Delete Reminder',
       'deleteReminderConfirm': 'Are you sure you want to delete this reminder?',
-      // Profile & Settings
       'myMedicalRecords': 'My Medical Records & Lab Results',
       'changePassword': 'Change Password',
       'currentPassword': 'Current Password',
@@ -343,30 +342,44 @@ class AppLocalizations {
       'dateOfBirth': 'Date of Birth',
       'address': 'Address',
       'phone': 'Phone',
-      // Home Screen Additional Keys
-      'noRecentActivity': 'No recent activity',
-      'recentActivity': 'Recent Activity',
-      'viewAll': 'View All',
+      'connectWithDoctor': 'Connect with doctor',
       'viewYourDoctors': 'View your doctors',
-      'scanQrOrEnterId': 'Scan QR code or enter doctor ID',
-      'enterDoctorId': 'Enter Doctor ID',
-      'doctorIdHint': 'e.g., ABC12345',
-      'doctorNotFound': 'Doctor not found',
-      'user': 'User',
-      'account': 'Account',
-      'preferences': 'Preferences',
-      'helpCenter': 'Help Center',
-      'signOut': 'Sign Out',
-      'signOutConfirmation': 'Are you sure you want to sign out?',
-      // Doctor Profile Keys
+      'myDoctors': 'My Doctors',
       'registrationRequired': 'Registration Required',
       'pleaseLoginToBook': 'Please login to book an appointment.',
       'serviceAgreement': 'Service Agreement',
       'dataConsent': 'Data Consent',
-      // Missing keys for home screen actions
-      'connectWithDoctor': 'Connect with doctor',
-      'viewYourDoctors': 'View your doctors',
-      'myDoctors': 'My Doctors',
+      'notificationsComingSoon': 'Notifications coming soon',
+      'notAuthenticated': 'Not authenticated',
+      'exitApp': 'Exit App',
+      'exitAppConfirmation': 'Are you sure you want to exit?',
+      'exit': 'Exit',
+      'dashboard': 'Dashboard',
+      'saving': 'Saving...',
+      'myQRCode': 'My QR Code',
+      'shareWithPatients': 'Share with patients',
+      'schedule': 'Schedule',
+      'manageAvailability': 'Manage availability',
+      'viewAllBookings': 'View all bookings',
+      'patientChats': 'Patient chats',
+      'yourQRCode': 'Your QR Code',
+      'shareQRWithPatients': 'Share this QR code with your patients to connect instantly',
+      'share': 'Share',
+      'doctorId': 'Doctor ID',
+      'memberSince': 'Member Since',
+      'professionalInfo': 'Professional Info',
+      'specialty': 'Specialty',
+      'deleteRecord': 'Delete Record',
+      'deleteRecordConfirmation': 'Are you sure you want to delete this record?',
+      'recordDeleted': 'Record deleted successfully',
+      'deleteFailed': 'Delete failed',
+      'errorLoadingRecords': 'Error loading records',
+      'uploadedOn': 'Uploaded on',
+      'processing': 'Processing...',
+      'size': 'Size',
+      'view': 'View',
+      'pleaseLoginToContinue': 'Please login to continue',
+      'radiologyInstructions': 'Please upload clear images of your X-rays or scans. Supported formats: JPG, PNG, PDF.',
     },
 
     // ---------------- Arabic ----------------
@@ -415,7 +428,7 @@ class AppLocalizations {
       'searchHint': 'بحث في السجلات...',
       'dateRange': 'النطاق الزمني',
       'results': 'نتائج',
-      'pointCameraToQR': 'وجه الكاميرا نحو الرمز',
+      'pointCameraToQR': 'وجه الكاميرا نحو رمز QR',
       'scannedSuccessfully': 'تم المسح بنجاح',
       'scanAgain': 'امسح مرة أخرى',
       'checkUp': 'فحص طبي',
@@ -445,7 +458,6 @@ class AppLocalizations {
       'typeMessage': 'اكتب رسالة...',
       'consultationPrice': 'سعر الكشف',
       'uploading': 'جاري الرفع...',
-      // New extended keys
       'welcome': 'مرحباً',
       'welcomeBack': 'مرحباً بعودتك',
       'settings': 'الإعدادات',
@@ -600,7 +612,6 @@ class AppLocalizations {
       'verifyDoctor': 'تحقق من الطبيب',
       'doctorVerified': 'طبيب موثق',
       'pendingVerification': 'في انتظار التحقق',
-      // Login & Auth Extended
       'welcomeToMedical': 'مرحباً بك في البوابة الطبية',
       'signInToContinue': 'سجل الدخول للمتابعة',
       'forgotPassword': 'نسيت كلمة المرور؟',
@@ -608,7 +619,6 @@ class AppLocalizations {
       'orSignInWith': 'أو سجل الدخول باستخدام',
       'secureLogin': 'تسجيل دخول آمن',
       'enterCredentials': 'أدخل بيانات الاعتماد',
-      // Doctor Dashboard Extended
       'dailyPatients': 'المرضى اليوم',
       'pendingConsultations': 'الاستشارات المعلقة',
       'completedToday': 'مكتملة اليوم',
@@ -626,7 +636,6 @@ class AppLocalizations {
       'videoConsultation': 'استشارة فيديو',
       'inPersonVisit': 'زيارة شخصية',
       'chatConsultation': 'استشارة محادثة',
-      // Payment Extended
       'paymentProcessing': 'جاري معالجة الدفع',
       'paymentAmount': 'مبلغ الدفع',
       'consultationFee': 'رسوم الاستشارة',
@@ -644,7 +653,6 @@ class AppLocalizations {
       'backToConsultation': 'العودة للاستشارة',
       'receiptSent': 'تم إرسال الإيصال إلى بريدك',
       'transactionId': 'رقم المعاملة',
-      // Time & Scheduling
       'moscowTime': 'توقيت موسكو (MSK)',
       'localTime': 'التوقيت المحلي',
       'selectTime': 'اختر الوقت',
@@ -652,10 +660,8 @@ class AppLocalizations {
       'timeSlot': 'الفترة الزمنية',
       'duration': 'المدة',
       'minutes': 'دقائق',
-      // Currency
       'rubles': 'روبل',
       'rub': 'RUB',
-      // Missing keys for Medical History & Reminders
       'exportPdf': 'تصدير PDF',
       'noMedicalHistory': 'لا يوجد تاريخ طبي متاح',
       'noRecentActivity': 'لا توجد نشاطات حديثة',
@@ -670,7 +676,7 @@ class AppLocalizations {
       'preferences': 'التفضيلات',
       'helpCenter': 'مركز المساعدة',
       'signOut': 'تسجيل الخروج',
-      'signOutConfirmation': 'هل أنت متأكد أنك تريد تسجيل الخروج؟',
+      'signOutConfirmation': 'هل أنت متأكد من تسجيل الخروج؟',
       'noReminders': 'لا توجد تذكيرات أدوية',
       'addReminder': 'إضافة تذكير',
       'medicationName': 'اسم الدواء',
@@ -679,7 +685,6 @@ class AppLocalizations {
       'reminderAdded': 'تم إضافة التذكير بنجاح',
       'deleteReminder': 'حذف التذكير',
       'deleteReminderConfirm': 'هل أنت متأكد من حذف هذا التذكير؟',
-      // Profile & Settings
       'myMedicalRecords': 'سجلاتي الطبية والتحاليل',
       'changePassword': 'تغيير كلمة المرور',
       'currentPassword': 'كلمة المرور الحالية',
@@ -695,30 +700,43 @@ class AppLocalizations {
       'dateOfBirth': 'تاريخ الميلاد',
       'address': 'العنوان',
       'phone': 'الهاتف',
-      // Home Screen Additional Keys
-      'noRecentActivity': 'لا توجد نشاطات حديثة',
-      'recentActivity': 'النشاطات الحديثة',
-      'viewAll': 'عرض الكل',
+      'connectWithDoctor': 'التواصل مع الطبيب',
       'viewYourDoctors': 'عرض أطبائك',
-      'scanQrOrEnterId': 'امسح رمز QR أو أدخل معرف الطبيب',
-      'enterDoctorId': 'أدخل معرف الطبيب',
-      'doctorIdHint': 'مثال: ABC12345',
-      'doctorNotFound': 'الطبيب غير موجود',
-      'user': 'مستخدم',
-      'account': 'الحساب',
-      'preferences': 'التفضيلات',
-      'helpCenter': 'مركز المساعدة',
-      'signOut': 'تسجيل الخروج',
-      'signOutConfirmation': 'هل أنت متأكد من تسجيل الخروج؟',
-      // Doctor Profile Keys
+      'myDoctors': 'أطبائي',
       'registrationRequired': 'التسجيل مطلوب',
       'pleaseLoginToBook': 'يرجى تسجيل الدخول لحجز موعد.',
       'serviceAgreement': 'اتفاقية الخدمة',
       'dataConsent': 'موافقة البيانات',
-      // Missing keys for home screen actions
-      'connectWithDoctor': 'التواصل مع الطبيب',
-      'viewYourDoctors': 'عرض أطبائك',
-      'myDoctors': 'أطبائي',
+      'notificationsComingSoon': 'الإشعارات ستتوفر قريباً',
+      'notAuthenticated': 'غير مصرح',
+      'exitApp': 'خروج من التطبيق',
+      'exitAppConfirmation': 'هل أنت متأكد أنك تريد الخروج؟',
+      'exit': 'خروج',
+      'dashboard': 'لوحة التحكم',
+      'saving': 'جاري الحفظ...',
+      'myQRCode': 'رمز QR الخاص بي',
+      'shareWithPatients': 'شارك مع المرضى',
+      'schedule': 'الجدول',
+      'manageAvailability': 'إدارة التوفر',
+      'viewAllBookings': 'عرض جميع الحجوزات',
+      'patientChats': 'محادثات المرضى',
+      'yourQRCode': 'رمز QR الخاص بك',
+      'shareQRWithPatients': 'شارك هذا الرمز مع مرضاك للتواصل فوراً',
+      'share': 'مشاركة',
+      'memberSince': 'عضو منذ',
+      'professionalInfo': 'معلومات مهنية',
+      'specialty': 'التخصص',
+      'deleteRecord': 'حذف السجل',
+      'deleteRecordConfirmation': 'هل أنت متأكد أنك تريد حذف هذا السجل؟',
+      'recordDeleted': 'تم حذف السجل بنجاح',
+      'deleteFailed': 'فشل الحذف',
+      'errorLoadingRecords': 'خطأ في تحميل السجلات',
+      'uploadedOn': 'تم الرفع في',
+      'processing': 'جاري المعالجة...',
+      'size': 'الحجم',
+      'view': 'عرض',
+      'pleaseLoginToContinue': 'يرجى تسجيل الدخول للمتابعة',
+      'radiologyInstructions': 'يرجى تحميل صور واضحة للأشعة السينية أو الماسح الضوئي. الصيغ المدعومة: JPG، PNG، PDF.',
     },
 
     // ---------------- Russian ----------------
@@ -767,7 +785,7 @@ class AppLocalizations {
       'searchHint': 'Поиск записей...',
       'dateRange': 'Диапазон дат',
       'results': 'Результаты',
-      'pointCameraToQR': 'Наведите камеру на QR',
+      'pointCameraToQR': 'Наведите камеру на QR-код врача',
       'scannedSuccessfully': 'Успешно отсканировано',
       'scanAgain': 'Сканировать снова',
       'checkUp': 'Осмотр',
@@ -797,7 +815,6 @@ class AppLocalizations {
       'typeMessage': 'Введите сообщение...',
       'consultationPrice': 'Цена консультации',
       'uploading': 'Загрузка...',
-      // New extended keys
       'welcome': 'Добро пожаловать',
       'welcomeBack': 'С возвращением',
       'settings': 'Настройки',
@@ -943,8 +960,7 @@ class AppLocalizations {
       'allergies': 'Аллергии',
       'chronicDiseases': 'Хронические заболевания',
       'russiaPrograms': 'Медицинские программы России',
-      'medicalTourismDesc':
-          'Откройте для себя лучшие медицинские центры России',
+      'medicalTourismDesc': 'Откройте для себя лучшие медицинские центры России',
       'viewPrograms': 'Посмотреть программы',
       'bookNow': 'Забронировать',
       'doctorManagement': 'Управление врачами',
@@ -953,7 +969,6 @@ class AppLocalizations {
       'verifyDoctor': 'Верифицировать врача',
       'doctorVerified': 'Врач верифицирован',
       'pendingVerification': 'Ожидает верификации',
-      // Login & Auth Extended
       'welcomeToMedical': 'Добро пожаловать в Медицинский портал',
       'signInToContinue': 'Войдите для продолжения',
       'forgotPassword': 'Забыли пароль?',
@@ -961,7 +976,6 @@ class AppLocalizations {
       'orSignInWith': 'Или войдите через',
       'secureLogin': 'Безопасный вход',
       'enterCredentials': 'Введите данные для входа',
-      // Doctor Dashboard Extended
       'dailyPatients': 'Пациентов сегодня',
       'pendingConsultations': 'Ожидающие консультации',
       'completedToday': 'Завершено сегодня',
@@ -979,7 +993,6 @@ class AppLocalizations {
       'videoConsultation': 'Видеоконсультация',
       'inPersonVisit': 'Очный приём',
       'chatConsultation': 'Чат-консультация',
-      // Payment Extended
       'paymentProcessing': 'Обработка платежа',
       'paymentAmount': 'Сумма платежа',
       'consultationFee': 'Стоимость консультации',
@@ -997,7 +1010,6 @@ class AppLocalizations {
       'backToConsultation': 'Вернуться к консультации',
       'receiptSent': 'Чек отправлен на ваш email',
       'transactionId': 'Номер транзакции',
-      // Time & Scheduling
       'moscowTime': 'Московское время (MSK)',
       'localTime': 'Местное время',
       'selectTime': 'Выберите время',
@@ -1005,10 +1017,8 @@ class AppLocalizations {
       'timeSlot': 'Временной слот',
       'duration': 'Длительность',
       'minutes': 'минут',
-      // Currency
       'rubles': 'Рублей',
       'rub': 'RUB',
-      // Missing keys for Medical History & Reminders
       'exportPdf': 'Экспорт PDF',
       'noMedicalHistory': 'Нет доступной медицинской истории',
       'noRecentActivity': 'Нет недавней активности',
@@ -1031,9 +1041,7 @@ class AppLocalizations {
       'repeatDays': 'Дни повторения',
       'reminderAdded': 'Напоминание успешно добавлено',
       'deleteReminder': 'Удалить напоминание',
-      'deleteReminderConfirm':
-          'Вы уверены, что хотите удалить это напоминание?',
-      // Profile & Settings
+      'deleteReminderConfirm': 'Вы уверены, что хотите удалить это напоминание?',
       'myMedicalRecords': 'Мои медицинские записи и анализы',
       'changePassword': 'Изменить пароль',
       'currentPassword': 'Текущий пароль',
@@ -1049,30 +1057,43 @@ class AppLocalizations {
       'dateOfBirth': 'Дата рождения',
       'address': 'Адрес',
       'phone': 'Телефон',
-      // Home Screen Additional Keys
-      'noRecentActivity': 'Нет недавней активности',
-      'recentActivity': 'Недавняя активность',
-      'viewAll': 'Смотреть все',
+      'connectWithDoctor': 'Связаться с врачом',
       'viewYourDoctors': 'Ваши врачи',
-      'scanQrOrEnterId': 'Отсканируйте QR-код или введите ID врача',
-      'enterDoctorId': 'Введите ID врача',
-      'doctorIdHint': 'например, ABC12345',
-      'doctorNotFound': 'Врач не найден',
-      'user': 'Пользователь',
-      'account': 'Аккаунт',
-      'preferences': 'Настройки',
-      'helpCenter': 'Центр помощи',
-      'signOut': 'Выйти',
-      'signOutConfirmation': 'Вы уверены, что хотите выйти?',
-      // Doctor Profile Keys
+      'myDoctors': 'Мои врачи',
       'registrationRequired': 'Требуется регистрация',
       'pleaseLoginToBook': 'Войдите, чтобы записаться на прием.',
       'serviceAgreement': 'Соглашение об услугах',
       'dataConsent': 'Согласие на обработку данных',
-      // Missing keys for home screen actions
-      'connectWithDoctor': 'Связаться с врачом',
-      'viewYourDoctors': 'Ваши врачи',
-      'myDoctors': 'Мои врачи',
+      'notificationsComingSoon': 'Уведомления скоро будут доступны',
+      'notAuthenticated': 'Не авторизован',
+      'exitApp': 'Выход из приложения',
+      'exitAppConfirmation': 'Вы уверены, что хотите выйти?',
+      'exit': 'Выйти',
+      'dashboard': 'Панель',
+      'saving': 'Сохранение...',
+      'myQRCode': 'Мой QR-код',
+      'shareWithPatients': 'Поделиться с пациентами',
+      'schedule': 'Расписание',
+      'manageAvailability': 'Управление доступностью',
+      'viewAllBookings': 'Смотреть все записи',
+      'patientChats': 'Чаты с пациентами',
+      'yourQRCode': 'Ваш QR-код',
+      'shareQRWithPatients': 'Поделитесь этим QR-кодом с пациентами для мгновенного подключения',
+      'share': 'Поделиться',
+      'memberSince': 'Участник с',
+      'professionalInfo': 'Профессиональная информация',
+      'specialty': 'Специальность',
+      'deleteRecord': 'Удалить запись',
+      'deleteRecordConfirmation': 'Вы уверены, что хотите удалить эту запись?',
+      'recordDeleted': 'Запись успешно удалена',
+      'deleteFailed': 'Не удалось удалить',
+      'errorLoadingRecords': 'Ошибка загрузки записей',
+      'uploadedOn': 'Загружено',
+      'processing': 'Обработка...',
+      'size': 'Размер',
+      'view': 'Просмотр',
+      'pleaseLoginToContinue': 'Войдите для продолжения',
+      'radiologyInstructions': 'Пожалуйста, загрузите четкие изображения рентгеновских снимков. Поддерживаемые форматы: JPG, PNG, PDF.',
     }
   };
 
@@ -1081,7 +1102,7 @@ class AppLocalizations {
       _localizedValues['en']![key] ??
       key;
 
-  // --- Original Getters ---
+  // --- Core Getters ---
   String get appTitle => _get('appTitle');
   String get login => _get('login');
   String get signUp => _get('signUp');
@@ -1157,7 +1178,7 @@ class AppLocalizations {
   String get consultationPrice => _get('consultationPrice');
   String get uploading => _get('uploading');
 
-  // --- New Extended Getters ---
+  // --- Extended Getters ---
   String get welcome => _get('welcome');
   String get welcomeBack => _get('welcomeBack');
   String get settings => _get('settings');
@@ -1312,9 +1333,6 @@ class AppLocalizations {
   String get verifyDoctor => _get('verifyDoctor');
   String get doctorVerified => _get('doctorVerified');
   String get pendingVerification => _get('pendingVerification');
-
-  // --- New Extended Getters for Russian Market ---
-  // Login & Auth
   String get welcomeToMedical => _get('welcomeToMedical');
   String get signInToContinue => _get('signInToContinue');
   String get forgotPassword => _get('forgotPassword');
@@ -1322,8 +1340,6 @@ class AppLocalizations {
   String get orSignInWith => _get('orSignInWith');
   String get secureLogin => _get('secureLogin');
   String get enterCredentials => _get('enterCredentials');
-
-  // Doctor Dashboard
   String get dailyPatients => _get('dailyPatients');
   String get pendingConsultations => _get('pendingConsultations');
   String get completedToday => _get('completedToday');
@@ -1341,8 +1357,6 @@ class AppLocalizations {
   String get videoConsultation => _get('videoConsultation');
   String get inPersonVisit => _get('inPersonVisit');
   String get chatConsultation => _get('chatConsultation');
-
-  // Payment
   String get paymentProcessing => _get('paymentProcessing');
   String get paymentAmount => _get('paymentAmount');
   String get consultationFee => _get('consultationFee');
@@ -1360,8 +1374,6 @@ class AppLocalizations {
   String get backToConsultation => _get('backToConsultation');
   String get receiptSent => _get('receiptSent');
   String get transactionId => _get('transactionId');
-
-  // Time & Scheduling
   String get moscowTime => _get('moscowTime');
   String get localTime => _get('localTime');
   String get selectTime => _get('selectTime');
@@ -1369,12 +1381,8 @@ class AppLocalizations {
   String get timeSlot => _get('timeSlot');
   String get duration => _get('duration');
   String get minutes => _get('minutes');
-
-  // Currency
   String get rubles => _get('rubles');
   String get rub => _get('rub');
-
-  // Missing keys for Medical History & Reminders
   String get exportPdf => _get('exportPdf');
   String get noMedicalHistory => _get('noMedicalHistory');
   String get noReminders => _get('noReminders');
@@ -1385,8 +1393,6 @@ class AppLocalizations {
   String get reminderAdded => _get('reminderAdded');
   String get deleteReminder => _get('deleteReminder');
   String get deleteReminderConfirm => _get('deleteReminderConfirm');
-
-  // Home Screen Additional Keys
   String get noRecentActivity => _get('noRecentActivity');
   String get recentActivity => _get('recentActivity');
   String get viewAll => _get('viewAll');
@@ -1407,8 +1413,6 @@ class AppLocalizations {
   String get dataConsent => _get('dataConsent');
   String get registrationRequired => _get('registrationRequired');
   String get pleaseLoginToBook => _get('pleaseLoginToBook');
-
-  // Profile & Settings
   String get myMedicalRecords => _get('myMedicalRecords');
   String get changePassword => _get('changePassword');
   String get currentPassword => _get('currentPassword');
@@ -1424,6 +1428,39 @@ class AppLocalizations {
   String get dateOfBirth => _get('dateOfBirth');
   String get address => _get('address');
   String get phone => _get('phone');
+
+  // --- New Getters for missing strings ---
+  String get notificationsComingSoon => _get('notificationsComingSoon');
+  String get notAuthenticated => _get('notAuthenticated');
+  String get exitApp => _get('exitApp');
+  String get exitAppConfirmation => _get('exitAppConfirmation');
+  String get exit => _get('exit');
+  String get dashboard => _get('dashboard');
+  String get saving => _get('saving');
+  String get myQRCode => _get('myQRCode');
+  String get shareWithPatients => _get('shareWithPatients');
+  String get schedule => _get('schedule');
+  String get manageAvailability => _get('manageAvailability');
+  String get viewAllBookings => _get('viewAllBookings');
+  String get patientChats => _get('patientChats');
+  String get yourQRCode => _get('yourQRCode');
+  String get shareQRWithPatients => _get('shareQRWithPatients');
+  String get share => _get('share');
+  String get doctorId => _get('doctorId');
+  String get memberSince => _get('memberSince');
+  String get professionalInfo => _get('professionalInfo');
+  String get specialty => _get('specialty');
+  String get deleteRecord => _get('deleteRecord');
+  String get deleteRecordConfirmation => _get('deleteRecordConfirmation');
+  String get recordDeleted => _get('recordDeleted');
+  String get deleteFailed => _get('deleteFailed');
+  String get errorLoadingRecords => _get('errorLoadingRecords');
+  String get uploadedOn => _get('uploadedOn');
+  String get processing => _get('processing');
+  String get size => _get('size');
+  String get view => _get('view');
+  String get pleaseLoginToContinue => _get('pleaseLoginToContinue');
+  String get radiologyInstructions => _get('radiologyInstructions');
 }
 
 class _AppLocalizationsDelegate

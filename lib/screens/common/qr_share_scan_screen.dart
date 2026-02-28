@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart' as app_auth;
 import '../../services/doctor_service.dart';
+import '../../models/doctor_model.dart';
 import '../doctor_profile_screen.dart';
 
 /// QR Code Scanner Screen for Patients
@@ -115,11 +116,24 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
         return;
       }
 
+      // Show loading
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+
       // Verify doctor exists and get their data
       final doctorDoc = await FirebaseFirestore.instance
           .collection('doctors')
           .doc(doctorId)
           .get();
+
+      if (!mounted) return;
 
       if (!doctorDoc.exists) {
         // Try users collection as fallback
@@ -129,43 +143,70 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
             .get();
 
         if (!userDoc.exists) {
+          Navigator.pop(context); // Close loading
           _showError('Doctor not found. Please check the QR code and try again.');
           return;
         }
 
         final userData = userDoc.data() as Map<String, dynamic>?;
         if (userData?['role'] != 'doctor') {
+          Navigator.pop(context); // Close loading
           _showError('This QR code does not belong to a doctor.');
           return;
         }
 
         // Doctor exists in users collection, ensure they have a doctor profile
         await _addDoctorToPatient(patientId, doctorId, userData?['name'] ?? 'Unknown Doctor');
+        Navigator.pop(context); // Close loading
+        
+        // Create minimal doctor data and navigate
+        final limitedDoctor = await _createLimitedDoctorData(doctorId);
+        if (limitedDoctor != null && mounted) {
+          _showSuccessAndNavigate(limitedDoctor);
+        }
       } else {
         // Doctor found in doctors collection
         final doctorData = doctorDoc.data() as Map<String, dynamic>?;
         final doctorName = doctorData?['name'] ?? 'Unknown Doctor';
         
         await _addDoctorToPatient(patientId, doctorId, doctorName);
-      }
+        Navigator.pop(context); // Close loading
 
-      // Get full doctor data for navigation
-      final doctor = await DoctorService().getDoctorById(doctorId);
+        // Try to get full doctor data using DoctorService
+        try {
+          final doctor = await DoctorService().getDoctorById(doctorId);
 
-      if (doctor != null && mounted) {
-        _showSuccessAndNavigate(doctor);
-      } else if (mounted) {
-        // Doctor exists but full profile couldn't be loaded
-        // Navigate with limited data from Firestore
-        final limitedDoctorData = await _createLimitedDoctorData(doctorId);
-        if (limitedDoctorData != null) {
-          _showSuccessAndNavigate(limitedDoctorData);
-        } else {
-          _showError('Doctor found but could not load profile. Please try again.');
+          if (doctor != null && mounted) {
+            _showSuccessAndNavigate(doctor);
+          } else if (mounted) {
+            // Doctor exists but full profile couldn't be loaded
+            // Navigate with limited data from Firestore
+            final limitedDoctor = await _createLimitedDoctorData(doctorId);
+            if (limitedDoctor != null) {
+              _showSuccessAndNavigate(limitedDoctor);
+            } else {
+              _showError('Doctor found but could not load profile. Please try again.');
+            }
+          }
+        } catch (e) {
+          debugPrint('Error loading doctor via service: $e');
+          // Fallback to limited data
+          if (mounted) {
+            final limitedDoctor = await _createLimitedDoctorData(doctorId);
+            if (limitedDoctor != null) {
+              _showSuccessAndNavigate(limitedDoctor);
+            } else {
+              _showError('Doctor found but could not load profile. Please try again.');
+            }
+          }
         }
       }
     } catch (e) {
       debugPrint('Error processing QR code: $e');
+      if (mounted) {
+        // Close loading if showing
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
       _showError('Error processing QR code: $e');
     } finally {
       if (mounted) {
@@ -205,7 +246,7 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
   }
 
   /// Creates a minimal doctor object from Firestore data when full model fails to load
-  Future<dynamic> _createLimitedDoctorData(String doctorId) async {
+  Future<DoctorModel?> _createLimitedDoctorData(String doctorId) async {
     try {
       // Try to get doctor data from doctors collection
       final doctorDoc = await FirebaseFirestore.instance
@@ -214,17 +255,7 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
           .get();
       
       if (doctorDoc.exists) {
-        final data = doctorDoc.data()!;
-        return _MinimalDoctorModel(
-          id: doctorId,
-          name: data['name'] ?? data['fullName'] ?? 'Unknown Doctor',
-          specialty: data['specialty'] ?? data['specialization'] ?? 'General',
-          price: (data['price'] ?? data['consultationFee'] ?? 0).toInt(),
-          rating: (data['rating'] ?? 0).toDouble(),
-          experience: data['experience'] ?? 0,
-          photoUrl: data['photoUrl'] ?? data['avatar'] ?? data['imageUrl'],
-          about: data['about'] ?? data['description'] ?? data['bio'] ?? '',
-        );
+        return DoctorModel.fromFirestore(doctorDoc);
       }
       
       // Fallback to users collection
@@ -235,15 +266,24 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
       
       if (userDoc.exists) {
         final data = userDoc.data()!;
-        return _MinimalDoctorModel(
+        // Create a minimal doctor model from user data
+        return DoctorModel(
           id: doctorId,
-          name: data['name'] ?? data['fullName'] ?? 'Unknown Doctor',
-          specialty: data['specialty'] ?? data['specialization'] ?? 'General',
-          price: (data['price'] ?? data['consultationFee'] ?? 0).toInt(),
-          rating: (data['rating'] ?? 0).toDouble(),
-          experience: data['experience'] ?? 0,
-          photoUrl: data['photoUrl'] ?? data['avatar'] ?? data['imageUrl'],
-          about: data['about'] ?? data['description'] ?? data['bio'] ?? '',
+          userId: doctorId,
+          name: data['name'] ?? 'Unknown Doctor',
+          nameEn: data['name'] ?? 'Unknown Doctor',
+          nameAr: data['nameAr'] ?? data['name'] ?? 'Unknown Doctor',
+          specialty: data['specialty'] ?? 'General',
+          specialtyEn: data['specialty'] ?? 'General',
+          specialtyAr: data['specialtyAr'] ?? data['specialty'] ?? 'General',
+          price: (data['price'] ?? 50).toDouble(),
+          currency: data['currency'] ?? 'RUB',
+          rating: (data['rating'] ?? 5.0).toDouble(),
+          doctorNumber: data['doctorNumber'] ?? doctorId.substring(0, 8).toUpperCase(),
+          description: data['about'] ?? data['description'] ?? data['bio'] ?? '',
+          isActive: data['isActive'] ?? true,
+          allowedFileTypes: const ['image', 'pdf'],
+          createdAt: data['createdAt']?.toDate() ?? DateTime.now(),
         );
       }
       
@@ -306,14 +346,16 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scan Doctor QR Code'),
+        title: Text(l10n.scanDoctorCode),
         actions: [
           IconButton(
             icon: const Icon(Icons.flash_on),
             onPressed: () {
-              // Toggle flash if supported
+              _cameraController?.toggleTorch();
             },
           ),
         ],
@@ -411,9 +453,9 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
                   color: Colors.black.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: const Text(
-                  'Point camera at doctor\'s QR code',
-                  style: TextStyle(
+                child: Text(
+                  l10n.pointCameraToQR,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -441,8 +483,8 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
                 ),
               ),
             ),
-          ],
-        ),
+        ],
+      ),
     );
   }
 
@@ -460,26 +502,59 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
   }
 }
 
-/// Minimal doctor model for when full model can't be loaded
-/// This implements the same interface as DoctorModel for profile navigation
-class _MinimalDoctorModel {
-  final String id;
-  final String name;
-  final String specialty;
-  final int price;
-  final double rating;
-  final int experience;
-  final String? photoUrl;
-  final String about;
+// Extension to get AppLocalizations
+extension AppLocalizationsExtension on BuildContext {
+  AppLocalizations get l10n => AppLocalizations.of(this);
+}
 
-  _MinimalDoctorModel({
-    required this.id,
-    required this.name,
-    required this.specialty,
-    required this.price,
-    required this.rating,
-    required this.experience,
-    this.photoUrl,
-    required this.about,
-  });
+// Simple AppLocalizations class for this file
+class AppLocalizations {
+  final Locale locale;
+  AppLocalizations(this.locale);
+
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations) ??
+        AppLocalizations(const Locale('en'));
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  String get scanDoctorCode {
+    switch (locale.languageCode) {
+      case 'ar':
+        return 'مسح كود الطبيب';
+      case 'ru':
+        return 'Сканировать код врача';
+      default:
+        return 'Scan Doctor QR Code';
+    }
+  }
+
+  String get pointCameraToQR {
+    switch (locale.languageCode) {
+      case 'ar':
+        return 'وجه الكاميرا نحو رمز QR';
+      case 'ru':
+        return 'Наведите камеру на QR-код';
+      default:
+        return 'Point camera at doctor\'s QR code';
+    }
+  }
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) =>
+      ['en', 'ar', 'ru'].contains(locale.languageCode);
+
+  @override
+  Future<AppLocalizations> load(Locale locale) async =>
+      AppLocalizations(locale);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
 }

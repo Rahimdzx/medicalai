@@ -7,7 +7,6 @@ import '../l10n/app_localizations.dart';
 import 'video_call_screen.dart';
 import 'upload_records_screen.dart';
 import 'chat_screen.dart';
-// 👇 التعديل الهام: استدعاء ملف QR المشترك الجديد
 import 'general_qr_scanner.dart';
 
 class PatientDashboard extends StatelessWidget {
@@ -49,13 +48,65 @@ class PatientDashboard extends StatelessWidget {
             .orderBy('createdAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
+          // Loading state
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
+
+          // Error state with permission handling
+          if (snapshot.hasError) {
+            final errorMsg = snapshot.error.toString();
+            
+            // Check if it's a permission error
+            if (errorMsg.contains('permission-denied')) {
+              return _buildPermissionError(context, l10n);
+            }
+            
+            // Check if it's an index error
+            if (errorMsg.contains('failed-precondition') || 
+                errorMsg.contains('requires an index')) {
+              return _buildIndexError(context, l10n, errorMsg);
+            }
+
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.error ?? 'Error loading records',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      errorMsg,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      // Force refresh
+                      (context as Element).markNeedsBuild();
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: Text(l10n.retry ?? 'Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Empty state
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return _buildEmptyState(context, l10n);
           }
 
+          // Success state
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: snapshot.data!.docs.length,
@@ -69,7 +120,6 @@ class PatientDashboard extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.blue[800],
         onPressed: () async {
-          // 👇 التعديل الهام: استخدام الكلاس الجديد GeneralQRScanner
           await Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const GeneralQRScanner(title: "Scan Doctor QR"))
@@ -77,6 +127,102 @@ class PatientDashboard extends StatelessWidget {
         },
         label: Text(l10n.scanDoctorCode, style: const TextStyle(color: Colors.white)),
         icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildPermissionError(BuildContext context, AppLocalizations l10n) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.lock_outline, size: 80, color: Colors.orange[300]),
+          const SizedBox(height: 16),
+          const Text(
+            'Permission Required',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              'You don\'t have permission to view medical records. Please contact support or try logging out and back in.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () {
+              Provider.of<AuthProvider>(context, listen: false).signOut();
+            },
+            icon: const Icon(Icons.logout),
+            label: const Text('Sign Out & Retry'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIndexError(BuildContext context, AppLocalizations l10n, String errorMsg) {
+    // Extract index URL if present
+    final urlRegex = RegExp(r'https://[^\s]+');
+    final match = urlRegex.firstMatch(errorMsg);
+    final indexUrl = match?.group(0);
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.build_outlined, size: 80, color: Colors.blue[300]),
+          const SizedBox(height: 16),
+          const Text(
+            'Database Setup Required',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              'The database needs to be configured. Please create the required index in Firebase Console.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            ),
+          ),
+          if (indexUrl != null) ...[
+            const SizedBox(height: 16),
+            const Text(
+              'Click the button below to create the index:',
+              style: TextStyle(fontSize: 12),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: () async {
+                // Note: In a real app, you'd use url_launcher here
+                // For now, show the URL
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Create Index'),
+                    content: SelectableText(indexUrl),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Create Index'),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -89,7 +235,7 @@ class PatientDashboard extends StatelessWidget {
           Icon(Icons.history_edu, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            l10n.noRecords,
+            l10n.noRecords ?? 'No records yet',
             style: const TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 24),
@@ -105,7 +251,7 @@ class PatientDashboard extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             icon: const Icon(Icons.add),
-            label: Text(l10n.uploadFirstRecord),
+            label: Text(l10n.uploadFirstRecord ?? 'Upload First Record'),
           )
         ],
       ),
@@ -150,29 +296,12 @@ class _PatientRecordCard extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.chat_outlined, color: Colors.blue),
                   tooltip: l10n.chat,
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChatScreen(
-                        chatId: record.doctorId,
-                        appointmentId: record.doctorId,
-                        receiverName: record.doctorName
-                      ),
-                    ),
-                  ),
+                  onPressed: () => _openChat(context),
                 ),
                 IconButton(
                   icon: const Icon(Icons.videocam_outlined, color: Colors.green),
                   tooltip: l10n.videoCall,
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => VideoCallScreen(
-                        channelName: record.doctorId,
-                        token: ""
-                      )
-                    ),
-                  ),
+                  onPressed: () => _startVideoCall(context),
                 ),
               ],
             ),
@@ -192,6 +321,63 @@ class _PatientRecordCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _openChat(BuildContext context) async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final chatId = _generateChatId(auth.user!.uid, record.doctorId);
+    
+    // Ensure chat document exists
+    await _ensureChatExists(chatId, auth.user!.uid, record.doctorId);
+    
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatScreen(
+            chatId: chatId,
+            appointmentId: record.doctorId,
+            receiverName: record.doctorName
+          ),
+        ),
+      );
+    }
+  }
+
+  void _startVideoCall(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VideoCallScreen(
+          channelName: record.doctorId,
+          token: ""
+        )
+      ),
+    );
+  }
+
+  String _generateChatId(String userId1, String userId2) {
+    // Create a consistent chat ID from two user IDs
+    final sorted = [userId1, userId2]..sort();
+    return '${sorted[0]}_${sorted[1]}';
+  }
+
+  Future<void> _ensureChatExists(String chatId, String patientId, String doctorId) async {
+    final chatDoc = FirebaseFirestore.instance.collection('chats').doc(chatId);
+    final docSnapshot = await chatDoc.get();
+    
+    if (!docSnapshot.exists) {
+      // Create the chat document
+      await chatDoc.set({
+        'participants': [patientId, doctorId],
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'lastMessage': '',
+        'lastMessageAt': FieldValue.serverTimestamp(),
+        'patientId': patientId,
+        'doctorId': doctorId,
+      });
+    }
   }
 
   Widget _infoRow(String label, String text, Color color) {

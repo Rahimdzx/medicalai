@@ -11,6 +11,7 @@ import '../core/utils/error_handler.dart';
 /// - Proper loading states
 /// - Comprehensive error handling
 /// - Role-based user creation
+/// - Automatic profile creation for doctors
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -37,6 +38,7 @@ class AuthProvider extends ChangeNotifier {
         _userModel = null;
         _isLoading = false;
         _isInitializing = false;
+        _error = null;
       }
       
       notifyListeners();
@@ -58,6 +60,8 @@ class AuthProvider extends ChangeNotifier {
 
   /// Fetch user data from Firestore with retry logic
   Future<void> _fetchUserData(String uid, {int retries = 3}) async {
+    _error = null;
+    
     for (int attempt = 0; attempt < retries; attempt++) {
       try {
         final doc = await _firestore
@@ -75,12 +79,24 @@ class AuthProvider extends ChangeNotifier {
           return;
         } else if (attempt == retries - 1) {
           // Last attempt and no data - user document doesn't exist
+          // Try to create a basic user document from Auth data
+          final created = await _createUserFromAuth(uid);
+          if (created) {
+            return;
+          }
           _error = 'User data not found. Please contact support.';
           _userModel = null;
         }
       } on FirebaseException catch (e) {
         if (attempt == retries - 1) {
           _error = ErrorHandler.getErrorMessage(e);
+          // Try to create basic user document on permission error
+          if (e.code == 'permission-denied') {
+            final created = await _createUserFromAuth(uid);
+            if (created) {
+              return;
+            }
+          }
         }
         // Wait before retry
         await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
@@ -94,6 +110,71 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = false;
     _isInitializing = false;
     notifyListeners();
+  }
+
+  /// Create a basic user document from Firebase Auth data
+  /// This is a fallback when Firestore document doesn't exist
+  Future<bool> _createUserFromAuth(String uid) async {
+    try {
+      final authUser = _auth.currentUser;
+      if (authUser == null) return false;
+
+      // Determine role from email or default to patient
+      String role = 'patient';
+      final email = authUser.email ?? '';
+      
+      // Check if email contains doctor indicator (optional logic)
+      if (email.contains('doctor') || email.contains('dr.')) {
+        role = 'doctor';
+      }
+
+      // Create basic user data with all required fields
+      final userData = {
+        'uid': uid,
+        'name': authUser.displayName ?? email.split('@').first,
+        'email': email,
+        'phone': authUser.phoneNumber ?? '',
+        'role': role,
+        'photoUrl': authUser.photoURL,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'isOnline': true,
+        'lastSeen': FieldValue.serverTimestamp(),
+      };
+
+      // Try to create the document with retry
+      for (int i = 0; i < 3; i++) {
+        try {
+          await _firestore.collection('users').doc(uid).set(userData);
+          
+          // Verify creation
+          final doc = await _firestore.collection('users').doc(uid).get();
+          if (doc.exists) {
+            _userModel = UserModel.fromFirestore(doc);
+            _error = null;
+            _isLoading = false;
+            _isInitializing = false;
+            notifyListeners();
+            
+            // If doctor, ensure doctor profile exists
+            if (role == 'doctor') {
+              await ensureDoctorProfileExists(uid);
+            }
+            
+            return true;
+          }
+        } catch (e) {
+          debugPrint('Attempt $i failed: $e');
+          if (i == 2) rethrow;
+          await Future.delayed(Duration(milliseconds: 500 * (i + 1)));
+        }
+      }
+    } catch (e) {
+      debugPrint('Error creating user from auth: $e');
+      _error = 'Failed to create user profile: $e';
+      notifyListeners();
+    }
+    return false;
   }
 
   /// Force refresh user data from Firestore
@@ -259,19 +340,50 @@ class AuthProvider extends ChangeNotifier {
       'name': name,
       'nameEn': name,
       'nameAr': name,
+      'nameRu': name,
       'specialty': specialty,
       'specialtyEn': specialty,
       'specialtyAr': _getArabicSpecialty(specialty),
+      'specialtyRu': _getRussianSpecialty(specialty),
       'price': price,
-      'currency': 'USD',
+      'currency': 'RUB',
       'rating': 5.0,
       'doctorNumber': uid.substring(0, 8).toUpperCase(),
       'isActive': true,
+      'experience': 0,
+      'about': '',
+      'description': '',
+      'bio': '',
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
     await _firestore.collection('doctors').doc(uid).set(doctorData);
+  }
+
+  /// Ensure doctor profile exists (for existing doctors)
+  Future<bool> ensureDoctorProfileExists(String uid) async {
+    try {
+      final doc = await _firestore.collection('doctors').doc(uid).get();
+      if (!doc.exists) {
+        // Get user data
+        final userDoc = await _firestore.collection('users').doc(uid).get();
+        if (userDoc.exists) {
+          final userData = userDoc.data() as Map<String, dynamic>?;
+          await _createDoctorProfile(
+            uid: uid,
+            name: userData?['name'] ?? 'Doctor',
+            specialty: userData?['specialty'] ?? 'General',
+            price: 50.0,
+          );
+          return true;
+        }
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Error ensuring doctor profile: $e');
+      return false;
+    }
   }
 
   // ==================== Password Management ====================
@@ -338,6 +450,28 @@ class AuthProvider extends ChangeNotifier {
           .update(updates)
           .timeout(const Duration(seconds: 10));
 
+      // Also update doctor profile if user is a doctor
+      if (_userModel!.isDoctor) {
+        final doctorUpdates = <String, dynamic>{
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+        if (name != null) {
+          doctorUpdates['name'] = name.trim();
+          doctorUpdates['nameEn'] = name.trim();
+          doctorUpdates['nameAr'] = name.trim();
+          doctorUpdates['nameRu'] = name.trim();
+        }
+        
+        await _firestore
+            .collection('doctors')
+            .doc(_user!.uid)
+            .update(doctorUpdates)
+            .catchError((e) {
+          // Ignore errors updating doctor profile
+          debugPrint('Error updating doctor profile: $e');
+        });
+      }
+
       // Update local model
       _userModel = _userModel!.copyWith(
         name: name,
@@ -403,6 +537,21 @@ class AuthProvider extends ChangeNotifier {
       'Orthopedics': 'عظام',
       'Ophthalmology': 'عيون',
       'ENT': 'أنف وأذن وحنجرة',
+    };
+    return mappings[specialty] ?? specialty;
+  }
+
+  /// Get Russian specialty name (basic mapping)
+  String _getRussianSpecialty(String specialty) {
+    const mappings = {
+      'General': 'Терапевт',
+      'Cardiology': 'Кардиология',
+      'Dermatology': 'Дерматология',
+      'Neurology': 'Неврология',
+      'Pediatrics': 'Педиатрия',
+      'Orthopedics': 'Ортопедия',
+      'Ophthalmology': 'Офтальмология',
+      'ENT': 'ЛОР',
     };
     return mappings[specialty] ?? specialty;
   }

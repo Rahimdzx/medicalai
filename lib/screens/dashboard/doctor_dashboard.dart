@@ -7,11 +7,13 @@ import 'package:intl/intl.dart';
 import '../../models/doctor_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/locale_provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/doctor_service.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../schedule_management_screen.dart';
 import '../doctor_appointments_screen.dart';
-import '../doctor_profile_screen.dart';
+import '../chat_list_screen.dart';
+import '../doctor_profile_view.dart';
 import '../auth/login_screen.dart';
 
 /// Enhanced Doctor Dashboard with comprehensive features
@@ -19,7 +21,7 @@ import '../auth/login_screen.dart';
 /// Features:
 /// - Real-time statistics cards
 /// - Today's schedule with Moscow time
-/// - Quick actions
+/// - Quick actions with working buttons
 /// - Language toggle
 /// - QR code generation
 class DoctorDashboard extends StatefulWidget {
@@ -38,6 +40,11 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
     super.initState();
     // Update time every minute
     Future.delayed(const Duration(seconds: 1), _updateTime);
+    
+    // Ensure doctor profile exists
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureDoctorProfile();
+    });
   }
 
   void _updateTime() {
@@ -47,10 +54,18 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
     }
   }
 
+  Future<void> _ensureDoctorProfile() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (authProvider.user != null) {
+      await authProvider.ensureDoctorProfileExists(authProvider.user!.uid);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final localeProvider = Provider.of<LocaleProvider>(context);
+    final l10n = AppLocalizations.of(context);
     final userName = authProvider.userName ?? 'Doctor';
 
     return WillPopScope(
@@ -58,12 +73,12 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
         final shouldExit = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Exit App'),
-            content: const Text('Are you sure you want to exit?'),
+            title: Text(l10n.exitApp),
+            content: Text(l10n.exitAppConfirmation),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: Text(l10n.cancel),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
@@ -71,7 +86,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Exit'),
+                child: Text(l10n.exit),
               ),
             ],
           ),
@@ -80,8 +95,8 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
       },
       child: Scaffold(
         appBar: CustomAppBar(
-          title: _selectedIndex == 0 ? 'Dashboard' : 'Profile',
-          subtitle: _selectedIndex == 0 ? 'Welcome back, Dr. $userName' : null,
+          title: _selectedIndex == 0 ? l10n.doctorDashboard : l10n.profile,
+          subtitle: _selectedIndex == 0 ? '${l10n.welcomeBack}, Dr. $userName' : null,
           showBackButton: false,
           gradient: LinearGradient(
             colors: [Colors.blue.shade800, Colors.blue.shade600],
@@ -99,13 +114,13 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                 ),
               ),
               onPressed: () => _showLanguageSelector(context, localeProvider),
-              tooltip: 'Change Language',
+              tooltip: l10n.changeLanguage,
             ),
             IconButton(
               icon: const Icon(Icons.notifications_outlined),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Notifications coming soon')),
+                  SnackBar(content: Text(l10n.notificationsComingSoon)),
                 );
               },
             ),
@@ -127,16 +142,16 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
           onTap: (index) => setState(() => _selectedIndex = index),
           selectedItemColor: Colors.blue.shade700,
           unselectedItemColor: Colors.grey.shade600,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_outlined),
-              activeIcon: Icon(Icons.dashboard),
-              label: 'Dashboard',
+              icon: const Icon(Icons.dashboard_outlined),
+              activeIcon: const Icon(Icons.dashboard),
+              label: l10n.dashboard,
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
+              icon: const Icon(Icons.person_outline),
+              activeIcon: const Icon(Icons.person),
+              label: l10n.profile,
             ),
           ],
         ),
@@ -146,9 +161,10 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
 
   Widget _buildDashboardContent(BuildContext context, AuthProvider authProvider) {
     final doctorId = authProvider.user?.uid;
+    final l10n = AppLocalizations.of(context);
     
     if (doctorId == null) {
-      return const Center(child: Text('Not authenticated'));
+      return Center(child: Text(l10n.notAuthenticated));
     }
 
     return SingleChildScrollView(
@@ -157,29 +173,29 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Moscow Time Display
-          _buildTimeDisplay(),
+          _buildTimeDisplay(l10n),
           const SizedBox(height: 16),
 
           // Statistics Cards
-          _buildStatsSection(authProvider),
+          _buildStatsSection(authProvider, l10n),
           const SizedBox(height: 24),
 
           // Quick Actions
-          _buildSectionTitle('Quick Actions'),
+          _buildSectionTitle(l10n.quickActions),
           const SizedBox(height: 12),
-          _buildQuickActions(context),
+          _buildQuickActions(context, l10n),
           const SizedBox(height: 24),
 
           // Today's Schedule
-          _buildSectionTitle("Today's Appointments"),
+          _buildSectionTitle(l10n.todaySchedule),
           const SizedBox(height: 12),
-          _buildTodaySchedule(authProvider),
+          _buildTodaySchedule(authProvider, l10n),
         ],
       ),
     );
   }
 
-  Widget _buildTimeDisplay() {
+  Widget _buildTimeDisplay(AppLocalizations l10n) {
     final timeStr = DateFormat('HH:mm').format(_currentTime);
     final dateStr = DateFormat('EEEE, MMM d').format(_currentTime);
 
@@ -196,7 +212,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Moscow Time (MSK)',
+                  l10n.moscowTime,
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade600,
@@ -218,7 +234,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
     );
   }
 
-  Widget _buildStatsSection(AuthProvider authProvider) {
+  Widget _buildStatsSection(AuthProvider authProvider, AppLocalizations l10n) {
     final doctorId = authProvider.user?.uid;
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
@@ -268,20 +284,20 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                 Expanded(
                   child: _StatCard(
                     icon: Icons.calendar_today,
-                    title: 'Today',
+                    title: l10n.today,
                     value: todayAppointments.toString(),
                     color: Colors.blue,
-                    subtitle: 'Appointments',
+                    subtitle: l10n.appointments,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _StatCard(
                     icon: Icons.pending_actions,
-                    title: 'Pending',
+                    title: l10n.pending,
                     value: pendingConsultations.toString(),
                     color: Colors.orange,
-                    subtitle: 'Consultations',
+                    subtitle: l10n.consultations,
                   ),
                 ),
               ],
@@ -292,20 +308,20 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                 Expanded(
                   child: _StatCard(
                     icon: Icons.check_circle,
-                    title: 'Completed',
+                    title: l10n.completed,
                     value: completedToday.toString(),
                     color: Colors.green,
-                    subtitle: 'Today',
+                    subtitle: l10n.today,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _StatCard(
                     icon: Icons.attach_money,
-                    title: 'Earnings',
+                    title: l10n.earnings,
                     value: '${totalEarnings.toStringAsFixed(0)}₽',
                     color: Colors.purple,
-                    subtitle: 'Total',
+                    subtitle: l10n.total,
                   ),
                 ),
               ],
@@ -316,7 +332,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context) {
+  Widget _buildQuickActions(BuildContext context, AppLocalizations l10n) {
     return Column(
       children: [
         Row(
@@ -324,8 +340,8 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
             Expanded(
               child: _ActionCard(
                 icon: Icons.qr_code,
-                title: 'My QR Code',
-                subtitle: 'Share with patients',
+                title: l10n.myQRCode,
+                subtitle: l10n.shareWithPatients,
                 color: Colors.purple,
                 onTap: () => _showQRCode(context),
               ),
@@ -334,8 +350,8 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
             Expanded(
               child: _ActionCard(
                 icon: Icons.calendar_today,
-                title: 'Schedule',
-                subtitle: 'Manage availability',
+                title: l10n.schedule,
+                subtitle: l10n.manageAvailability,
                 color: Colors.blue,
                 onTap: () => Navigator.push(
                   context,
@@ -353,8 +369,8 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
             Expanded(
               child: _ActionCard(
                 icon: Icons.people,
-                title: 'Appointments',
-                subtitle: 'View all bookings',
+                title: l10n.appointments,
+                subtitle: l10n.viewAllBookings,
                 color: Colors.green,
                 onTap: () => Navigator.push(
                   context,
@@ -368,13 +384,13 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
             Expanded(
               child: _ActionCard(
                 icon: Icons.chat,
-                title: 'Messages',
-                subtitle: 'Patient chats',
+                title: l10n.messages,
+                subtitle: l10n.patientChats,
                 color: Colors.orange,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const DoctorAppointmentsScreen(),
+                    builder: (_) => const ChatListScreen(),
                   ),
                 ),
               ),
@@ -385,7 +401,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
     );
   }
 
-  Widget _buildTodaySchedule(AuthProvider authProvider) {
+  Widget _buildTodaySchedule(AuthProvider authProvider, AppLocalizations l10n) {
     final doctorId = authProvider.user?.uid;
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
@@ -409,7 +425,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return _buildEmptyState(
             icon: Icons.calendar_today,
-            message: 'No appointments scheduled for today',
+            message: l10n.noScheduledAppointments,
           );
         }
 
@@ -469,34 +485,175 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
 
   Widget _buildProfileScreen(AuthProvider authProvider) {
     final doctorId = authProvider.user?.uid;
+    final l10n = AppLocalizations.of(context);
     
     if (doctorId == null) {
       return _buildEmptyState(
         icon: Icons.error_outline,
-        message: 'User not authenticated',
+        message: l10n.notAuthenticated,
       );
     }
 
     return FutureBuilder<DoctorModel?>(
       future: DoctorService().getDoctorById(doctorId),
       builder: (context, snapshot) {
+        // Loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-          return _buildEmptyState(
-            icon: Icons.person_off,
-            message: 'Failed to load profile',
+        // Error state - with better error handling
+        if (snapshot.hasError) {
+          final errorMsg = snapshot.error.toString();
+          
+          // Check for permission error
+          if (errorMsg.contains('permission-denied')) {
+            return _buildProfilePermissionError(authProvider);
+          }
+          
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                const SizedBox(height: 16),
+                Text(
+                  'Error loading profile',
+                  style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(
+                    errorMsg,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () => setState(() {}),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+              ],
+            ),
           );
         }
 
-        return DoctorProfileScreen(doctor: snapshot.data!);
+        // No data - try to create profile
+        if (!snapshot.hasData || snapshot.data == null) {
+          return _buildCreateProfilePrompt(doctorId, authProvider);
+        }
+
+        return DoctorProfileView(doctor: snapshot.data!);
       },
     );
   }
 
+  Widget _buildProfilePermissionError(AuthProvider authProvider) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.lock_outline, size: 80, color: Colors.orange[300]),
+          const SizedBox(height: 16),
+          const Text(
+            'Permission Denied',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              'Unable to access your profile. This might be because:\n\n'
+              '1. Your account was just created\n'
+              '2. Database permissions need to be updated\n\n'
+              'Please try signing out and back in.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => authProvider.signOut(),
+            icon: const Icon(Icons.logout),
+            label: const Text('Sign Out'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCreateProfilePrompt(String doctorId, AuthProvider authProvider) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.person_add, size: 64, color: Colors.blue[300]),
+          const SizedBox(height: 16),
+          const Text(
+            'Doctor Profile Not Found',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              'Your doctor profile needs to be set up. Click the button below to create it.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () async {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+              
+              final success = await authProvider.ensureDoctorProfileExists(doctorId);
+              
+              if (mounted) {
+                Navigator.pop(context); // Close loading dialog
+                
+                if (success) {
+                  setState(() {}); // Refresh
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Profile created successfully!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Failed to create profile. Please try again.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Create Profile'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showLanguageSelector(BuildContext context, LocaleProvider provider) {
+    final l10n = AppLocalizations.of(context);
+    
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -515,16 +672,16 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.all(16),
               child: Text(
-                'Select Language',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                l10n.selectLanguage,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
             ListTile(
               leading: const Text('🇺🇸', style: TextStyle(fontSize: 24)),
-              title: const Text('English'),
+              title: Text(l10n.english),
               trailing: provider.locale.languageCode == 'en'
                   ? Icon(Icons.check, color: Colors.blue.shade700)
                   : null,
@@ -535,7 +692,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
             ),
             ListTile(
               leading: const Text('🇷🇺', style: TextStyle(fontSize: 24)),
-              title: const Text('Русский'),
+              title: Text(l10n.russian),
               trailing: provider.locale.languageCode == 'ru'
                   ? Icon(Icons.check, color: Colors.blue.shade700)
                   : null,
@@ -546,7 +703,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
             ),
             ListTile(
               leading: const Text('🇸🇦', style: TextStyle(fontSize: 24)),
-              title: const Text('العربية'),
+              title: Text(l10n.arabic),
               trailing: provider.locale.languageCode == 'ar'
                   ? Icon(Icons.check, color: Colors.blue.shade700)
                   : null,
@@ -566,6 +723,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final doctorId = authProvider.user?.uid ?? '';
     final doctorName = authProvider.userName ?? '';
+    final l10n = AppLocalizations.of(context);
 
     // Create structured QR data
     final qrData = jsonEncode({
@@ -579,11 +737,11 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.qr_code, color: Colors.blue),
-            SizedBox(width: 8),
-            Text('Your QR Code'),
+            const Icon(Icons.qr_code, color: Colors.blue),
+            const SizedBox(width: 8),
+            Text(l10n.yourQRCode),
           ],
         ),
         content: Column(
@@ -603,10 +761,10 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Share this QR code with your patients\nto connect instantly',
+            Text(
+              l10n.shareQRWithPatients,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: Colors.grey),
+              style: const TextStyle(fontSize: 13, color: Colors.grey),
             ),
             const SizedBox(height: 8),
             Text(
@@ -618,16 +776,16 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(l10n.close),
           ),
           ElevatedButton.icon(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Share feature coming soon')),
+                SnackBar(content: Text(l10n.shareFeatureComingSoon)),
               );
             },
             icon: const Icon(Icons.share),
-            label: const Text('Share'),
+            label: Text(l10n.share),
           ),
         ],
       ),
@@ -635,21 +793,23 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
   }
 
   Future<void> _showSignOutConfirmation(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.logout, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Sign Out'),
+            const Icon(Icons.logout, color: Colors.red),
+            const SizedBox(width: 8),
+            Text(l10n.signOut),
           ],
         ),
-        content: const Text('Are you sure you want to sign out?'),
+        content: Text(l10n.signOutConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -657,7 +817,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Sign Out'),
+            child: Text(l10n.signOut),
           ),
         ],
       ),
