@@ -14,6 +14,7 @@ import 'medical_tourism_screen.dart';
 import 'patient_dashboard.dart';
 import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
+import 'chat_list_screen.dart';
 
 /// Enhanced Home Screen (Patient Dashboard) with professional UI
 /// 
@@ -42,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const _HomeContent(),
     const PatientDashboard(),
+    const ChatListScreen(),
     const MyDoctorsScreen(),
     const _ProfileContent(),
   ];
@@ -99,6 +101,11 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.folder_outlined),
               activeIcon: const Icon(Icons.folder),
               label: l10n.myRecords,
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.chat_outlined),
+              activeIcon: const Icon(Icons.chat),
+              label: l10n.messages,
             ),
             BottomNavigationBarItem(
               icon: const Icon(Icons.people_outlined),
