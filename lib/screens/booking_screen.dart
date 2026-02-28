@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/doctor_model.dart';
@@ -261,11 +262,46 @@ class _BookingScreenState extends State<BookingScreen> {
   Future<void> _bookAppointment(AuthProvider authProvider) async {
     final l10n = AppLocalizations.of(context);
     
-    // التحقق من تسجيل الدخول
+    // التحقق الشامل من تسجيل الدخول
+    final currentUser = FirebaseAuth.instance.currentUser;
+    
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Not authenticated with Firebase'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
     if (authProvider.user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please login first to book an appointment'),
+          content: Text('Error: User data not loaded'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    final patientId = currentUser.uid;
+    
+    // التحقق من صحة البيانات
+    if (patientId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: User ID is empty'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    if (widget.doctor.id.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Doctor ID is empty'),
           backgroundColor: Colors.red,
         ),
       );
@@ -276,14 +312,18 @@ class _BookingScreenState extends State<BookingScreen> {
 
     try {
       final dateStr = widget.date.toIso8601String().split('T')[0];
-      final patientId = authProvider.user!.uid;
       final patientName = authProvider.userName ?? 'Patient';
       
-      debugPrint('Creating appointment for patient: $patientId, doctor: ${widget.doctor.id}');
+      debugPrint('==========================================');
+      debugPrint('BOOKING APPOINTMENT');
+      debugPrint('Patient ID: "$patientId"');
+      debugPrint('Auth UID: "${authProvider.user?.uid}"');
+      debugPrint('Doctor ID: "${widget.doctor.id}"');
+      debugPrint('Date: $dateStr');
+      debugPrint('==========================================');
 
       // إنشاء الموعد في Firestore
-      final appointmentRef =
-          await FirebaseFirestore.instance.collection('appointments').add({
+      final appointmentData = {
         'doctorId': widget.doctor.id,
         'doctorName': widget.doctor.name,
         'patientId': patientId,
@@ -293,7 +333,12 @@ class _BookingScreenState extends State<BookingScreen> {
         'status': 'pending',
         'price': widget.doctor.price,
         'createdAt': FieldValue.serverTimestamp(),
-      });
+      };
+      
+      debugPrint('Sending data: $appointmentData');
+      
+      final appointmentRef =
+          await FirebaseFirestore.instance.collection('appointments').add(appointmentData);
 
       // إنشاء محادثة مرتبطة بالموعد
       await FirebaseFirestore.instance
@@ -352,8 +397,9 @@ class _BookingScreenState extends State<BookingScreen> {
       String errorMessage;
       switch (e.code) {
         case 'permission-denied':
-          errorMessage = 'Permission denied. Please make sure you are logged in and try again. Error: ${e.message}';
+          errorMessage = 'Permission denied. Please ask admin to update Firebase Rules. Error: ${e.message}';
           debugPrint('Permission denied error: ${e.message}');
+          debugPrint('Make sure firestore.rules is deployed!');
           break;
         case 'unauthenticated':
           errorMessage = 'Please login again to book an appointment.';
