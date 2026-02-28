@@ -6,9 +6,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../l10n/app_localizations.dart';
+import '../models/doctor_model.dart';
 
 class DoctorEditProfileScreen extends StatefulWidget {
-  const DoctorEditProfileScreen({super.key});
+  final DoctorModel? doctor;
+  
+  const DoctorEditProfileScreen({super.key, this.doctor});
 
   @override
   State<DoctorEditProfileScreen> createState() =>
@@ -154,7 +157,7 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
 
                     // قائمة التخصصات
                     DropdownButtonFormField<String>(
-                      initialValue: _selectedSpecialty,
+                      value: _selectedSpecialty,
                       decoration: const InputDecoration(
                           labelText: "Specialty / Специальность"),
                       items: _specialties

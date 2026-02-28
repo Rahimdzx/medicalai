@@ -16,6 +16,7 @@ class DoctorModel {
   final String doctorNumber;
   final String? qrCodeUrl;
   final String description;
+  final String about;
   final bool isActive;
   final List<String> allowedFileTypes;
   final DateTime createdAt;
@@ -36,6 +37,7 @@ class DoctorModel {
     required this.doctorNumber,
     this.qrCodeUrl,
     required this.description,
+    this.about = '',
     required this.isActive,
     required this.allowedFileTypes,
     required this.createdAt,
@@ -59,6 +61,7 @@ class DoctorModel {
       doctorNumber: data['doctorNumber'] ?? '',
       qrCodeUrl: data['qrCodeUrl'],
       description: data['description'] ?? '',
+      about: data['about'] ?? data['description'] ?? '',
       isActive: data['isActive'] ?? true,
       allowedFileTypes: List<String>.from(data['allowedFileTypes'] ?? ['image', 'pdf']),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),

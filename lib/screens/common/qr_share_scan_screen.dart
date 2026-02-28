@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart' as app_auth;
 import '../../services/doctor_service.dart';
 import '../../models/doctor_model.dart';
+import '../../l10n/app_localizations.dart';
 import '../doctor_profile_screen.dart';
 
 /// QR Code Scanner Screen for Patients
@@ -346,7 +347,7 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!
     
     return Scaffold(
       appBar: AppBar(
@@ -500,61 +501,4 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
       ),
     );
   }
-}
-
-// Extension to get AppLocalizations
-extension AppLocalizationsExtension on BuildContext {
-  AppLocalizations get l10n => AppLocalizations.of(this);
-}
-
-// Simple AppLocalizations class for this file
-class AppLocalizations {
-  final Locale locale;
-  AppLocalizations(this.locale);
-
-  static AppLocalizations of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations) ??
-        AppLocalizations(const Locale('en'));
-  }
-
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
-
-  String get scanDoctorCode {
-    switch (locale.languageCode) {
-      case 'ar':
-        return 'مسح كود الطبيب';
-      case 'ru':
-        return 'Сканировать код врача';
-      default:
-        return 'Scan Doctor QR Code';
-    }
-  }
-
-  String get pointCameraToQR {
-    switch (locale.languageCode) {
-      case 'ar':
-        return 'وجه الكاميرا نحو رمز QR';
-      case 'ru':
-        return 'Наведите камеру на QR-код';
-      default:
-        return 'Point camera at doctor\'s QR code';
-    }
-  }
-}
-
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
-  const _AppLocalizationsDelegate();
-
-  @override
-  bool isSupported(Locale locale) =>
-      ['en', 'ar', 'ru'].contains(locale.languageCode);
-
-  @override
-  Future<AppLocalizations> load(Locale locale) async =>
-      AppLocalizations(locale);
-
-  @override
-  bool shouldReload(_AppLocalizationsDelegate old) => false;
 }

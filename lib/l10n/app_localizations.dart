@@ -380,6 +380,11 @@ class AppLocalizations {
       'view': 'View',
       'pleaseLoginToContinue': 'Please login to continue',
       'radiologyInstructions': 'Please upload clear images of your X-rays or scans. Supported formats: JPG, PNG, PDF.',
+      'today': 'Today',
+      'pending': 'Pending',
+      'completed': 'Completed',
+      'earnings': 'Earnings',
+      'messages': 'Messages',
     },
 
     // ---------------- Arabic ----------------
@@ -737,6 +742,11 @@ class AppLocalizations {
       'view': 'عرض',
       'pleaseLoginToContinue': 'يرجى تسجيل الدخول للمتابعة',
       'radiologyInstructions': 'يرجى تحميل صور واضحة للأشعة السينية أو الماسح الضوئي. الصيغ المدعومة: JPG، PNG، PDF.',
+      'today': 'اليوم',
+      'pending': 'معلق',
+      'completed': 'مكتمل',
+      'earnings': 'الأرباح',
+      'messages': 'الرسائل',
     },
 
     // ---------------- Russian ----------------
@@ -1094,6 +1104,11 @@ class AppLocalizations {
       'view': 'Просмотр',
       'pleaseLoginToContinue': 'Войдите для продолжения',
       'radiologyInstructions': 'Пожалуйста, загрузите четкие изображения рентгеновских снимков. Поддерживаемые форматы: JPG, PNG, PDF.',
+      'today': 'Сегодня',
+      'pending': 'В ожидании',
+      'completed': 'Завершено',
+      'earnings': 'Доходы',
+      'messages': 'Сообщения',
     }
   };
 
@@ -1461,6 +1476,11 @@ class AppLocalizations {
   String get view => _get('view');
   String get pleaseLoginToContinue => _get('pleaseLoginToContinue');
   String get radiologyInstructions => _get('radiologyInstructions');
+  String get today => _get('today');
+  String get pending => _get('pending');
+  String get completed => _get('completed');
+  String get earnings => _get('earnings');
+  String get messages => _get('messages');
 }
 
 class _AppLocalizationsDelegate
