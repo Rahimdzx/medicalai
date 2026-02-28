@@ -514,6 +514,7 @@ class _ProfileContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final localeProvider = Provider.of<LocaleProvider>(context);
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
@@ -718,6 +719,72 @@ class _ProfileContent extends StatelessWidget {
     if (confirmed == true && context.mounted) {
       await Provider.of<AuthProvider>(context, listen: false).signOut();
     }
+  }
+
+  void _showLanguageSelector(BuildContext context, LocaleProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'Select Language',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            ListTile(
+              leading: const Text('🇺🇸', style: TextStyle(fontSize: 24)),
+              title: const Text('English'),
+              trailing: provider.locale.languageCode == 'en'
+                  ? Icon(Icons.check, color: Colors.blue.shade700)
+                  : null,
+              onTap: () {
+                provider.setLocale('en');
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Text('🇷🇺', style: TextStyle(fontSize: 24)),
+              title: const Text('Русский'),
+              trailing: provider.locale.languageCode == 'ru'
+                  ? Icon(Icons.check, color: Colors.blue.shade700)
+                  : null,
+              onTap: () {
+                provider.setLocale('ru');
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Text('🇸🇦', style: TextStyle(fontSize: 24)),
+              title: const Text('العربية'),
+              trailing: provider.locale.languageCode == 'ar'
+                  ? Icon(Icons.check, color: Colors.blue.shade700)
+                  : null,
+              onTap: () {
+                provider.setLocale('ar');
+                Navigator.pop(context);
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
   }
 }
 
