@@ -260,18 +260,34 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Future<void> _bookAppointment(AuthProvider authProvider) async {
     final l10n = AppLocalizations.of(context);
+    
+    // التحقق من تسجيل الدخول
+    if (authProvider.user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please login first to book an appointment'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
     setState(() => _isBooking = true);
 
     try {
       final dateStr = widget.date.toIso8601String().split('T')[0];
+      final patientId = authProvider.user!.uid;
+      final patientName = authProvider.userName ?? 'Patient';
+      
+      debugPrint('Creating appointment for patient: $patientId, doctor: ${widget.doctor.id}');
 
       // إنشاء الموعد في Firestore
       final appointmentRef =
           await FirebaseFirestore.instance.collection('appointments').add({
         'doctorId': widget.doctor.id,
         'doctorName': widget.doctor.name,
-        'patientId': authProvider.user!.uid,
-        'patientName': authProvider.userName ?? 'Patient',
+        'patientId': patientId,
+        'patientName': patientName,
         'date': dateStr,
         'timeSlot': _selectedSlot,
         'status': 'pending',
@@ -285,15 +301,15 @@ class _BookingScreenState extends State<BookingScreen> {
           .doc(appointmentRef.id)
           .set({
         'doctorId': widget.doctor.id,
-        'patientId': authProvider.user!.uid,
+        'patientId': patientId,
         'doctorName': widget.doctor.name,
-        'patientName': authProvider.userName ?? 'Patient',
+        'patientName': patientName,
         'appointmentId': appointmentRef.id,
-        'participants': [authProvider.user!.uid, widget.doctor.id], // مهم لصلاحيات Firestore
+        'participants': [patientId, widget.doctor.id],
         'lastMessage': 'Appointment requested - Waiting for doctor approval',
         'lastMessageAt': FieldValue.serverTimestamp(),
         'createdAt': FieldValue.serverTimestamp(),
-        'status': 'pending', // pending حتى يوافق الطبيب
+        'status': 'pending',
       });
 
       // Add system message to the chat
@@ -314,7 +330,7 @@ class _BookingScreenState extends State<BookingScreen> {
       await FirebaseFirestore.instance.collection('notifications').add({
         'userId': widget.doctor.id,
         'title': 'New Appointment Request',
-        'body': '${authProvider.userName ?? 'A patient'} requested an appointment on $dateStr at $_selectedSlot',
+        'body': '$patientName requested an appointment on $dateStr at $_selectedSlot',
         'type': 'appointment_request',
         'appointmentId': appointmentRef.id,
         'read': false,
@@ -336,8 +352,8 @@ class _BookingScreenState extends State<BookingScreen> {
       String errorMessage;
       switch (e.code) {
         case 'permission-denied':
-          errorMessage =
-              'Permission denied. Please check your Firebase security rules or contact support.';
+          errorMessage = 'Permission denied. Please make sure you are logged in and try again. Error: ${e.message}';
+          debugPrint('Permission denied error: ${e.message}');
           break;
         case 'unauthenticated':
           errorMessage = 'Please login again to book an appointment.';

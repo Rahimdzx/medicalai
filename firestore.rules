@@ -16,139 +16,96 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
     
-    function isDoctor() {
-      return isAuthenticated() && getUserData().role == 'doctor';
-    }
-    
-    function isPatient() {
-      return isAuthenticated() && getUserData().role == 'patient';
-    }
-    
-    function isAdmin() {
-      return isAuthenticated() && getUserData().role == 'admin';
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().role == role;
     }
 
     // ==================== USERS COLLECTION ====================
     
     match /users/{userId} {
-      // Allow read for authenticated users
       allow read: if isAuthenticated();
       
-      // Allow create during signup
       allow create: if isAuthenticated() 
         && isOwner(userId)
         && request.resource.data.keys().hasAll(['name', 'email', 'role'])
         && request.resource.data.role in ['patient', 'doctor', 'admin'];
       
-      // Allow update by owner or admin
       allow update: if isAuthenticated()
-        && (isOwner(userId) || isAdmin());
+        && (isOwner(userId) || hasRole('admin'));
       
-      // Allow delete only by admin
-      allow delete: if isAdmin();
+      allow delete: if hasRole('admin');
+      
+      // Subcollection: records
+      match /records/{recordId} {
+        allow read, write: if isAuthenticated() && isOwner(userId);
+      }
     }
 
     // ==================== DOCTORS COLLECTION ====================
     
     match /doctors/{doctorId} {
-      // Any authenticated user can read doctor profiles
       allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && (isOwner(doctorId) || hasRole('admin'));
+      allow update: if isAuthenticated() && (isOwner(doctorId) || hasRole('admin'));
+      allow delete: if hasRole('admin');
       
-      // Allow create by the doctor themselves or admin
-      allow create: if isAuthenticated() 
-        && (isOwner(doctorId) || isAdmin());
-      
-      // Allow update by the doctor or admin
-      allow update: if isAuthenticated()
-        && (isOwner(doctorId) || isAdmin());
-      
-      // Allow delete only by admin
-      allow delete: if isAdmin();
-      
-      // Subcollection: schedule
       match /schedule/{date} {
         allow read: if isAuthenticated();
-        allow write: if isAuthenticated()
-          && (isOwner(doctorId) || isAdmin());
+        allow write: if isAuthenticated() && (isOwner(doctorId) || hasRole('admin'));
       }
     }
 
     // ==================== APPOINTMENTS COLLECTION ====================
     
     match /appointments/{appointmentId} {
+      // Allow read if user is patient, doctor, or admin
       allow read: if isAuthenticated()
         && (
           resource.data.patientId == request.auth.uid ||
           resource.data.doctorId == request.auth.uid ||
-          isAdmin()
+          hasRole('admin')
         );
       
+      // Allow create by any authenticated user (patient creating their own appointment)
       allow create: if isAuthenticated()
         && request.resource.data.patientId == request.auth.uid;
       
+      // Allow update by patient, doctor, or admin
       allow update: if isAuthenticated()
         && (
           resource.data.patientId == request.auth.uid ||
           resource.data.doctorId == request.auth.uid ||
-          isAdmin()
+          hasRole('admin')
         );
       
       allow delete: if isAuthenticated()
         && (
           resource.data.patientId == request.auth.uid ||
-          isAdmin()
+          hasRole('admin')
         );
     }
 
-    // ==================== RECORDS COLLECTION (Medical Records) ====================
+    // ==================== RECORDS COLLECTION ====================
     
     match /records/{recordId} {
-      // Allow read if user is the patient, the doctor, or admin
       allow read: if isAuthenticated()
         && (
           resource.data.patientEmail == request.auth.token.email ||
           resource.data.doctorId == request.auth.uid ||
-          isAdmin()
+          hasRole('admin')
         );
       
-      // Allow create by doctors or admin
       allow create: if isAuthenticated()
         && (
           request.resource.data.doctorId == request.auth.uid ||
-          isAdmin() ||
+          hasRole('admin') ||
           request.auth.token.role == 'doctor'
         );
       
-      // Allow update/delete by the doctor who created it or admin
       allow update, delete: if isAuthenticated()
         && (
           resource.data.doctorId == request.auth.uid ||
-          isAdmin()
-        );
-    }
-
-    // ==================== USER RECORDS SUBCOLLECTION ====================
-    
-    match /users/{userId}/records/{recordId} {
-      // Allow read if user is the owner or admin
-      allow read: if isAuthenticated()
-        && (
-          isOwner(userId) ||
-          isAdmin()
-        );
-      
-      // Allow create by the owner or admin
-      allow create: if isAuthenticated()
-        && (
-          isOwner(userId) ||
-          isAdmin()
-        );
-      
-      // Allow update/delete by the owner or admin
-      allow update, delete: if isAuthenticated()
-        && (
-          isOwner(userId) ||
-          isAdmin()
+          hasRole('admin')
         );
     }
 
@@ -159,26 +116,28 @@ service cloud.firestore {
       allow read: if isAuthenticated()
         && (
           request.auth.uid in resource.data.participants ||
-          isAdmin()
+          hasRole('admin')
         );
       
       // Allow create if user is a participant
       allow create: if isAuthenticated()
         && request.auth.uid in request.resource.data.participants;
       
-      // Allow update if user is a participant
+      // Allow update if user is a participant (for updating lastMessage, etc.)
       allow update: if isAuthenticated()
         && (
           request.auth.uid in resource.data.participants ||
-          isAdmin()
+          hasRole('admin')
         );
+      
+      allow delete: if hasRole('admin');
       
       // Subcollection: messages
       match /messages/{messageId} {
         allow read: if isAuthenticated()
           && (
             request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants ||
-            isAdmin()
+            hasRole('admin')
           );
         
         allow create: if isAuthenticated()
@@ -187,7 +146,7 @@ service cloud.firestore {
           )
           && request.resource.data.senderId == request.auth.uid;
         
-        allow update, delete: if isAdmin();
+        allow update, delete: if hasRole('admin');
       }
     }
 
@@ -198,7 +157,7 @@ service cloud.firestore {
         && (
           resource.data.patientId == request.auth.uid ||
           resource.data.doctorId == request.auth.uid ||
-          isAdmin()
+          hasRole('admin')
         );
       
       allow create: if isAuthenticated()
@@ -208,13 +167,13 @@ service cloud.firestore {
         && (
           resource.data.patientId == request.auth.uid ||
           resource.data.doctorId == request.auth.uid ||
-          isAdmin()
+          hasRole('admin')
         );
       
       allow delete: if isAuthenticated()
         && (
           resource.data.patientId == request.auth.uid ||
-          isAdmin()
+          hasRole('admin')
         );
     }
 
@@ -224,11 +183,12 @@ service cloud.firestore {
       allow read: if isAuthenticated()
         && resource.data.userId == request.auth.uid;
       
+      // Allow create by anyone (for system notifications) or admin or doctor
       allow create: if isAuthenticated()
         && (
-          isDoctor() || 
-          isAdmin() || 
-          request.resource.data.userId == request.auth.uid
+          request.resource.data.userId == request.auth.uid ||
+          hasRole('admin') ||
+          hasRole('doctor')
         );
       
       allow update: if isAuthenticated()
@@ -245,7 +205,7 @@ service cloud.firestore {
         && (
           resource.data.patientId == request.auth.uid ||
           resource.data.doctorId == request.auth.uid ||
-          isAdmin()
+          hasRole('admin')
         );
       
       allow create: if isAuthenticated()
@@ -255,10 +215,10 @@ service cloud.firestore {
         && (
           resource.data.patientId == request.auth.uid ||
           resource.data.doctorId == request.auth.uid ||
-          isAdmin()
+          hasRole('admin')
         );
       
-      allow delete: if isAdmin();
+      allow delete: if hasRole('admin');
     }
 
     // ==================== DEFAULT DENY ====================
