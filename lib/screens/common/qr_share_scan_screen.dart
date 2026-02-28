@@ -155,7 +155,14 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
       if (doctor != null && mounted) {
         _showSuccessAndNavigate(doctor);
       } else if (mounted) {
-        _showError('Doctor found but could not load profile');
+        // Doctor exists but full profile couldn't be loaded
+        // Navigate with limited data from Firestore
+        final limitedDoctorData = await _createLimitedDoctorData(doctorId);
+        if (limitedDoctorData != null) {
+          _showSuccessAndNavigate(limitedDoctorData);
+        } else {
+          _showError('Doctor found but could not load profile. Please try again.');
+        }
       }
     } catch (e) {
       debugPrint('Error processing QR code: $e');
@@ -194,6 +201,56 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
     } catch (e) {
       debugPrint('Error adding doctor to patient: $e');
       // Don't throw - the doctor was found, just couldn't save the connection
+    }
+  }
+
+  /// Creates a minimal doctor object from Firestore data when full model fails to load
+  Future<dynamic> _createLimitedDoctorData(String doctorId) async {
+    try {
+      // Try to get doctor data from doctors collection
+      final doctorDoc = await FirebaseFirestore.instance
+          .collection('doctors')
+          .doc(doctorId)
+          .get();
+      
+      if (doctorDoc.exists) {
+        final data = doctorDoc.data()!;
+        return _MinimalDoctorModel(
+          id: doctorId,
+          name: data['name'] ?? data['fullName'] ?? 'Unknown Doctor',
+          specialty: data['specialty'] ?? data['specialization'] ?? 'General',
+          price: (data['price'] ?? data['consultationFee'] ?? 0).toInt(),
+          rating: (data['rating'] ?? 0).toDouble(),
+          experience: data['experience'] ?? 0,
+          photoUrl: data['photoUrl'] ?? data['avatar'] ?? data['imageUrl'],
+          about: data['about'] ?? data['description'] ?? data['bio'] ?? '',
+        );
+      }
+      
+      // Fallback to users collection
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(doctorId)
+          .get();
+      
+      if (userDoc.exists) {
+        final data = userDoc.data()!;
+        return _MinimalDoctorModel(
+          id: doctorId,
+          name: data['name'] ?? data['fullName'] ?? 'Unknown Doctor',
+          specialty: data['specialty'] ?? data['specialization'] ?? 'General',
+          price: (data['price'] ?? data['consultationFee'] ?? 0).toInt(),
+          rating: (data['rating'] ?? 0).toDouble(),
+          experience: data['experience'] ?? 0,
+          photoUrl: data['photoUrl'] ?? data['avatar'] ?? data['imageUrl'],
+          about: data['about'] ?? data['description'] ?? data['bio'] ?? '',
+        );
+      }
+      
+      return null;
+    } catch (e) {
+      debugPrint('Error creating limited doctor data: $e');
+      return null;
     }
   }
 
@@ -401,4 +458,28 @@ class _QrScanScreenState extends State<QrShareScanScreen> {
       ),
     );
   }
+}
+
+/// Minimal doctor model for when full model can't be loaded
+/// This implements the same interface as DoctorModel for profile navigation
+class _MinimalDoctorModel {
+  final String id;
+  final String name;
+  final String specialty;
+  final int price;
+  final double rating;
+  final int experience;
+  final String? photoUrl;
+  final String about;
+
+  _MinimalDoctorModel({
+    required this.id,
+    required this.name,
+    required this.specialty,
+    required this.price,
+    required this.rating,
+    required this.experience,
+    this.photoUrl,
+    required this.about,
+  });
 }

@@ -371,11 +371,12 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                 title: 'Messages',
                 subtitle: 'Patient chats',
                 color: Colors.orange,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Messages coming soon')),
-                  );
-                },
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const DoctorAppointmentsScreen(),
+                  ),
+                ),
               ),
             ),
           ],

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/gestures.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -60,7 +61,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+    final userRole = authProvider.userRole ?? 'patient';
     _messageController.clear();
 
     await FirebaseFirestore.instance
@@ -70,7 +73,7 @@ class _ChatScreenState extends State<ChatScreen> {
         .add({
       'text': text,
       'senderId': user?.uid,
-      'senderRole': 'patient',
+      'senderRole': userRole,
       'type': 'text',
       'timestamp': FieldValue.serverTimestamp(),
       'read': false,
@@ -87,7 +90,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _uploadFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'txt'],
       allowMultiple: false,
     );
 
@@ -96,12 +100,38 @@ class _ChatScreenState extends State<ChatScreen> {
       String fileName = result.files.single.name;
       String ext = result.files.single.extension ?? 'file';
 
+      // Validate file size (50MB max)
+      final fileSize = await file.length();
+      if (fileSize > 50 * 1024 * 1024) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('File size must be less than 50MB')),
+          );
+        }
+        return;
+      }
+
       setState(() => _isUploading = true);
 
       try {
-        UploadTask task = FirebaseStorage.instance
-            .ref('chats/${widget.chatId}/$fileName')
-            .putFile(file);
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final user = authProvider.user;
+        final userRole = authProvider.userRole ?? 'patient';
+
+        // Create storage reference with metadata
+        final ref = FirebaseStorage.instance
+            .ref('chats/${widget.chatId}/$fileName');
+        
+        final metadata = SettableMetadata(
+          contentType: _getContentType(ext),
+          customMetadata: {
+            'uploadedBy': user?.uid ?? 'unknown',
+            'uploadedAt': DateTime.now().toIso8601String(),
+            'chatId': widget.chatId,
+          },
+        );
+
+        UploadTask task = ref.putFile(file, metadata);
 
         task.snapshotEvents.listen((snapshot) {
           setState(() {
@@ -112,7 +142,6 @@ class _ChatScreenState extends State<ChatScreen> {
         TaskSnapshot snapshot = await task;
         String url = await snapshot.ref.getDownloadURL();
 
-        final user = Provider.of<AuthProvider>(context, listen: false).user;
         await FirebaseFirestore.instance
             .collection('chats')
             .doc(widget.chatId)
@@ -122,7 +151,9 @@ class _ChatScreenState extends State<ChatScreen> {
           'fileUrl': url,
           'fileName': fileName,
           'fileType': ext,
+          'fileSize': fileSize,
           'senderId': user?.uid,
+          'senderRole': userRole,
           'type': 'file',
           'timestamp': FieldValue.serverTimestamp(),
           'read': false,
@@ -132,15 +163,66 @@ class _ChatScreenState extends State<ChatScreen> {
             .collection('chats')
             .doc(widget.chatId)
             .update({
-          'lastMessage': '📎 File',
+          'lastMessage': '📎 File: $fileName',
           'lastMessageAt': FieldValue.serverTimestamp(),
         });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('File uploaded successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } on FirebaseException catch (e) {
+        if (mounted) {
+          String errorMessage = 'Upload failed';
+          if (e.code == 'permission-denied') {
+            errorMessage = 'Permission denied. Please check storage permissions.';
+          } else if (e.code == 'unauthenticated') {
+            errorMessage = 'Please sign in again to upload files.';
+          } else if (e.code == 'object-not-found') {
+            errorMessage = 'Storage path not found.';
+          } else {
+            errorMessage = 'Upload failed: ${e.message}';
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Upload failed: $e')),
+          );
+        }
       } finally {
-        setState(() => _isUploading = false);
+        if (mounted) setState(() => _isUploading = false);
       }
+    }
+  }
+
+  String _getContentType(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'pdf':
+        return 'application/pdf';
+      case 'doc':
+        return 'application/msword';
+      case 'docx':
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      case 'txt':
+        return 'text/plain';
+      default:
+        return 'application/octet-stream';
     }
   }
 
@@ -198,8 +280,54 @@ class _ChatScreenState extends State<ChatScreen> {
                   .orderBy('timestamp', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData)
+                // Handle loading state
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
+                }
+                
+                // Handle errors
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline, size: 48, color: Colors.red.shade300),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Failed to load messages',
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () => setState(() {}),
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // Handle empty state
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey.shade300),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No messages yet',
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Start the conversation!',
+                          style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
                 final docs = snapshot.data!.docs;
                 return ListView.builder(
@@ -210,6 +338,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     final data = docs[index].data() as Map<String, dynamic>;
                     final isMe = data['senderId'] == currentUserId;
                     final isSystem = data['senderRole'] == 'system';
+                    final timestamp = data['timestamp'] as Timestamp?;
 
                     if (isSystem) {
                       return Center(
@@ -242,9 +371,24 @@ class _ChatScreenState extends State<ChatScreen> {
                               : Colors.grey.shade300,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: data['type'] == 'file'
-                            ? _buildFileWidget(data, isMe)
-                            : _buildTextWithLinks(data['text'] ?? '', isMe),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            data['type'] == 'file'
+                                ? _buildFileWidget(data, isMe)
+                                : _buildTextWithLinks(data['text'] ?? '', isMe),
+                            if (timestamp != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                _formatTimestamp(timestamp),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: isMe ? Colors.white70 : Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -354,5 +498,21 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     return RichText(text: TextSpan(children: spans));
+  }
+
+  String _formatTimestamp(Timestamp timestamp) {
+    final dateTime = timestamp.toDate();
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+    
+    if (diff.inDays > 0) {
+      return '${diff.inDays}d ago';
+    } else if (diff.inHours > 0) {
+      return '${diff.inHours}h ago';
+    } else if (diff.inMinutes > 0) {
+      return '${diff.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
   }
 }

@@ -617,10 +617,14 @@ class _ProfileContent extends StatelessWidget {
                 _SettingsItem(
                   icon: Icons.language,
                   title: l10n.language,
-                  trailing: Text(l10n.english),
-                  onTap: () {
-                    // TODO: Show language selector
-                  },
+                  trailing: Text(
+                    localeProvider.locale.languageCode == 'en'
+                        ? l10n.english
+                        : localeProvider.locale.languageCode == 'ru'
+                            ? 'Русский'
+                            : 'العربية',
+                  ),
+                  onTap: () => _showLanguageSelector(context, localeProvider),
                 ),
                 _SettingsItem(
                   icon: Icons.videocam_outlined,
