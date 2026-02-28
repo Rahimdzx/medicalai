@@ -37,14 +37,9 @@ class ChatListScreen extends StatelessWidget {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('appointments')
-            .where(
-              Filter.or(
-                Filter('doctorId', isEqualTo: currentUserId),
-                Filter('patientId', isEqualTo: currentUserId),
-              ),
-            )
-            .orderBy('updatedAt', descending: true)
+            .collection('chats')
+            .where('participants', arrayContains: currentUserId)
+            .orderBy('lastMessageAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -106,9 +101,7 @@ class ChatListScreen extends StatelessWidget {
               final otherPersonName = isDoctor 
                   ? (data['patientName'] ?? 'Patient')
                   : (data['doctorName'] ?? 'Doctor');
-              final otherPersonId = isDoctor
-                  ? data['patientId']
-                  : data['doctorId'];
+              final lastMessage = data['lastMessage'] ?? '';
 
               return Card(
                 elevation: 2,
@@ -138,17 +131,19 @@ class ChatListScreen extends StatelessWidget {
                     children: [
                       const SizedBox(height: 4),
                       Text(
-                        'Appointment: ${data['date'] ?? 'No date'}',
+                        lastMessage.isNotEmpty ? lastMessage : 'No messages yet',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 13,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Status: ${data['status'] ?? 'unknown'}',
+                        'Tap to chat',
                         style: TextStyle(
-                          color: _getStatusColor(data['status']),
+                          color: Colors.blue.shade700,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
