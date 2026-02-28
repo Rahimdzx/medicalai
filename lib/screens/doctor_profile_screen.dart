@@ -294,23 +294,18 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         builder: (BuildContext ctx) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(ctx).viewInsets.bottom,
-                ),
-                child: BookingScreen(
-                  doctor: widget.doctor,
-                  date: date,
-                  availableSlots: slots,
-                ),
-              ),
-            ),
+          return DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            expand: false,
+            builder: (_, scrollController) {
+              return BookingScreen(
+                doctor: widget.doctor,
+                date: date,
+                availableSlots: slots,
+              );
+            },
           );
         },
       );
@@ -339,23 +334,18 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         builder: (BuildContext ctx) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(ctx).viewInsets.bottom,
-                ),
-                child: BookingScreen(
-                  doctor: widget.doctor,
-                  date: date,
-                  availableSlots: defaultSlots,
-                ),
-              ),
-            ),
+          return DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            expand: false,
+            builder: (_, scrollController) {
+              return BookingScreen(
+                doctor: widget.doctor,
+                date: date,
+                availableSlots: defaultSlots,
+              );
+            },
           );
         },
       );
