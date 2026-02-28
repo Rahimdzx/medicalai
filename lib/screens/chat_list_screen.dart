@@ -39,7 +39,6 @@ class ChatListScreen extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('chats')
             .where('participants', arrayContains: currentUserId)
-            .orderBy('lastMessageAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
